@@ -22,6 +22,22 @@ import { db, auth, appId } from "./config/firebase";
 
 import { ICON_SVG } from "./utils/icons";
 
+// 引入樣式 (把所有用到的樣式都從 theme 引入)
+import {
+  morandiBackground,
+  morandiAccentColor,
+  morandiButtonPrimary,
+  morandiSelectedDayButton,
+  morandiDayButtonPassive,
+  morandiAccentText,
+  morandiFloatingSelectedText,
+  morandiFloatingPassiveText,
+} from "./utils/theme";
+
+// 引入剛剛拆出去的組件
+import Modal from "./components/Modal";
+import ItineraryCard from "./components/ItineraryCard";
+
 const DEFAULT_DAYS_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10, 14, 30];
 const CURRENCIES = ["TWD", "JPY", "KRW", "USD", "EUR", "CNY", "THB", "VND"];
 const EXPENSE_CATEGORIES = [
@@ -32,16 +48,6 @@ const EXPENSE_CATEGORIES = [
   { id: "entertainment", name: "娛樂", icon: "ticket" },
   { id: "other", name: "其他", icon: "dots" },
 ];
-
-const morandiAccentColor = "slate";
-const morandiBackground = "bg-stone-50";
-const morandiAccentBorder = `border-${morandiAccentColor}-400`;
-const morandiAccentText = `text-${morandiAccentColor}-600`;
-const morandiSelectedDayButton = `bg-${morandiAccentColor}-500 text-white shadow-lg`;
-const morandiButtonPrimary = "bg-slate-600 hover:bg-slate-700";
-const morandiDayButtonPassive = `bg-stone-200 text-gray-700 hover:bg-${morandiAccentColor}-100`;
-const morandiFloatingSelectedText = `text-${morandiAccentColor}-600`;
-const morandiFloatingPassiveText = `text-gray-500 hover:text-gray-700`;
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/g;
 const renderDescriptionWithLinks = (text) => {
@@ -79,103 +85,6 @@ const calculateDuration = (start, end) => {
   if (hours > 0) durationString += `${hours}小時`;
   if (minutes > 0) durationString += ` ${minutes}分鐘`;
   return durationString;
-};
-
-const Modal = ({ isOpen, onClose, title, children }) => {
-  if (!isOpen) return null;
-  return (
-    <div
-      className="fixed inset-0 z-50 overflow-y-auto"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          onClick={onClose}
-        ></div>
-        <span
-          className="hidden sm:inline-block sm:align-middle sm:h-screen"
-          aria-hidden="true"
-        >
-          &#8203;
-        </span>
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-              <h3
-                className={`text-lg leading-6 font-medium text-gray-900 ${morandiAccentText}`}
-              >
-                {title}
-              </h3>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition"
-              >
-                <ICON_SVG.xClose className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="mt-4">{children}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- 組件：行程卡片 ---
-const ItineraryCard = ({ data, onSelect, onDelete, onEdit }) => {
-  let displayDate = "";
-  if (data.startDate) {
-    displayDate = data.startDate.replace(/-/g, "/");
-  } else {
-    displayDate = new Date(data.createdAt?.seconds * 1000).toLocaleDateString();
-  }
-
-  return (
-    <div
-      onClick={() => onSelect(data.id)}
-      className="bg-white p-5 rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer border border-gray-100 group relative flex items-center justify-between"
-    >
-      <div className="flex-grow pr-4">
-        <h3 className="text-xl text-gray-800 mb-2 group-hover:text-slate-600 transition font-cute break-words leading-relaxed">
-          {data.title}
-        </h3>
-        <p className="text-sm text-gray-500 flex items-center">
-          <ICON_SVG.calendar className="w-4 h-4 mr-1 text-slate-400" />
-          <span className="font-medium mr-1">{data.durationDays} 天</span>
-          <span className="mx-2 text-gray-300">|</span>
-          <span className="text-slate-500 font-medium">
-            {displayDate}{" "}
-            <span className="text-xs text-gray-400 font-normal">出發</span>
-          </span>
-        </p>
-      </div>
-      <div className="flex-shrink-0 flex items-center space-x-2">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(data);
-          }}
-          className="text-gray-300 hover:text-blue-500 p-2 rounded-full hover:bg-blue-50 transition"
-          title="修改行程"
-        >
-          <ICON_SVG.pencil className="w-5 h-5" />
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(data.id);
-          }}
-          className="text-gray-300 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition"
-          title="刪除行程"
-        >
-          <ICON_SVG.trash className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-  );
 };
 
 // --- ActivityItem 元件 ---
