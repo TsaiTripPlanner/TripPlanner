@@ -743,7 +743,7 @@ const App = () => {
                       <button
                         key={day}
                         onClick={() => setActiveDay(day)}
-                        // 修改處：將 py-1.5 改為 py-3，讓按鈕變高
+                        // 修改處：將 py-1.5 改為 py-2.5，讓按鈕變高
                         className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 flex flex-col items-center justify-center min-w-[4.5rem] gap-1.5 ${
                           activeDay === day
                             ? morandiSelectedDayButton
