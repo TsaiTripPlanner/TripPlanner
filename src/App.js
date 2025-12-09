@@ -169,6 +169,14 @@ const App = () => {
     }
   }, [currentItinerary]);
 
+  // 輔助函式：計算第 N 天是幾月幾號
+  const getTabDate = (startDate, dayIndex) => {
+    if (!startDate) return "";
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + (dayIndex - 1));
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  };
+
   const createItinerary = async () => {
     if (!newItineraryData.title.trim()) return;
     try {
@@ -725,24 +733,45 @@ const App = () => {
             <div className="bg-white p-6 rounded-xl shadow-lg">
               <div className="flex space-x-2 overflow-x-auto pb-4 mb-6 border-b border-gray-200 scrollbar-hide">
                 {Array.from({ length: totalDays }, (_, i) => i + 1).map(
-                  (day) => (
-                    <button
-                      key={day}
-                      onClick={() => setActiveDay(day)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
-                        activeDay === day
-                          ? morandiSelectedDayButton
-                          : morandiDayButtonPassive
-                      }`}
-                    >
-                      第 {day} 天
-                    </button>
-                  )
+                  (day) => {
+                    // 計算該天的日期
+                    const dateStr = currentItinerary
+                      ? getTabDate(currentItinerary.startDate, day)
+                      : "";
+
+                    return (
+                      <button
+                        key={day}
+                        onClick={() => setActiveDay(day)}
+                        // 修改樣式：改為 flex-col 讓文字垂直排列，並調整 padding
+                        className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 flex flex-col items-center justify-center min-w-[4.5rem] ${
+                          activeDay === day
+                            ? morandiSelectedDayButton
+                            : morandiDayButtonPassive
+                        }`}
+                      >
+                        {/* 上面顯示 Day X */}
+                        <span className="text-base font-bold">Day {day}</span>
+                        {/* 下面顯示日期 (例如 12/20) */}
+                        {dateStr && (
+                          <span className="text-[10px] opacity-80 font-normal">
+                            {dateStr}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }
                 )}
               </div>
-              <h3 className="text-2xl font-semibold text-gray-800 mb-6">
-                第 {activeDay} 天的活動
+
+              {/* 修改標題文字：把 "第 X 天" 改為 "Day X" */}
+              <h3 className="text-2xl font-semibold text-gray-800 mb-6 font-cute">
+                Day {activeDay}{" "}
+                <span className="text-base text-gray-400 font-normal ml-2">
+                  的活動
+                </span>
               </h3>
+
               <div className="relative mb-10">
                 {activities.length > 0 ? (
                   <DragDropContext onDragEnd={handleDragEnd}>
@@ -883,7 +912,7 @@ const App = () => {
           setIsModalOpen(false);
           setFormError("");
         }}
-        title={`新增活動 (第 ${activeDay} 天)`}
+        title={`新增活動 (Day ${activeDay})`}
       >
         <form onSubmit={addActivity} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

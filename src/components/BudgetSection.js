@@ -230,7 +230,7 @@ const BudgetSection = memo(
             >
               {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => (
                 <option key={d} value={d}>
-                  第 {d} 天
+                  Day {d}
                 </option>
               ))}
             </select>
@@ -309,7 +309,7 @@ const BudgetSection = memo(
                     <h4
                       className={`text-md font-bold ${morandiAccentText} flex items-center`}
                     >
-                      第 {dayKey} 天{" "}
+                      Day {dayKey}{" "}
                       <span className="text-xs text-gray-400 ml-2 font-normal">
                         {getDisplayDate(dayKey)}
                       </span>
@@ -349,7 +349,7 @@ const BudgetSection = memo(
                                   (_, i) => i + 1
                                 ).map((d) => (
                                   <option key={d} value={d}>
-                                    第 {d} 天
+                                    Day {d}
                                   </option>
                                 ))}
                               </select>
