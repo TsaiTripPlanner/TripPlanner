@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, memo, useRef } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { initializeApp } from "firebase/app";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
+
+// 原本的 Firebase 功能引入要留著 (除了 initializeApp 和 getFirestore)
+import { signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import {
-  getFirestore,
   collection,
   onSnapshot,
   addDoc,
@@ -15,37 +15,10 @@ import {
   where,
   getDocs,
   writeBatch,
-  orderBy,
 } from "firebase/firestore";
 
-// --- 全域變數和 Firebase 初始化 ---
-const appId = "my-trip-app-v18-burger-icon"; // 版本更新
-
-const firebaseConfig = {
-  apiKey: "AIzaSyB6kHRCZuEK2MAY5ce4cRu_C3ZfJoijIqg",
-  authDomain: "conantowntripapp.firebaseapp.com",
-  databaseURL:
-    "https://conantowntripapp-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "conantowntripapp",
-  storageBucket: "conantowntripapp.firebasestorage.app",
-  messagingSenderId: "601821748614",
-  appId: "1:601821748614:web:1e9e4b88a5eaf26a15e007",
-  measurementId: "G-3ZTZZJJPTB",
-};
-
-let firebaseApp = null;
-let db = null;
-let auth = null;
-
-if (firebaseConfig && firebaseConfig.apiKey) {
-  try {
-    firebaseApp = initializeApp(firebaseConfig);
-    db = getFirestore(firebaseApp);
-    auth = getAuth(firebaseApp);
-  } catch (e) {
-    console.error("Firebase Initialization Error:", e);
-  }
-}
+// 告訴 App.js 去 config 資料夾把設定拿來用
+import { db, auth, appId } from "./config/firebase";
 
 // 輔助 SVG 圖標
 const ICON_SVG = {
