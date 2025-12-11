@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, memo, useRef } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 // 原本的 Firebase 功能引入要留著 (除了 initializeApp 和 getFirestore)
-import { signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import {
   collection,
   onSnapshot,
@@ -41,11 +40,11 @@ import ActivityItem from "./components/ActivityItem";
 import ListSection from "./components/ListSection";
 import BudgetSection from "./components/BudgetSection";
 
+import { useAuth } from "./hooks/useAuth";
+
 const DEFAULT_DAYS_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10, 14, 30];
 
 const App = () => {
-  const [userId, setUserId] = useState(null);
-  const [isAuthReady, setIsAuthReady] = useState(false);
   const [activeTab, setActiveTab] = useState("itinerary");
   const [activeDay, setActiveDay] = useState(1);
   const [activities, setActivities] = useState([]);
@@ -89,7 +88,8 @@ const App = () => {
   const [listCategories, setListCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
   const itemUnsubscribersRef = useRef([]);
-  const [errorMessage, setErrorMessage] = useState("");
+  // authError: errorMessage 意思是把 hook 傳回來的 authError 改名叫 errorMessage
+  const { userId, isAuthReady, authError: errorMessage } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
 
   const currentItinerary = allItineraries.find((i) => i.id === itineraryId);
@@ -97,24 +97,6 @@ const App = () => {
   const [totalDays, setTotalDays] = useState(6);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState("");
-
-  useEffect(() => {
-    if (!auth) {
-      setErrorMessage("Firebase Config 尚未設定或錯誤。");
-      setIsAuthReady(true);
-      setIsLoading(false);
-      return;
-    }
-    signInAnonymously(auth).catch((error) => {
-      console.error("認證失敗:", error);
-      setErrorMessage("登入失敗，請檢查 Firebase Auth 設定。");
-    });
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUserId(user ? user.uid : "guest");
-      setIsAuthReady(true);
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!isAuthReady || !userId || !db) return;
