@@ -47,8 +47,16 @@ import { useActivities } from "./hooks/useActivities";
 const DEFAULT_DAYS_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10, 14, 30];
 
 const App = () => {
+  //  1. 【最優先】先確認使用者是誰 (從 useAuth 拿 userId)
+  // authError: errorMessage 意思是把 hook 傳回來的 authError 改名叫 errorMessage
+  const { userId, isAuthReady, authError: errorMessage } = useAuth();
+
+  // 2. 【定義狀態】定義所有需要的變數 (itineraryId, activeDay)
+  const [itineraryId, setItineraryId] = useState(null);
   const [activeTab, setActiveTab] = useState("itinerary");
   const [activeDay, setActiveDay] = useState(1);
+
+  // 3. 【呼叫功能】
   const {
     activities,
     addActivity: hookAddActivity, // 改個名避免衝突
@@ -56,7 +64,7 @@ const App = () => {
     updateActivity,
     reorderActivities,
   } = useActivities(userId, itineraryId, activeDay);
-  const [itineraryId, setItineraryId] = useState(null);
+
   const [allItineraries, setAllItineraries] = useState([]);
 
   const [isCreatingItinerary, setIsCreatingItinerary] = useState(false);
@@ -95,8 +103,7 @@ const App = () => {
   const [listCategories, setListCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
   const itemUnsubscribersRef = useRef([]);
-  // authError: errorMessage 意思是把 hook 傳回來的 authError 改名叫 errorMessage
-  const { userId, isAuthReady, authError: errorMessage } = useAuth();
+
   const [isLoading, setIsLoading] = useState(true);
 
   const currentItinerary = allItineraries.find((i) => i.id === itineraryId);
