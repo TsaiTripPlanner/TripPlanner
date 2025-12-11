@@ -39,6 +39,7 @@ import ItineraryCard from "./components/ItineraryCard";
 import ActivityItem from "./components/ActivityItem";
 import ListSection from "./components/ListSection";
 import BudgetSection from "./components/BudgetSection";
+import DayTabs from "./components/DayTabs";
 
 import { useAuth } from "./hooks/useAuth";
 
@@ -150,14 +151,6 @@ const App = () => {
       setActiveDay(1);
     }
   }, [currentItinerary]);
-
-  // 輔助函式：計算第 N 天是幾月幾號
-  const getTabDate = (startDate, dayIndex) => {
-    if (!startDate) return "";
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + (dayIndex - 1));
-    return `${date.getMonth() + 1}/${date.getDate()}`;
-  };
 
   const createItinerary = async () => {
     if (!newItineraryData.title.trim()) return;
@@ -713,39 +706,12 @@ const App = () => {
 
           {activeTab === "itinerary" && (
             <div className="bg-white p-6 rounded-xl shadow-lg">
-              <div className="flex space-x-2 overflow-x-auto pb-4 mb-6 border-b border-gray-200 scrollbar-hide">
-                {Array.from({ length: totalDays }, (_, i) => i + 1).map(
-                  (day) => {
-                    // 計算該天的日期
-                    const dateStr = currentItinerary
-                      ? getTabDate(currentItinerary.startDate, day)
-                      : "";
-
-                    return (
-                      <button
-                        key={day}
-                        onClick={() => setActiveDay(day)}
-                        // 修改處：將 py-1.5 改為 py-2.5，讓按鈕變高
-                        className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 flex flex-col items-center justify-center min-w-[4.5rem] gap-1.5 ${
-                          activeDay === day
-                            ? morandiSelectedDayButton
-                            : morandiDayButtonPassive
-                        }`}
-                      >
-                        {/* 上面顯示 Day X */}
-                        <span className="text-base font-bold">Day {day}</span>
-                        {/* 下面顯示日期 (例如 12/20) */}
-                        {dateStr && (
-                          <span className="text-[10px] opacity-80 font-normal">
-                            {dateStr}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  }
-                )}
-              </div>
-
+              <DayTabs
+                totalDays={totalDays}
+                activeDay={activeDay}
+                setActiveDay={setActiveDay}
+                startDate={currentItinerary?.startDate}
+              />
               {/* 修改標題文字：把 "第 X 天" 改為 "Day X" */}
               <h3 className="text-2xl font-semibold text-gray-800 mb-6 font-cute">
                 Day {activeDay}{" "}
