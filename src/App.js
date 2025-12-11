@@ -42,14 +42,20 @@ import BudgetSection from "./components/BudgetSection";
 import DayTabs from "./components/DayTabs";
 
 import { useAuth } from "./hooks/useAuth";
+import { useActivities } from "./hooks/useActivities";
 
 const DEFAULT_DAYS_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10, 14, 30];
 
 const App = () => {
   const [activeTab, setActiveTab] = useState("itinerary");
   const [activeDay, setActiveDay] = useState(1);
-  const [activities, setActivities] = useState([]);
-
+  const {
+    activities,
+    addActivity: hookAddActivity, // 改個名避免衝突
+    deleteActivity, // 直接覆蓋舊的函式名
+    updateActivity,
+    reorderActivities,
+  } = useActivities(userId, itineraryId, activeDay);
   const [itineraryId, setItineraryId] = useState(null);
   const [allItineraries, setAllItineraries] = useState([]);
 
@@ -256,25 +262,6 @@ const App = () => {
   };
 
   useEffect(() => {
-    if (activeTab !== "itinerary" || !itineraryId || !db) return;
-    const activitiesColRef = collection(
-      db,
-      `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/activities`
-    );
-    const q = query(activitiesColRef, where("day", "==", activeDay));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      let data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      data.sort(
-        (a, b) =>
-          (a.order !== undefined ? a.order : 9999) -
-          (b.order !== undefined ? b.order : 9999)
-      );
-      setActivities(data);
-    });
-    return () => unsubscribe();
-  }, [itineraryId, activeDay, userId, activeTab]);
-
-  useEffect(() => {
     if (!itineraryId || !db) return;
     const categoriesColRef = collection(
       db,
@@ -336,29 +323,28 @@ const App = () => {
     setFormError("");
   }, []);
 
-  const addActivity = useCallback(
+  const handleAddActivity = useCallback(
     async (e) => {
       e.preventDefault();
-      if (!itineraryId) return;
+      // 這裡使用了 Hook 傳回來的 hookAddActivity
       const { title, location, startTime, endTime, description } = newActivity;
+
       if (!title.trim() || !location.trim()) {
         setFormError("活動標題與地點為必填欄位！");
         return;
       }
+
       try {
-        const activitiesColPath = `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/activities`;
-        const newOrder = activities.length;
-        await addDoc(collection(db, activitiesColPath), {
+        // ✅ 呼叫 Hook 提供的功能，只傳送資料就好
+        await hookAddActivity({
           title,
           location,
           startTime: startTime || "",
           endTime: endTime || "",
           description: description || "",
-          day: activeDay,
-          order: newOrder,
-          isCompleted: false,
-          createdAt: serverTimestamp(),
         });
+
+        // 清空表單
         setNewActivity({
           title: "",
           location: "",
@@ -371,30 +357,13 @@ const App = () => {
         setFormError(`錯誤：${error.message}`);
       }
     },
-    [itineraryId, userId, newActivity, activeDay, activities.length]
+    [hookAddActivity, newActivity] // 依賴項變了
   );
 
   const handleEditInputChange = useCallback(
     (e) =>
       setEditFormData((prev) => ({ ...prev, [e.target.name]: e.target.value })),
     []
-  );
-
-  const deleteActivity = useCallback(
-    async (activityId) => {
-      if (!itineraryId) return;
-      try {
-        await deleteDoc(
-          doc(
-            db,
-            `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/activities/${activityId}`
-          )
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    [itineraryId, userId]
   );
 
   const startEditActivity = useCallback(
@@ -435,59 +404,34 @@ const App = () => {
 
   const saveEdit = useCallback(
     async (activityId) => {
-      if (!itineraryId) return;
       const { title, location, startTime, endTime, description } = editFormData;
-      try {
-        await updateDoc(
-          doc(
-            db,
-            `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/activities/${activityId}`
-          ),
-          {
-            title,
-            location,
-            startTime,
-            endTime,
-            description: description || "",
-            updatedAt: serverTimestamp(),
-          }
-        );
-        cancelEdit();
-      } catch (error) {
-        console.error(error);
-      }
+      // ✅ 呼叫 Hook 的更新功能
+      await updateActivity(activityId, {
+        title,
+        location,
+        startTime,
+        endTime,
+        description: description || "",
+      });
+      cancelEdit();
     },
-    [itineraryId, userId, editFormData, cancelEdit]
+    [updateActivity, editFormData, cancelEdit]
   );
 
   const handleDragEnd = useCallback(
-    async (result) => {
+    (result) => {
       if (!result.destination) return;
       const { source, destination } = result;
       if (source.index === destination.index) return;
+
       const reorderedActivities = Array.from(activities);
       const [movedItem] = reorderedActivities.splice(source.index, 1);
       reorderedActivities.splice(destination.index, 0, movedItem);
-      setActivities(reorderedActivities);
-      if (!itineraryId) return;
-      try {
-        const batch = writeBatch(db);
-        reorderedActivities.forEach((act, index) => {
-          if (act.order !== index) {
-            const ref = doc(
-              db,
-              `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/activities/${act.id}`
-            );
-            batch.update(ref, { order: index });
-          }
-        });
-        await batch.commit();
-      } catch (error) {
-        console.error("拖曳更新失敗:", error);
-        alert("排序更新失敗，請檢查網路連線");
-      }
+
+      // ✅ 只要呼叫這一行，Hook 會幫你處理 State 更新和 Firebase 寫入
+      reorderActivities(reorderedActivities);
     },
-    [activities, itineraryId, userId]
+    [activities, reorderActivities]
   );
 
   const addCategory = useCallback(async () => {
@@ -862,7 +806,7 @@ const App = () => {
         }}
         title={`新增活動 (Day ${activeDay})`}
       >
-        <form onSubmit={addActivity} className="space-y-4">
+        <form onSubmit={handleAddActivity} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input
               type="text"
