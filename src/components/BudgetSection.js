@@ -14,6 +14,7 @@ import {
 // 引用外部設定與工具
 import { db, appId } from "../config/firebase";
 import { ICON_SVG } from "../utils/icons";
+import { morandiAccentText, morandiButtonPrimary } from "../utils/theme";
 
 // 這些常數原本在 App.js，現在搬過來這裡，因為只有這裡用得到
 const CURRENCIES = ["TWD", "JPY", "KRW", "USD", "EUR", "CNY", "THB", "VND"];
@@ -28,14 +29,7 @@ const EXPENSE_CATEGORIES = [
 
 // --- 旅行費用 (BudgetSection) 組件 ---
 const BudgetSection = memo(
-  ({
-    itineraryId,
-    userId,
-    morandiAccentText,
-    morandiButtonPrimary,
-    totalDays,
-    itineraryStartDate,
-  }) => {
+  ({ itineraryId, userId, totalDays, itineraryStartDate }) => {
     const [expenses, setExpenses] = useState([]);
 
     const [newItem, setNewItem] = useState({

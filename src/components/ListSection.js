@@ -1,6 +1,11 @@
 // src/components/ListSection.js
 import React, { useState, memo } from "react";
 import { ICON_SVG } from "../utils/icons";
+import {
+  morandiAccentText,
+  morandiButtonPrimary,
+  morandiAccentColor,
+} from "../utils/theme";
 
 // --- 清單管理 (ListSection) 組件 ---
 const ListSection = memo(
@@ -13,9 +18,6 @@ const ListSection = memo(
     addItemToList,
     toggleItemCompletion,
     deleteItem,
-    morandiAccentText,
-    morandiButtonPrimary,
-    morandiAccentColor,
   }) => {
     const [newItemInput, setNewItemInput] = useState({});
     const [collapsedCategories, setCollapsedCategories] = useState({});

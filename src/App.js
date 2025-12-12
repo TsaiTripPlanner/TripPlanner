@@ -738,9 +738,6 @@ const App = () => {
               addItemToList={addItemToList}
               toggleItemCompletion={toggleItemCompletion}
               deleteItem={deleteItem}
-              morandiAccentText={morandiAccentText}
-              morandiButtonPrimary={morandiButtonPrimary}
-              morandiAccentColor={morandiAccentColor}
             />
           )}
 
@@ -748,8 +745,6 @@ const App = () => {
             <BudgetSection
               itineraryId={itineraryId}
               userId={userId}
-              morandiAccentText={morandiAccentText}
-              morandiButtonPrimary={morandiButtonPrimary}
               totalDays={totalDays}
               itineraryStartDate={currentItinerary?.startDate}
             />
