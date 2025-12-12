@@ -51,6 +51,7 @@ const calculateDuration = (start, end) => {
 const ActivityItem = memo(
   ({
     activity,
+    index,
     onDelete,
     onStartEdit,
     isEditing,
@@ -93,7 +94,7 @@ const ActivityItem = memo(
 
     return (
       <div className="flex relative h-full">
-        <div className="w-20 text-right flex-shrink-0 pr-4 pt-0.5 hidden sm:block">
+        <div className="w-20 text-right flex-shrink-0 pr-4 pt-0.5 hidden sm:block pb-8">
           <div
             className={`text-lg font-bold ${morandiAccentText} leading-snug`}
           >
@@ -105,16 +106,26 @@ const ActivityItem = memo(
             </div>
           )}
         </div>
-        <div className="flex flex-col items-center pt-1 flex-shrink-0 mr-4 sm:mr-0">
+        {/* 修改中間欄位開始 */}
+        <div className="relative flex flex-col items-center flex-shrink-0 mr-4 sm:mr-0 w-4">
+          {/* 絕對定位的線條 */}
           <div
-            className={`w-3 h-3 rounded-full ${
-              activity.isCompleted ? morandiSelectedDayButton : "bg-gray-400"
-            } flex-shrink-0`}
+            className={`absolute w-px bg-gray-300 left-1/2 -translate-x-1/2 bottom-0 ${
+              index === 0 ? "top-2" : "top-0"
+            }`}
           ></div>
-          <div className="flex-grow w-px bg-gray-300"></div>
+          {/* 圓點 */}
+          <div
+            className={`relative z-10 w-3 h-3 rounded-full ${
+              activity.isCompleted ? morandiSelectedDayButton : "bg-gray-400"
+            } flex-shrink-0 mt-1`}
+          ></div>
         </div>
+        {/* 右側欄位 */}
         <div
-          className={`flex-grow min-w-0 ${!isEditing ? "sm:ml-4" : "sm:ml-0"}`}
+          className={`flex-grow min-w-0 pb-8 ${
+            !isEditing ? "sm:ml-4" : "sm:ml-0"
+          }`}
         >
           <div className={cardClasses}>
             {isEditing ? (

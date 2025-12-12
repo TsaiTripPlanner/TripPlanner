@@ -53,6 +53,11 @@ const App = () => {
   // authError: errorMessage 意思是把 hook 傳回來的 authError 改名叫 errorMessage
   const { userId, isAuthReady, authError: errorMessage } = useAuth();
 
+  // 2. 【定義狀態】定義所有需要的變數 (itineraryId, activeDay)
+  const [itineraryId, setItineraryId] = useState(null);
+  const [activeTab, setActiveTab] = useState("itinerary");
+  const [activeDay, setActiveDay] = useState(1);
+
   // === 呼叫行程管家 ===
   const {
     allItineraries,
@@ -62,6 +67,7 @@ const App = () => {
     deleteItinerary: hookDeleteItinerary, // 改個別名
   } = useItineraries(userId);
 
+  // === 呼叫清單管家 ===
   // 注意：newCategoryName 還是留在 App 這裡控制 UI，因為它是輸入框的狀態
   const {
     listCategories,
@@ -72,12 +78,7 @@ const App = () => {
     deleteItem, // 直接用
   } = usePackingList(userId, itineraryId);
 
-  // 2. 【定義狀態】定義所有需要的變數 (itineraryId, activeDay)
-  const [itineraryId, setItineraryId] = useState(null);
-  const [activeTab, setActiveTab] = useState("itinerary");
-  const [activeDay, setActiveDay] = useState(1);
-
-  // 3. 【呼叫功能】
+  // === 呼叫活動管家 ===
   const {
     activities,
     addActivity: hookAddActivity, // 改個名避免衝突
@@ -487,7 +488,7 @@ const App = () => {
                         <div
                           {...provided.droppableProps}
                           ref={provided.innerRef}
-                          className="space-y-0"
+                          className=""
                         >
                           {activities.map((activity, index) => (
                             <Draggable
@@ -499,7 +500,7 @@ const App = () => {
                                 <div
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
-                                  className="mb-8"
+                                  className="mb-0"
                                   style={{ ...provided.draggableProps.style }}
                                 >
                                   <ActivityItem
