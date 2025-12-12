@@ -44,6 +44,7 @@ import DayTabs from "./components/DayTabs";
 import { useAuth } from "./hooks/useAuth";
 import { useActivities } from "./hooks/useActivities";
 import { useItineraries } from "./hooks/useItineraries";
+import { usePackingList } from "./hooks/usePackingList";
 
 const DEFAULT_DAYS_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10, 14, 30];
 
@@ -60,6 +61,16 @@ const App = () => {
     updateItinerary: hookUpdateItinerary, // 改個別名
     deleteItinerary: hookDeleteItinerary, // 改個別名
   } = useItineraries(userId);
+
+  // 注意：newCategoryName 還是留在 App 這裡控制 UI，因為它是輸入框的狀態
+  const {
+    listCategories,
+    addCategory: hookAddCategory,
+    deleteCategory, // 直接用
+    addItemToList, // 直接用
+    toggleItemCompletion, // 直接用
+    deleteItem, // 直接用
+  } = usePackingList(userId, itineraryId);
 
   // 2. 【定義狀態】定義所有需要的變數 (itineraryId, activeDay)
   const [itineraryId, setItineraryId] = useState(null);
@@ -108,9 +119,7 @@ const App = () => {
     description: "",
   });
   const [formError, setFormError] = useState("");
-  const [listCategories, setListCategories] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const itemUnsubscribersRef = useRef([]);
 
   const currentItinerary = allItineraries.find((i) => i.id === itineraryId);
   const [currentTitle, setCurrentTitle] = useState("");
@@ -202,63 +211,6 @@ const App = () => {
       alert("更新標題失敗");
     }
   };
-
-  useEffect(() => {
-    if (!itineraryId || !db) return;
-    const categoriesColRef = collection(
-      db,
-      `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories`
-    );
-    itemUnsubscribersRef.current.forEach((unsub) => unsub());
-    itemUnsubscribersRef.current = [];
-    const unsubscribeCategories = onSnapshot(
-      categoriesColRef,
-      (categorySnapshot) => {
-        const categoriesData = [];
-        categorySnapshot.docs.forEach((catDoc) => {
-          const category = { id: catDoc.id, ...catDoc.data(), items: [] };
-          categoriesData.push(category);
-          const itemsColRef = collection(
-            db,
-            `${categoriesColRef.path}/${category.id}/items`
-          );
-          const unsubscribeItems = onSnapshot(itemsColRef, (itemSnapshot) => {
-            const items = itemSnapshot.docs.map((itemDoc) => ({
-              id: itemDoc.id,
-              ...itemDoc.data(),
-            }));
-            setListCategories((prev) => {
-              const updated = prev.map((pCat) =>
-                pCat.id === category.id
-                  ? {
-                      ...pCat,
-                      items: items.sort(
-                        (a, b) =>
-                          a.createdAt?.seconds - b.createdAt?.seconds || 0
-                      ),
-                    }
-                  : pCat
-              );
-              return updated.sort(
-                (a, b) =>
-                  (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
-              );
-            });
-          });
-          itemUnsubscribersRef.current.push(unsubscribeItems);
-        });
-        setListCategories(
-          categoriesData.sort(
-            (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
-          )
-        );
-      }
-    );
-    return () => {
-      unsubscribeCategories();
-      itemUnsubscribersRef.current.forEach((unsub) => unsub());
-    };
-  }, [itineraryId, userId]);
 
   const handleNewActivityChange = useCallback((e) => {
     setNewActivity((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -376,95 +328,16 @@ const App = () => {
     [activities, reorderActivities]
   );
 
-  const addCategory = useCallback(async () => {
-    if (!itineraryId || !newCategoryName.trim()) return;
+  const handleAddCategory = useCallback(async () => {
+    if (!newCategoryName.trim()) return;
     try {
-      await addDoc(
-        collection(
-          db,
-          `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories`
-        ),
-        { name: newCategoryName.trim(), createdAt: serverTimestamp() }
-      );
-      setNewCategoryName("");
+      // 呼叫管家，並把輸入框的字傳給它
+      await hookAddCategory(newCategoryName);
+      setNewCategoryName(""); // 清空輸入框
     } catch (error) {
-      console.error(error);
+      alert("新增類別失敗");
     }
-  }, [itineraryId, userId, newCategoryName]);
-
-  const deleteCategory = useCallback(
-    async (categoryId) => {
-      if (!itineraryId) return;
-      if (!window.confirm("確定刪除？")) return;
-      try {
-        const categoryDocPath = `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories/${categoryId}`;
-        const itemsColRef = collection(db, `${categoryDocPath}/items`);
-        const snapshot = await getDocs(itemsColRef);
-        await Promise.all(snapshot.docs.map((d) => deleteDoc(d.ref)));
-        await deleteDoc(doc(db, categoryDocPath));
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    [itineraryId, userId]
-  );
-
-  const addItemToList = useCallback(
-    async (categoryId, itemName) => {
-      if (!itineraryId || !itemName.trim()) return;
-      try {
-        await addDoc(
-          collection(
-            db,
-            `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories/${categoryId}/items`
-          ),
-          {
-            name: itemName.trim(),
-            isCompleted: false,
-            createdAt: serverTimestamp(),
-          }
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    [itineraryId, userId]
-  );
-
-  const toggleItemCompletion = useCallback(
-    async (categoryId, itemId, isCompleted) => {
-      if (!itineraryId) return;
-      try {
-        await updateDoc(
-          doc(
-            db,
-            `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories/${categoryId}/items/${itemId}`
-          ),
-          { isCompleted: isCompleted, updatedAt: serverTimestamp() }
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    [itineraryId, userId]
-  );
-
-  const deleteItem = useCallback(
-    async (categoryId, itemId) => {
-      if (!itineraryId) return;
-      try {
-        await deleteDoc(
-          doc(
-            db,
-            `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories/${categoryId}/items/${itemId}`
-          )
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    [itineraryId, userId]
-  );
+  }, [hookAddCategory, newCategoryName]);
 
   if (isItinerariesLoading && !errorMessage)
     return (
@@ -668,7 +541,7 @@ const App = () => {
               listCategories={listCategories}
               newCategoryName={newCategoryName}
               setNewCategoryName={setNewCategoryName}
-              addCategory={addCategory}
+              addCategory={handleAddCategory}
               deleteCategory={deleteCategory}
               addItemToList={addItemToList}
               toggleItemCompletion={toggleItemCompletion}
