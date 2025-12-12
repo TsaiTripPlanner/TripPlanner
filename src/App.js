@@ -43,6 +43,7 @@ import DayTabs from "./components/DayTabs";
 
 import { useAuth } from "./hooks/useAuth";
 import { useActivities } from "./hooks/useActivities";
+import { useItineraries } from "./hooks/useItineraries";
 
 const DEFAULT_DAYS_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10, 14, 30];
 
@@ -50,6 +51,15 @@ const App = () => {
   //  1. 【最優先】先確認使用者是誰 (從 useAuth 拿 userId)
   // authError: errorMessage 意思是把 hook 傳回來的 authError 改名叫 errorMessage
   const { userId, isAuthReady, authError: errorMessage } = useAuth();
+
+  // === 呼叫行程管家 ===
+  const {
+    allItineraries,
+    isLoading: isItinerariesLoading, // 改個別名以免跟 App 內原本的狀態衝突
+    createItinerary: hookCreateItinerary, // 改個別名
+    updateItinerary: hookUpdateItinerary, // 改個別名
+    deleteItinerary: hookDeleteItinerary, // 改個別名
+  } = useItineraries(userId);
 
   // 2. 【定義狀態】定義所有需要的變數 (itineraryId, activeDay)
   const [itineraryId, setItineraryId] = useState(null);
@@ -64,8 +74,6 @@ const App = () => {
     updateActivity,
     reorderActivities,
   } = useActivities(userId, itineraryId, activeDay);
-
-  const [allItineraries, setAllItineraries] = useState([]);
 
   const [isCreatingItinerary, setIsCreatingItinerary] = useState(false);
   const [newItineraryData, setNewItineraryData] = useState({
@@ -104,58 +112,11 @@ const App = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
   const itemUnsubscribersRef = useRef([]);
 
-  const [isLoading, setIsLoading] = useState(true);
-
   const currentItinerary = allItineraries.find((i) => i.id === itineraryId);
   const [currentTitle, setCurrentTitle] = useState("");
   const [totalDays, setTotalDays] = useState(6);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState("");
-
-  useEffect(() => {
-    if (!isAuthReady || !userId || !db) return;
-
-    // 讀取行程列表
-    const itinerariesColRef = collection(
-      db,
-      `artifacts/${appId}/users/${userId}/itineraries`
-    );
-    const q = query(itinerariesColRef);
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const trips = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        trips.sort((a, b) => {
-          const dateA =
-            a.startDate ||
-            (a.createdAt
-              ? new Date(a.createdAt.seconds * 1000).toISOString().split("T")[0]
-              : "0000-00-00");
-          const dateB =
-            b.startDate ||
-            (b.createdAt
-              ? new Date(b.createdAt.seconds * 1000).toISOString().split("T")[0]
-              : "0000-00-00");
-          return dateB.localeCompare(dateA);
-        });
-
-        setAllItineraries(trips);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error("讀取行程列表失敗", error);
-        setErrorMessage(error.message);
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [isAuthReady, userId]);
 
   useEffect(() => {
     if (currentItinerary) {
@@ -165,19 +126,17 @@ const App = () => {
     }
   }, [currentItinerary]);
 
-  const createItinerary = async () => {
+  const handleCreateItinerary = async () => {
+    // 改名為 handle... 以示區別
     if (!newItineraryData.title.trim()) return;
     try {
-      const itinerariesColRef = collection(
-        db,
-        `artifacts/${appId}/users/${userId}/itineraries`
-      );
-      await addDoc(itinerariesColRef, {
+      // 呼叫管家幫忙建立
+      await hookCreateItinerary({
         title: newItineraryData.title.trim(),
-        durationDays: Number(newItineraryData.days),
+        days: newItineraryData.days,
         startDate: newItineraryData.startDate,
-        createdAt: serverTimestamp(),
       });
+
       setIsCreatingItinerary(false);
       setNewItineraryData({
         title: "",
@@ -202,15 +161,11 @@ const App = () => {
   const handleUpdateItinerary = async () => {
     if (!editingItineraryData.title.trim() || !editingItineraryData.id) return;
     try {
-      const itineraryRef = doc(
-        db,
-        `artifacts/${appId}/users/${userId}/itineraries/${editingItineraryData.id}`
-      );
-      await updateDoc(itineraryRef, {
+      // 呼叫管家幫忙更新
+      await hookUpdateItinerary(editingItineraryData.id, {
         title: editingItineraryData.title.trim(),
         durationDays: Number(editingItineraryData.days),
         startDate: editingItineraryData.startDate,
-        updatedAt: serverTimestamp(),
       });
       setIsEditItineraryModalOpen(false);
     } catch (error) {
@@ -219,28 +174,12 @@ const App = () => {
     }
   };
 
-  const deleteItineraryFromList = async (id) => {
+  const handleDeleteItinerary = async (id) => {
+    // 改名
     if (!window.confirm("確定要永久刪除此行程及其所有資料嗎？")) return;
     try {
-      const activitiesRef = collection(
-        db,
-        `artifacts/${appId}/users/${userId}/itineraries/${id}/activities`
-      );
-      const actSnap = await getDocs(activitiesRef);
-      const batch = writeBatch(db);
-      actSnap.docs.forEach((doc) => batch.delete(doc.ref));
-
-      const catsRef = collection(
-        db,
-        `artifacts/${appId}/users/${userId}/itineraries/${id}/listCategories`
-      );
-      const catSnap = await getDocs(catsRef);
-      catSnap.docs.forEach((doc) => batch.delete(doc.ref));
-
-      batch.delete(
-        doc(db, `artifacts/${appId}/users/${userId}/itineraries`, id)
-      );
-      await batch.commit();
+      // 呼叫管家幫忙刪除
+      await hookDeleteItinerary(id);
     } catch (e) {
       console.error("刪除行程失敗", e);
       alert("刪除失敗");
@@ -253,13 +192,9 @@ const App = () => {
       return;
     }
     try {
-      const itineraryRef = doc(
-        db,
-        `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}`
-      );
-      await updateDoc(itineraryRef, {
+      // 呼叫管家幫忙更新標題
+      await hookUpdateItinerary(itineraryId, {
         title: tempTitle.trim(),
-        updatedAt: serverTimestamp(),
       });
       setIsEditingTitle(false);
     } catch (error) {
@@ -531,7 +466,7 @@ const App = () => {
     [itineraryId, userId]
   );
 
-  if (isLoading && !errorMessage)
+  if (isItinerariesLoading && !errorMessage)
     return (
       <div
         className={`flex items-center justify-center min-h-screen ${morandiBackground}`}
@@ -589,7 +524,7 @@ const App = () => {
                   key={trip.id}
                   data={trip}
                   onSelect={(id) => setItineraryId(id)}
-                  onDelete={deleteItineraryFromList}
+                  onDelete={handleDeleteItinerary}
                   onEdit={openEditItineraryModal}
                 />
               ))
@@ -945,7 +880,7 @@ const App = () => {
             </select>
           </div>
           <button
-            onClick={createItinerary}
+            onClick={handleCreateItinerary}
             disabled={!newItineraryData.title.trim()}
             className={`w-full py-2 px-4 rounded-md text-white ${morandiButtonPrimary} disabled:opacity-50 mt-4`}
           >
