@@ -16,7 +16,6 @@ import { db, appId } from "../config/firebase";
 import { ICON_SVG } from "../utils/icons";
 import { morandiAccentText, morandiButtonPrimary } from "../utils/theme";
 
-// 這些常數原本在 App.js，現在搬過來這裡，因為只有這裡用得到
 const CURRENCIES = ["TWD", "JPY", "KRW", "USD", "EUR", "CNY", "THB", "VND"];
 const EXPENSE_CATEGORIES = [
   { id: "food", name: "飲食", icon: "food" },
@@ -25,6 +24,12 @@ const EXPENSE_CATEGORIES = [
   { id: "accommodation", name: "住宿", icon: "home" },
   { id: "entertainment", name: "娛樂", icon: "ticket" },
   { id: "other", name: "其他", icon: "dots" },
+];
+
+// ★★★ 新增：付款方式定義
+const PAYMENT_METHODS = [
+  { id: "cash", name: "現金", icon: "banknotes" },
+  { id: "card", name: "刷卡", icon: "creditCard" },
 ];
 
 // --- 旅行費用 (BudgetSection) 組件 ---
@@ -37,6 +42,7 @@ const BudgetSection = memo(
       amount: "",
       currency: "TWD",
       category: "food",
+      paymentMethod: "cash", // 預設為現金
       day: 1,
     });
 
@@ -46,6 +52,7 @@ const BudgetSection = memo(
       amount: "",
       currency: "TWD",
       category: "food",
+      paymentMethod: "cash",
       day: 1,
     });
 
@@ -56,7 +63,6 @@ const BudgetSection = memo(
         `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/expenses`
       );
 
-      // ★★★ 修正：移除 orderBy，改用純 JS 排序，避免需要建立複合索引導致無法顯示資料 ★★★
       const q = query(expensesRef);
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -84,7 +90,6 @@ const BudgetSection = memo(
     }, {});
 
     const addExpense = async () => {
-      // 簡單驗證：標題不為空，金額不是 NaN
       if (!newItem.title.trim() || newItem.amount === "") return;
 
       try {
@@ -98,11 +103,11 @@ const BudgetSection = memo(
             amount: parseFloat(newItem.amount),
             currency: newItem.currency,
             category: newItem.category,
+            paymentMethod: newItem.paymentMethod, // 寫入付款方式
             day: Number(newItem.day),
             createdAt: serverTimestamp(),
           }
         );
-        // 新增成功後，保留天數、幣別、類別，只清除標題和金額
         setNewItem({ ...newItem, title: "", amount: "" });
       } catch (e) {
         console.error(e);
@@ -117,6 +122,7 @@ const BudgetSection = memo(
         amount: item.amount,
         currency: item.currency || "TWD",
         category: item.category || "other",
+        paymentMethod: item.paymentMethod || "cash", // 讀取付款方式 (舊資料預設為現金)
         day: item.day || 1,
       });
     };
@@ -133,6 +139,7 @@ const BudgetSection = memo(
             amount: parseFloat(editData.amount),
             currency: editData.currency,
             category: editData.category,
+            paymentMethod: editData.paymentMethod, // 更新付款方式
             day: Number(editData.day),
             updatedAt: serverTimestamp(),
           }
@@ -163,6 +170,15 @@ const BudgetSection = memo(
       const iconName = category ? category.icon : "dots";
       const IconComponent = ICON_SVG[iconName] || ICON_SVG.dots;
       return <IconComponent className="w-5 h-5" />;
+    };
+
+    // 取得付款方式的圖示
+    const getPaymentIcon = (methodId) => {
+      // 舊資料可能沒有 paymentMethod，預設為 cash
+      const method = PAYMENT_METHODS.find((p) => p.id === (methodId || "cash"));
+      const iconName = method ? method.icon : "banknotes";
+      const IconComponent = ICON_SVG[iconName];
+      return <IconComponent className="w-4 h-4 text-gray-400" />;
     };
 
     const getDisplayDate = (dayNum) => {
@@ -215,12 +231,13 @@ const BudgetSection = memo(
           </div>
         </div>
 
+        {/* 新增項目區塊 */}
         <div className="mb-6 p-4 bg-gray-100 rounded-lg space-y-3">
           <div className="flex items-center space-x-2">
             <select
               value={newItem.day}
               onChange={(e) => setNewItem({ ...newItem, day: e.target.value })}
-              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded focus:ring-slate-500 text-sm bg-white"
+              className="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-slate-500 text-sm bg-white"
             >
               {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => (
                 <option key={d} value={d}>
@@ -233,11 +250,25 @@ const BudgetSection = memo(
               onChange={(e) =>
                 setNewItem({ ...newItem, category: e.target.value })
               }
-              className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded focus:ring-slate-500 bg-white text-sm"
+              className="flex-grow px-3 py-2 border border-gray-300 rounded focus:ring-slate-500 bg-white text-sm"
             >
               {EXPENSE_CATEGORIES.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
+                </option>
+              ))}
+            </select>
+            {/* ★★★ 新增：付款方式選擇 (第一列) */}
+            <select
+              value={newItem.paymentMethod}
+              onChange={(e) =>
+                setNewItem({ ...newItem, paymentMethod: e.target.value })
+              }
+              className="w-28 px-3 py-2 border border-gray-300 rounded focus:ring-slate-500 bg-white text-sm"
+            >
+              {PAYMENT_METHODS.map((method) => (
+                <option key={method.id} value={method.id}>
+                  {method.name}
                 </option>
               ))}
             </select>
@@ -336,7 +367,7 @@ const BudgetSection = memo(
                                     day: e.target.value,
                                   })
                                 }
-                                className="px-2 py-1 border border-gray-300 rounded text-sm"
+                                className="px-2 py-1 border border-gray-300 rounded text-sm w-20"
                               >
                                 {Array.from(
                                   { length: totalDays },
@@ -355,11 +386,28 @@ const BudgetSection = memo(
                                     category: e.target.value,
                                   })
                                 }
-                                className="px-2 py-1 border border-gray-300 rounded text-sm"
+                                className="px-2 py-1 border border-gray-300 rounded text-sm flex-grow"
                               >
                                 {EXPENSE_CATEGORIES.map((cat) => (
                                   <option key={cat.id} value={cat.id}>
                                     {cat.name}
+                                  </option>
+                                ))}
+                              </select>
+                              {/* ★★★ 編輯模式：付款方式 */}
+                              <select
+                                value={editData.paymentMethod}
+                                onChange={(e) =>
+                                  setEditData({
+                                    ...editData,
+                                    paymentMethod: e.target.value,
+                                  })
+                                }
+                                className="px-2 py-1 border border-gray-300 rounded text-sm w-24"
+                              >
+                                {PAYMENT_METHODS.map((method) => (
+                                  <option key={method.id} value={method.id}>
+                                    {method.name}
                                   </option>
                                 ))}
                               </select>
@@ -430,7 +478,18 @@ const BudgetSection = memo(
                               </span>
                             </div>
                             <div className="flex items-center">
-                              <div className="text-right mr-3">
+                              {/* ★★★ 顯示：付款方式圖示 */}
+                              <div
+                                className="mr-2"
+                                title={
+                                  item.paymentMethod === "card"
+                                    ? "信用卡"
+                                    : "現金"
+                                }
+                              >
+                                {getPaymentIcon(item.paymentMethod)}
+                              </div>
+                              <div className="text-right mr-3 min-w-[5rem]">
                                 <div className="font-bold text-gray-700 text-sm">
                                   <span className="text-xs text-gray-400 font-normal mr-1">
                                     {item.currency}
