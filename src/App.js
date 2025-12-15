@@ -72,10 +72,13 @@ const App = () => {
   const {
     listCategories,
     addCategory: hookAddCategory,
+    updateCategoryName,
     deleteCategory, // 直接用
     addItemToList, // 直接用
+    updateItemName,
     toggleItemCompletion, // 直接用
     deleteItem, // 直接用
+    importFromItinerary,
   } = usePackingList(userId, itineraryId);
 
   // === 呼叫活動管家 ===
@@ -547,6 +550,11 @@ const App = () => {
               addItemToList={addItemToList}
               toggleItemCompletion={toggleItemCompletion}
               deleteItem={deleteItem}
+              updateCategoryName={updateCategoryName}
+              updateItemName={updateItemName}
+              importFromItinerary={importFromItinerary}
+              allItineraries={allItineraries}
+              currentItineraryId={itineraryId}
             />
           )}
 

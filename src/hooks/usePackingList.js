@@ -7,19 +7,16 @@ import {
   updateDoc,
   doc,
   serverTimestamp,
-  query,
-  where,
-  getDocs,
-  writeBatch,
+  getDocs, // 用於匯入功能：讀取舊資料
+  writeBatch, // 用於匯入功能：批次寫入
 } from "firebase/firestore";
 import { db, appId } from "../config/firebase";
 
 export const usePackingList = (userId, itineraryId) => {
-  // 1. 改用兩個獨立的 State 來儲存原始資料
   const [categories, setCategories] = useState([]);
   const [allItems, setAllItems] = useState([]);
 
-  // 2. 監聽資料 (優化版：只用兩個監聽器)
+  // 1. 監聽資料 (維持原本優化後的寫法)
   useEffect(() => {
     if (!itineraryId || !userId || !db) {
       setCategories([]);
@@ -27,29 +24,24 @@ export const usePackingList = (userId, itineraryId) => {
       return;
     }
 
-    // --- 監聽器 A：分類 ---
     const categoriesColRef = collection(
       db,
       `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories`
     );
     const unsubCategories = onSnapshot(categoriesColRef, (snapshot) => {
       const cats = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // 排序分類
       cats.sort(
         (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
       );
       setCategories(cats);
     });
 
-    // --- 監聽器 B：所有物品 (新路徑：packingItems) ---
-    // 我們將物品移到 itinerary 的直接子集合，而不是放在 category 裡面
     const itemsColRef = collection(
       db,
       `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/packingItems`
     );
     const unsubItems = onSnapshot(itemsColRef, (snapshot) => {
       const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // 這裡先不用排，等分配到分類時再排
       setAllItems(items);
     });
 
@@ -59,26 +51,19 @@ export const usePackingList = (userId, itineraryId) => {
     };
   }, [itineraryId, userId]);
 
-  // 3. 組裝資料 (Data Transformation)
-  // 將平行的 categories 和 allItems 結合成 UI 需要的巢狀結構
+  // 2. 組裝資料
   const listCategories = useMemo(() => {
     return categories.map((cat) => {
-      // 篩選出屬於這個分類的物品 (看標籤 categoryId)
       const myItems = allItems.filter((item) => item.categoryId === cat.id);
-
-      // 排序物品
       myItems.sort(
         (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
       );
-
-      return {
-        ...cat,
-        items: myItems, // 把物品塞進去
-      };
+      return { ...cat, items: myItems };
     });
   }, [categories, allItems]);
 
-  // 4. 新增類別 (沒變，跟原本一樣)
+  // --- 基本 CRUD 功能 ---
+
   const addCategory = useCallback(
     async (name) => {
       if (!itineraryId || !name.trim()) return;
@@ -97,19 +82,33 @@ export const usePackingList = (userId, itineraryId) => {
     [itineraryId, userId]
   );
 
-  // 5. 刪除類別 (邏輯改變：要刪除標籤符合的物品)
+  // ★★★ 新增功能：更新類別名稱
+  const updateCategoryName = useCallback(
+    async (categoryId, newName) => {
+      if (!itineraryId || !newName.trim()) return;
+      try {
+        await updateDoc(
+          doc(
+            db,
+            `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories/${categoryId}`
+          ),
+          { name: newName.trim(), updatedAt: serverTimestamp() }
+        );
+      } catch (error) {
+        console.error("更新類別失敗", error);
+      }
+    },
+    [itineraryId, userId]
+  );
+
   const deleteCategory = useCallback(
     async (categoryId) => {
       if (!itineraryId) return;
       try {
         const batch = writeBatch(db);
-
-        // 步驟 A: 刪除該分類下的所有物品
-        // 這裡我們要在前端的 allItems 裡面找，比較快，不用再去後端 query 一次
         const itemsToDelete = allItems.filter(
           (item) => item.categoryId === categoryId
         );
-
         itemsToDelete.forEach((item) => {
           const itemRef = doc(
             db,
@@ -117,28 +116,23 @@ export const usePackingList = (userId, itineraryId) => {
           );
           batch.delete(itemRef);
         });
-
-        // 步驟 B: 刪除分類本身
         const categoryRef = doc(
           db,
           `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories/${categoryId}`
         );
         batch.delete(categoryRef);
-
         await batch.commit();
       } catch (error) {
         console.error("刪除類別失敗", error);
       }
     },
-    [itineraryId, userId, allItems] // 多了 allItems 依賴
+    [itineraryId, userId, allItems]
   );
 
-  // 6. 新增項目 (邏輯改變：路徑變了，且必須加上 categoryId 標籤)
   const addItemToList = useCallback(
     async (categoryId, itemName) => {
       if (!itineraryId || !itemName.trim()) return;
       try {
-        // 寫入到 packingItems，並加上 categoryId 欄位
         await addDoc(
           collection(
             db,
@@ -146,7 +140,7 @@ export const usePackingList = (userId, itineraryId) => {
           ),
           {
             name: itemName.trim(),
-            categoryId: categoryId, // <--- 關鍵：貼標籤
+            categoryId: categoryId,
             isCompleted: false,
             createdAt: serverTimestamp(),
           }
@@ -158,13 +152,29 @@ export const usePackingList = (userId, itineraryId) => {
     [itineraryId, userId]
   );
 
-  // 7. 切換完成狀態 (邏輯改變：路徑變了)
+  // ★★★ 新增功能：更新項目名稱
+  const updateItemName = useCallback(
+    async (itemId, newName) => {
+      if (!itineraryId || !newName.trim()) return;
+      try {
+        await updateDoc(
+          doc(
+            db,
+            `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/packingItems/${itemId}`
+          ),
+          { name: newName.trim(), updatedAt: serverTimestamp() }
+        );
+      } catch (error) {
+        console.error("更新項目失敗", error);
+      }
+    },
+    [itineraryId, userId]
+  );
+
   const toggleItemCompletion = useCallback(
-    async (categoryId, itemId, isCompleted) => {
+    async (itemId, isCompleted) => {
       if (!itineraryId) return;
       try {
-        // 注意路徑：現在不需要 categoryId 也可以找到 doc，因為 items 是平行的
-        // 但為了參數一致性，原本的介面有傳 categoryId，我們這裡沒用到也沒關係
         await updateDoc(
           doc(
             db,
@@ -179,9 +189,8 @@ export const usePackingList = (userId, itineraryId) => {
     [itineraryId, userId]
   );
 
-  // 8. 刪除項目 (邏輯改變：路徑變了)
   const deleteItem = useCallback(
-    async (categoryId, itemId) => {
+    async (itemId) => {
       if (!itineraryId) return;
       try {
         await deleteDoc(
@@ -197,12 +206,126 @@ export const usePackingList = (userId, itineraryId) => {
     [itineraryId, userId]
   );
 
+  // ★★★ 修改後的：從其他行程匯入清單 (保證順序版)
+  const importFromItinerary = useCallback(
+    async (sourceItineraryId) => {
+      if (
+        !itineraryId ||
+        !sourceItineraryId ||
+        itineraryId === sourceItineraryId
+      )
+        return;
+
+      try {
+        const batch = writeBatch(db);
+
+        // 1. 讀取「來源行程」的類別
+        const sourceCatsRef = collection(
+          db,
+          `artifacts/${appId}/users/${userId}/itineraries/${sourceItineraryId}/listCategories`
+        );
+        const sourceCatsSnapshot = await getDocs(sourceCatsRef);
+
+        // 2. 讀取「來源行程」的物品
+        const sourceItemsRef = collection(
+          db,
+          `artifacts/${appId}/users/${userId}/itineraries/${sourceItineraryId}/packingItems`
+        );
+        const sourceItemsSnapshot = await getDocs(sourceItemsRef);
+
+        if (sourceCatsSnapshot.empty) {
+          alert("來源行程沒有清單資料可以匯入");
+          return;
+        }
+
+        // ★ 步驟 A：先整理並「排序」來源資料 (這一步最關鍵)
+        const sourceCats = sourceCatsSnapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+        // 依照舊的建立時間排序
+        sourceCats.sort(
+          (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
+        );
+
+        const sourceItems = sourceItemsSnapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+        // 物品也排序
+        sourceItems.sort(
+          (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
+        );
+
+        // 用來對照舊 ID -> 新 ID 的對應表
+        const catIdMap = {};
+
+        // 設定一個基準時間 (現在)
+        const baseTime = Date.now();
+
+        // 3. 準備寫入新的類別
+        const targetCatsRef = collection(
+          db,
+          `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories`
+        );
+
+        sourceCats.forEach((sourceData, index) => {
+          const newDocRef = doc(targetCatsRef);
+          // ★ 關鍵：手動設定時間，每一個類別間隔 1 秒，確保順序不亂
+          const newCreatedAt = new Date(baseTime + index * 1000);
+
+          batch.set(newDocRef, {
+            name: sourceData.name,
+            createdAt: newCreatedAt,
+          });
+          catIdMap[sourceData.id] = newDocRef.id;
+        });
+
+        // 4. 準備寫入新的物品
+        const targetItemsRef = collection(
+          db,
+          `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/packingItems`
+        );
+
+        // 為了避免物品的時間跟類別重疊，我們把物品的時間往後推一點 (例如從 1000 秒後開始算)
+        const itemsBaseTime = baseTime + 1000000;
+
+        sourceItems.forEach((sourceData, index) => {
+          // 如果這個物品所屬的類別有被我們複製到，才複製物品
+          if (catIdMap[sourceData.categoryId]) {
+            const newDocRef = doc(targetItemsRef);
+            // ★ 關鍵：物品也依序給予時間差
+            const newCreatedAt = new Date(itemsBaseTime + index * 1000);
+
+            batch.set(newDocRef, {
+              name: sourceData.name,
+              categoryId: catIdMap[sourceData.categoryId],
+              isCompleted: false, // 匯入的預設為未完成
+              createdAt: newCreatedAt,
+            });
+          }
+        });
+
+        // 5. 執行寫入
+        await batch.commit();
+        alert("匯入成功！");
+      } catch (error) {
+        console.error("匯入失敗", error);
+        alert("匯入發生錯誤");
+      }
+    },
+    [itineraryId, userId]
+  );
+
   return {
     listCategories,
     addCategory,
+    updateCategoryName, // 新增
     deleteCategory,
     addItemToList,
+    updateItemName, // 新增
     toggleItemCompletion,
     deleteItem,
+    importFromItinerary, // 新增
   };
 };
