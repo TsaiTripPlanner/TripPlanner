@@ -468,7 +468,8 @@ const App = () => {
           </div>
 
           {activeTab === "itinerary" && (
-            <div className="bg-white p-6 rounded-xl shadow-lg">
+            // ★★★ 修改重點：手機版 padding 縮小 (p-3)，電腦版維持原本 (sm:p-6)
+            <div className="bg-white p-3 sm:p-6 rounded-xl shadow-lg">
               <DayTabs
                 totalDays={totalDays}
                 activeDay={activeDay}

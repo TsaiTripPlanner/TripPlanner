@@ -95,20 +95,27 @@ const ActivityItem = memo(
 
     return (
       <div className="flex relative h-full">
-        <div className="w-20 text-right flex-shrink-0 pr-4 pt-0.5 hidden sm:block pb-8">
+        {/* 修改重點：
+           1. w-14 (原本 w-12)：寬度從 48px 增加到 56px，給大字體多一點空間。
+           2. sm:w-20：電腦版維持原本寬度。
+        */}
+        <div className="w-14 sm:w-20 text-right flex-shrink-0 pr-2 sm:pr-4 pt-0.5 block pb-8">
           <div
-            className={`text-lg font-bold ${morandiAccentText} leading-snug`}
+            // 修改重點：text-sm (原本 text-xs)：時間字體變大 (12px -> 14px)。
+            className={`text-sm sm:text-lg font-bold ${morandiAccentText} leading-snug`}
           >
             {timeDisplay}
           </div>
           {duration && (
+            // 修改重點：text-xs (原本 text-[10px])：時長字體變回正常大小 (10px -> 12px)，並拿掉了 scale-90。
             <div className="text-xs text-gray-500 mt-0.5 whitespace-nowrap">
               ({duration})
             </div>
           )}
         </div>
         {/* 修改中間欄位開始 */}
-        <div className="relative flex flex-col items-center flex-shrink-0 mr-4 sm:mr-0 w-4">
+        {/* ★★★ 修改重點：mr-4 改成 mr-2 (縮小中間縫隙) */}
+        <div className="relative flex flex-col items-center flex-shrink-0 mr-2 sm:mr-0 w-4">
           {/* 絕對定位的線條 */}
           <div
             className={`absolute w-px bg-gray-300 left-1/2 -translate-x-1/2 bottom-0 ${
