@@ -46,6 +46,57 @@ import { useActivities } from "./hooks/useActivities";
 import { useItineraries } from "./hooks/useItineraries";
 import { usePackingList } from "./hooks/usePackingList";
 
+export const ACTIVITY_TYPES = [
+  {
+    id: "sightseeing",
+    name: "景點",
+    icon: "camera",
+    color: "text-rose-500",
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+  },
+  {
+    id: "food",
+    name: "飲食",
+    icon: "food",
+    color: "text-orange-500",
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+  },
+  {
+    id: "transport",
+    name: "交通",
+    icon: "transport",
+    color: "text-blue-500",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+  },
+  {
+    id: "accommodation",
+    name: "住宿",
+    icon: "home",
+    color: "text-indigo-500",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+  },
+  {
+    id: "shopping",
+    name: "購物",
+    icon: "shopping",
+    color: "text-pink-500",
+    bg: "bg-pink-50",
+    border: "border-pink-200",
+  },
+  {
+    id: "other",
+    name: "其他",
+    icon: "dots",
+    color: "text-slate-500",
+    bg: "bg-slate-50",
+    border: "border-slate-200",
+  },
+];
+
 const DEFAULT_DAYS_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10, 14, 30];
 
 const App = () => {
@@ -113,6 +164,7 @@ const App = () => {
     startTime: "",
     endTime: "",
     description: "",
+    type: "other", // ★★★ 改成預設「其他」
   });
   const [editingActivityId, setEditingActivityId] = useState(null);
   const [editFormData, setEditFormData] = useState({
@@ -225,7 +277,8 @@ const App = () => {
     async (e) => {
       e.preventDefault();
       // 這裡使用了 Hook 傳回來的 hookAddActivity
-      const { title, location, startTime, endTime, description } = newActivity;
+      const { title, location, startTime, endTime, description, type } =
+        newActivity;
 
       if (!title.trim() || !location.trim()) {
         setFormError("活動標題與地點為必填欄位！");
@@ -240,6 +293,7 @@ const App = () => {
           startTime: startTime || "",
           endTime: endTime || "",
           description: description || "",
+          type: type || "other",
         });
 
         // 清空表單
@@ -249,6 +303,7 @@ const App = () => {
           startTime: "",
           endTime: "",
           description: "",
+          type: "other", // ★★★ 重置時也變回「其他」
         });
         setIsModalOpen(false);
       } catch (error) {
@@ -284,6 +339,7 @@ const App = () => {
         startTime: activity.startTime || "",
         endTime: activity.endTime || "",
         description: activity.description,
+        type: activity.type || "other",
       });
     },
     [editingActivityId]
@@ -302,7 +358,8 @@ const App = () => {
 
   const saveEdit = useCallback(
     async (activityId) => {
-      const { title, location, startTime, endTime, description } = editFormData;
+      const { title, location, startTime, endTime, description, type } =
+        editFormData;
       // ✅ 呼叫 Hook 的更新功能
       await updateActivity(activityId, {
         title,
@@ -310,6 +367,7 @@ const App = () => {
         startTime,
         endTime,
         description: description || "",
+        type: type || "other",
       });
       cancelEdit();
     },
@@ -627,6 +685,34 @@ const App = () => {
         title={`新增活動 (Day ${activeDay})`}
       >
         <form onSubmit={handleAddActivity} className="space-y-4">
+          {/* ★★★ 新增：類別選擇器 (水平滑動) */}
+          <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+            {ACTIVITY_TYPES.map((type) => {
+              const Icon = ICON_SVG[type.icon];
+              const isSelected = newActivity.type === type.id;
+              return (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() =>
+                    setNewActivity({ ...newActivity, type: type.id })
+                  }
+                  className={`flex items-center flex-shrink-0 px-3 py-1.5 rounded-full border text-sm transition-all ${
+                    isSelected
+                      ? `${type.bg} ${type.color} ${
+                          type.border
+                        } ring-1 ring-offset-1 ring-${
+                          type.color.split("-")[1]
+                        }-400 font-bold`
+                      : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                  }`}
+                >
+                  <Icon className="w-4 h-4 mr-1.5" />
+                  {type.name}
+                </button>
+              );
+            })}
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input
               type="text"

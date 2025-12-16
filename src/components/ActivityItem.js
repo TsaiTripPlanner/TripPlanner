@@ -7,6 +7,7 @@ import {
   morandiAccentText,
   morandiSelectedDayButton,
 } from "../utils/theme";
+import { ACTIVITY_TYPES } from "../App";
 
 // --- 小幫手工具 (原本在 App.js 外面) ---
 const URL_REGEX = /(https?:\/\/[^\s]+)/g;
@@ -146,6 +147,44 @@ const ActivityItem = memo(
                 <h4 className={`text-lg font-bold mb-3 ${morandiAccentText}`}>
                   編輯活動
                 </h4>
+                {/* ★★★ 新增：編輯模式的類別選擇器 */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-gray-500 mb-2">
+                    活動類別
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {ACTIVITY_TYPES.map((type) => {
+                      const Icon = ICON_SVG[type.icon];
+                      // 檢查目前的編輯資料 editData.type，如果沒有則預設 sightseeing
+                      const currentType = editData.type || "sightseeing";
+                      const isSelected = currentType === type.id;
+                      return (
+                        <button
+                          key={type.id}
+                          type="button"
+                          // 更新 editData
+                          onClick={() =>
+                            onEditChange({
+                              target: { name: "type", value: type.id },
+                            })
+                          }
+                          className={`flex items-center px-2 py-1 rounded-md border text-xs transition-all ${
+                            isSelected
+                              ? `${type.bg} ${type.color} ${
+                                  type.border
+                                } ring-1 ring-offset-1 ring-${
+                                  type.color.split("-")[1]
+                                }-400 font-bold`
+                              : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                          }`}
+                        >
+                          <Icon className="w-3 h-3 mr-1" />
+                          {type.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 {inputField("title", "標題")}
                 {inputField("location", "地點")}
                 <div className="grid grid-cols-2 gap-3 mb-3">
@@ -189,8 +228,24 @@ const ActivityItem = memo(
               // === 顯示模式 ===
               <div className="flex justify-between items-start">
                 <div className="flex-grow min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-bold text-gray-800 truncate leading-snug mb-0.5">
+                  <div className="flex items-center mb-1">
+                    {/* ★★★ 顯示類別圖示 Badge */}
+                    {(() => {
+                      const typeData =
+                        ACTIVITY_TYPES.find(
+                          (t) => t.id === (activity.type || "other")
+                        ) || ACTIVITY_TYPES.find((t) => t.id === "other");
+                      const Icon = ICON_SVG[typeData.icon];
+                      return (
+                        <div
+                          className={`flex-shrink-0 mr-2 p-1.5 rounded-md ${typeData.bg} ${typeData.color}`}
+                        >
+                          <Icon className="w-4 h-4" />
+                        </div>
+                      );
+                    })()}
+
+                    <h3 className="text-base font-bold text-gray-800 truncate leading-snug">
                       {activity.title}
                     </h3>
                   </div>
