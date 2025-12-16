@@ -51,49 +51,55 @@ export const ACTIVITY_TYPES = [
     id: "sightseeing",
     name: "景點",
     icon: "camera",
-    color: "text-rose-500",
-    bg: "bg-rose-50",
+    // 改為深玫瑰紅配淺粉底 (Brick Red)
+    color: "text-rose-700",
+    bg: "bg-rose-100",
     border: "border-rose-200",
   },
   {
     id: "food",
     name: "飲食",
     icon: "food",
-    color: "text-orange-500",
-    bg: "bg-orange-50",
-    border: "border-orange-200",
+    // 改為深琥珀色配奶油底 (Caramel)
+    color: "text-amber-700",
+    bg: "bg-amber-100",
+    border: "border-amber-200",
   },
   {
     id: "transport",
     name: "交通",
     icon: "transport",
-    color: "text-blue-500",
-    bg: "bg-blue-50",
-    border: "border-blue-200",
+    // 改為深灰藍配霧藍底 (Haze Blue) - 很搭你的主題
+    color: "text-slate-600",
+    bg: "bg-slate-200",
+    border: "border-slate-300",
   },
   {
     id: "accommodation",
     name: "住宿",
     icon: "home",
-    color: "text-indigo-500",
-    bg: "bg-indigo-50",
-    border: "border-indigo-200",
+    // 改為深紫羅蘭配淺紫底 (Dusty Lavender)
+    color: "text-violet-700",
+    bg: "bg-violet-100",
+    border: "border-violet-200",
   },
   {
     id: "shopping",
     name: "購物",
     icon: "shopping",
-    color: "text-pink-500",
-    bg: "bg-pink-50",
+    // 改為深粉藕色 (Dusty Pink)
+    color: "text-pink-700",
+    bg: "bg-pink-100",
     border: "border-pink-200",
   },
   {
     id: "other",
     name: "其他",
     icon: "dots",
-    color: "text-slate-500",
-    bg: "bg-slate-50",
-    border: "border-slate-200",
+    // 改為暖灰色 (Warm Grey)
+    color: "text-stone-600",
+    bg: "bg-stone-200",
+    border: "border-stone-300",
   },
 ];
 
@@ -280,8 +286,9 @@ const App = () => {
       const { title, location, startTime, endTime, description, type } =
         newActivity;
 
-      if (!title.trim() || !location.trim()) {
-        setFormError("活動標題與地點為必填欄位！");
+      // ★★★ 修改重點：只檢查 title，不檢查 location
+      if (!title.trim()) {
+        setFormError("活動標題為必填欄位！");
         return;
       }
 
@@ -728,9 +735,8 @@ const App = () => {
               name="location"
               value={newActivity.location}
               onChange={handleNewActivityChange}
-              placeholder="地點 *"
+              placeholder="地點 (選填)"
               className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm`}
-              required
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
