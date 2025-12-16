@@ -33,6 +33,8 @@ import {
   morandiFloatingPassiveText,
 } from "./utils/theme";
 
+import { TABS, ACTIVITY_TYPES, DEFAULT_DAYS_OPTIONS } from "./utils/constants";
+
 // 引入剛剛拆出去的組件
 import Modal from "./components/Modal";
 import ItineraryCard from "./components/ItineraryCard";
@@ -47,65 +49,6 @@ import { useActivities } from "./hooks/useActivities";
 import { useItineraries } from "./hooks/useItineraries";
 import { usePackingList } from "./hooks/usePackingList";
 
-export const ACTIVITY_TYPES = [
-  {
-    id: "sightseeing",
-    name: "景點",
-    icon: "camera",
-    // 改為深玫瑰紅配淺粉底 (Brick Red)
-    color: "text-rose-700",
-    bg: "bg-rose-100",
-    border: "border-rose-200",
-  },
-  {
-    id: "food",
-    name: "飲食",
-    icon: "food",
-    // 改為深琥珀色配奶油底 (Caramel)
-    color: "text-amber-700",
-    bg: "bg-amber-100",
-    border: "border-amber-200",
-  },
-  {
-    id: "transport",
-    name: "交通",
-    icon: "transport",
-    // 改為深灰藍配霧藍底 (Haze Blue) - 很搭你的主題
-    color: "text-slate-600",
-    bg: "bg-slate-200",
-    border: "border-slate-300",
-  },
-  {
-    id: "accommodation",
-    name: "住宿",
-    icon: "home",
-    // 改為深紫羅蘭配淺紫底 (Dusty Lavender)
-    color: "text-violet-700",
-    bg: "bg-violet-100",
-    border: "border-violet-200",
-  },
-  {
-    id: "shopping",
-    name: "購物",
-    icon: "shopping",
-    // 改為深粉藕色 (Dusty Pink)
-    color: "text-pink-700",
-    bg: "bg-pink-100",
-    border: "border-pink-200",
-  },
-  {
-    id: "other",
-    name: "其他",
-    icon: "dots",
-    // 改為暖灰色 (Warm Grey)
-    color: "text-stone-600",
-    bg: "bg-stone-200",
-    border: "border-stone-300",
-  },
-];
-
-const DEFAULT_DAYS_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10, 14, 30];
-
 const App = () => {
   //  1. 【最優先】先確認使用者是誰 (從 useAuth 拿 userId)
   // authError: errorMessage 意思是把 hook 傳回來的 authError 改名叫 errorMessage
@@ -113,7 +56,7 @@ const App = () => {
 
   // 2. 【定義狀態】定義所有需要的變數 (itineraryId, activeDay)
   const [itineraryId, setItineraryId] = useState(null);
-  const [activeTab, setActiveTab] = useState("itinerary");
+  const [activeTab, setActiveTab] = useState(TABS.ITINERARY);
   const [activeDay, setActiveDay] = useState(1);
 
   // === 呼叫行程管家 ===
@@ -498,7 +441,7 @@ const App = () => {
             </div>
           </div>
 
-          {activeTab === "itinerary" && (
+          {activeTab === TABS.ITINERARY && (
             // ★★★ 修改重點：手機版 padding 縮小 (p-2)，電腦版維持原本 (sm:p-6)
             <div className="bg-white p-2 sm:p-6 rounded-xl shadow-lg">
               <DayTabs
@@ -572,7 +515,7 @@ const App = () => {
             </div>
           )}
 
-          {activeTab === "packing" && (
+          {activeTab === TABS.PACKING && (
             <ListSection
               listCategories={listCategories}
               newCategoryName={newCategoryName}
@@ -590,7 +533,7 @@ const App = () => {
             />
           )}
 
-          {activeTab === "budget" && (
+          {activeTab === TABS.BUDGET && (
             <BudgetSection
               itineraryId={itineraryId}
               userId={userId}
@@ -607,7 +550,7 @@ const App = () => {
                     ? morandiFloatingSelectedText
                     : morandiFloatingPassiveText
                 }`}
-                onClick={() => setActiveTab("itinerary")}
+                onClick={() => setActiveTab(TABS.ITINERARY)}
               >
                 <ICON_SVG.listCollapse className="w-6 h-6" />
                 <span className="text-xs mt-1 font-medium">行程規劃</span>
@@ -618,7 +561,7 @@ const App = () => {
                     ? morandiFloatingSelectedText
                     : morandiFloatingPassiveText
                 }`}
-                onClick={() => setActiveTab("packing")}
+                onClick={() => setActiveTab(TABS.PACKING)}
               >
                 <ICON_SVG.clipboardCheck className="w-6 h-6" />
                 <span className="text-xs mt-1 font-medium">清單</span>
@@ -629,7 +572,7 @@ const App = () => {
                     ? morandiFloatingSelectedText
                     : morandiFloatingPassiveText
                 }`}
-                onClick={() => setActiveTab("budget")}
+                onClick={() => setActiveTab(TABS.BUDGET)}
               >
                 <ICON_SVG.wallet className="w-6 h-6" />
                 <span className="text-xs mt-1 font-medium">旅行費用</span>
@@ -637,7 +580,7 @@ const App = () => {
             </div>
           </div>
 
-          {activeTab === "itinerary" && (
+          {activeTab === TABS.ITINERARY && (
             <button
               onClick={() => setIsModalOpen(true)}
               className={`fixed right-6 bottom-32 sm:right-10 sm:bottom-32 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white ${morandiButtonPrimary} transition-all duration-300 transform hover:scale-105 z-40`}

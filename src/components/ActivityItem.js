@@ -6,7 +6,7 @@ import {
   morandiAccentText,
   morandiSelectedDayButton,
 } from "../utils/theme";
-import { ACTIVITY_TYPES } from "../App";
+import { ACTIVITY_TYPES } from "../utils/constants";
 
 // --- 小幫手工具 ---
 const URL_REGEX = /(https?:\/\/[^\s]+)/g;

@@ -15,22 +15,11 @@ import {
 import { db, appId } from "../config/firebase";
 import { ICON_SVG } from "../utils/icons";
 import { morandiAccentText, morandiButtonPrimary } from "../utils/theme";
-
-const CURRENCIES = ["TWD", "JPY", "KRW", "USD", "EUR", "CNY", "THB", "VND"];
-const EXPENSE_CATEGORIES = [
-  { id: "food", name: "飲食", icon: "food" },
-  { id: "transport", name: "交通", icon: "transport" },
-  { id: "shopping", name: "購物", icon: "shopping" },
-  { id: "accommodation", name: "住宿", icon: "home" },
-  { id: "entertainment", name: "娛樂", icon: "ticket" },
-  { id: "other", name: "其他", icon: "dots" },
-];
-
-// ★★★ 新增：付款方式定義
-const PAYMENT_METHODS = [
-  { id: "cash", name: "現金", icon: "banknotes" },
-  { id: "card", name: "刷卡", icon: "creditCard" },
-];
+import {
+  CURRENCIES,
+  EXPENSE_CATEGORIES,
+  PAYMENT_METHODS,
+} from "../utils/constants";
 
 // --- 旅行費用 (BudgetSection) 組件 ---
 const BudgetSection = memo(
