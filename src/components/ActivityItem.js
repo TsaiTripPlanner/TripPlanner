@@ -86,7 +86,8 @@ const ActivityItem = memo(
           name={name}
           value={editData[name] || ""}
           onChange={onEditChange}
-          className="mt-1 block w-full px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-slate-500 focus:border-slate-500"
+          // ★★★ 修改重點：加入 min-w-0, max-w-full, bg-white, appearance-none
+          className="mt-1 h-9 block w-full min-w-0 max-w-full bg-white appearance-none px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-slate-500 focus:border-slate-500"
           required={name === "title" || name === "location"}
         />
       </div>

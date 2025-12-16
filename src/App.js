@@ -660,7 +660,8 @@ const App = () => {
                 name="startTime"
                 value={newActivity.startTime}
                 onChange={handleNewActivityChange}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm`}
+                // ★★★ 修改重點：加入了 block, min-w-0, max-w-full, bg-white, appearance-none
+                className={`h-10 block w-full min-w-0 max-w-full bg-white appearance-none px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm`}
               />
             </div>
             <div>
@@ -676,7 +677,8 @@ const App = () => {
                 name="endTime"
                 value={newActivity.endTime}
                 onChange={handleNewActivityChange}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm`}
+                // ★★★ 修改重點：加入了 block, min-w-0, max-w-full, bg-white, appearance-none
+                className={`h-10 block w-full min-w-0 max-w-full bg-white appearance-none px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm`}
               />
             </div>
           </div>
@@ -737,7 +739,8 @@ const App = () => {
                   startDate: e.target.value,
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500"
+              // ★★★ 修改重點：加入了 max-w-full, bg-white, appearance-none ★★★
+              className="block w-full max-w-full bg-white appearance-none box-border px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500"
             />
           </div>
           <div>
@@ -807,7 +810,8 @@ const App = () => {
                   startDate: e.target.value,
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500"
+              // 這裡也加上同樣的 class
+              className="block w-full max-w-full bg-white appearance-none box-border px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500"
             />
           </div>
           <div>
