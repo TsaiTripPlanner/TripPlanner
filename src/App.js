@@ -40,6 +40,7 @@ import ActivityItem from "./components/ActivityItem";
 import ListSection from "./components/ListSection";
 import BudgetSection from "./components/BudgetSection";
 import DayTabs from "./components/DayTabs";
+import ItineraryList from "./components/ItineraryList";
 
 import { useAuth } from "./hooks/useAuth";
 import { useActivities } from "./hooks/useActivities";
@@ -431,48 +432,13 @@ const App = () => {
 
       {!itineraryId ? (
         // === 行程列表頁面 (首頁) ===
-        <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-4xl font-medium text-gray-800 font-cute flex items-center">
-              <img
-                src="/world_761505.jpg"
-                alt="Logo"
-                className="w-12 h-12 object-contain mr-3"
-              />
-              旅遊
-            </h1>
-            <button
-              onClick={() => setIsCreatingItinerary(true)}
-              className={`flex items-center px-4 py-2 rounded-lg text-white shadow-md ${morandiButtonPrimary} transition transform hover:scale-105`}
-            >
-              <ICON_SVG.plusSmall className="w-5 h-5 mr-1" /> 建立新旅程
-            </button>
-          </div>
-
-          <div className="flex flex-col space-y-4">
-            {allItineraries.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-dashed border-gray-300">
-                <p className="text-gray-500 mb-4">目前還沒有任何行程規劃</p>
-                <button
-                  onClick={() => setIsCreatingItinerary(true)}
-                  className="text-slate-600 font-medium hover:underline"
-                >
-                  立即建立第一個旅程
-                </button>
-              </div>
-            ) : (
-              allItineraries.map((trip) => (
-                <ItineraryCard
-                  key={trip.id}
-                  data={trip}
-                  onSelect={(id) => setItineraryId(id)}
-                  onDelete={handleDeleteItinerary}
-                  onEdit={openEditItineraryModal}
-                />
-              ))
-            )}
-          </div>
-        </div>
+        <ItineraryList
+          allItineraries={allItineraries}
+          onSelect={(id) => setItineraryId(id)}
+          onDelete={handleDeleteItinerary}
+          onEdit={openEditItineraryModal}
+          onOpenCreateModal={() => setIsCreatingItinerary(true)}
+        />
       ) : (
         // === 行程詳細頁面 ===
         <div className="max-w-4xl mx-auto">
