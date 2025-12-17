@@ -92,9 +92,13 @@ const ActivityForm = ({ onSubmit }) => {
       </div>
 
       {/* 時間 */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+      {/* 
+         改用 Flexbox 強制左右平分空間 
+         原本的 Grid 在某些手機瀏覽器無法壓縮 input 的預設寬度
+      */}
+      <div className="flex gap-2 w-full">
+        <div className="flex-1 min-w-0">
+          <label className="block text-sm font-medium text-gray-700 mb-1 truncate">
             開始時間
           </label>
           <input
@@ -102,11 +106,17 @@ const ActivityForm = ({ onSubmit }) => {
             name="startTime"
             value={formData.startTime}
             onChange={handleChange}
-            className={`h-10 block w-full bg-white px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm`}
+            /* 
+               關鍵修改：
+               1. appearance-none: 移除手機原生樣式 (如 iOS 的圓角和陰影)
+               2. px-1: 減少內距，讓數字有更多空間顯示
+               3. text-center: 讓時間居中比較好看
+            */
+            className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm text-center`}
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="flex-1 min-w-0">
+          <label className="block text-sm font-medium text-gray-700 mb-1 truncate">
             結束時間
           </label>
           <input
@@ -114,7 +124,7 @@ const ActivityForm = ({ onSubmit }) => {
             name="endTime"
             value={formData.endTime}
             onChange={handleChange}
-            className={`h-10 block w-full bg-white px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm`}
+            className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm text-center`}
           />
         </div>
       </div>
