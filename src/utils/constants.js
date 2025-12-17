@@ -11,55 +11,67 @@ export const TABS = {
 // 2. 預設天數選項
 export const DEFAULT_DAYS_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10, 14, 30];
 
-// 3. 活動類別定義 (從 App.js 搬過來)
+// 3. 活動類別定義 (直接使用色票 Hex Code)
 export const ACTIVITY_TYPES = [
   {
     id: "sightseeing",
     name: "景點",
     icon: "camera",
-    color: "text-emerald-700",
-    bg: "bg-emerald-100",
-    border: "border-emerald-200",
+    // 迷霧藍綠系
+    // Bg: #AAC9CE (淺) -> Border: #7DA3AA (中) -> Text: #3E5C63 (深)
+    color: "text-[#3E5C63]",
+    bg: "bg-[#AAC9CE]",
+    border: "border-[#7DA3AA]",
   },
   {
     id: "food",
     name: "飲食",
     icon: "food",
-    color: "text-amber-700",
-    bg: "bg-amber-100",
-    border: "border-amber-200",
+    // 奶油杏色系
+    // Bg: #F8F4E8 (淺) -> Border: #DEC9B5 (中) -> Text: #7D6B55 (深)
+    color: "text-[#7D6B55]",
+    bg: "bg-[#F8F4E8]",
+    border: "border-[#DEC9B5]",
   },
   {
     id: "transport",
     name: "交通",
     icon: "transport",
-    color: "text-slate-600",
-    bg: "bg-slate-200",
-    border: "border-slate-300",
+    // 冷調雲灰系
+    // Bg: #CFD9E1 (淺) -> Border: #A4B6C4 (中) -> Text: #536878 (深)
+    color: "text-[#536878]",
+    bg: "bg-[#CFD9E1]",
+    border: "border-[#A4B6C4]",
   },
   {
     id: "accommodation",
     name: "住宿",
     icon: "home",
-    color: "text-violet-700",
-    bg: "bg-violet-100",
-    border: "border-violet-200",
+    // 煙燻紫灰系
+    // Bg: #CBBFD3 (淺) -> Border: #B0A0BD (中) -> Text: #615269 (深)
+    color: "text-[#615269]",
+    bg: "bg-[#CBBFD3]",
+    border: "border-[#B0A0BD]",
   },
   {
     id: "shopping",
     name: "購物",
     icon: "shopping",
-    color: "text-blue-700",
-    bg: "bg-blue-100",
-    border: "border-blue-200",
+    // 薄荷灰綠系
+    // Bg: #D1E8E0 (淺) -> Border: #9CC4B9 (中) -> Text: #466960 (深)
+    color: "text-[#466960]",
+    bg: "bg-[#D1E8E0]",
+    border: "border-[#9CC4B9]",
   },
   {
     id: "other",
     name: "其他",
     icon: "dots",
-    color: "text-stone-600",
-    bg: "bg-stone-200",
-    border: "border-stone-300",
+    // 暖岩灰系
+    // Bg: #E6DFD9 (淺) -> Border: #C9BFB8 (中) -> Text: #6E6259 (深)
+    color: "text-[#6E6259]",
+    bg: "bg-[#E6DFD9]",
+    border: "border-[#C9BFB8]",
   },
 ];
 

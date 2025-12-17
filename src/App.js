@@ -172,8 +172,14 @@ const App = () => {
         .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
       `}</style>
 
-      {/* ★★★ 右上角登入/登出按鈕區塊 ★★★ */}
-      <div className="absolute top-4 right-4 z-20 flex flex-col items-end">
+      {/* ★★★ 右上角登入/登出按鈕區塊 (修改版) ★★★ */}
+      {/* 
+          修改說明：
+          1. 移除了 absolute top-4 right-4 (不再飄浮)
+          2. 加入了 flex justify-end (靠右對齊)
+          3. 加入了 mb-4 (下方留白，把底下的內容往下推)
+      */}
+      <div className="flex justify-end mb-4 z-20 relative">
         {isAnonymous ? (
           <button
             onClick={() => setIsLoginModalOpen(true)}

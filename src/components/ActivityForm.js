@@ -55,11 +55,7 @@ const ActivityForm = ({ onSubmit }) => {
               onClick={() => setFormData({ ...formData, type: type.id })}
               className={`flex items-center flex-shrink-0 px-3 py-1.5 rounded-full border text-sm transition-all ${
                 isSelected
-                  ? `${type.bg} ${type.color} ${
-                      type.border
-                    } ring-1 ring-offset-1 ring-${
-                      type.color.split("-")[1]
-                    }-400 font-bold`
+                  ? `${type.bg} ${type.color} ${type.border} font-bold`
                   : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
               }`}
             >
