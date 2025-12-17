@@ -8,19 +8,28 @@ import {
   morandiAccentColor,
   morandiButtonPrimary,
 } from "./utils/theme";
+import { ICON_SVG } from "./utils/icons"; // 記得引入 Icon
 
 // 組件
 import Modal from "./components/Modal";
 import ItineraryList from "./components/ItineraryList";
-import TripDetails from "./components/TripDetails"; // ★ 引入新組件
+import TripDetails from "./components/TripDetails";
 
 // Hooks
 import { useAuth } from "./hooks/useAuth";
 import { useItineraries } from "./hooks/useItineraries";
 
 const App = () => {
-  // 1. 身分驗證
-  const { userId, isAuthReady, authError: errorMessage } = useAuth();
+  // 1. 身分驗證 (引入新的 loginWithCode, logout, userCode)
+  const {
+    userId,
+    isAuthReady,
+    authError: errorMessage,
+    loginWithCode, // ★ 新功能：用通行碼登入
+    logout, // ★ 新功能：登出
+    isAnonymous, // ★ 新功能：判斷是否為訪客
+    userCode, // ★ 新功能：顯示目前的通行碼
+  } = useAuth();
 
   // 2. 行程列表管理 Hook
   const {
@@ -33,6 +42,10 @@ const App = () => {
 
   // 3. UI 狀態
   const [itineraryId, setItineraryId] = useState(null); // 目前選中的行程 ID
+
+  // 登入 Modal 狀態
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [accessCodeInput, setAccessCodeInput] = useState("");
 
   // 建立行程相關
   const [isCreatingItinerary, setIsCreatingItinerary] = useState(false);
@@ -53,6 +66,21 @@ const App = () => {
   });
 
   // === 處理函式 ===
+
+  // ★ 處理通行碼登入
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    if (!accessCodeInput.trim()) return;
+
+    try {
+      await loginWithCode(accessCodeInput.trim());
+      alert(`歡迎！已進入「${accessCodeInput}」的行程空間。`);
+      setIsLoginModalOpen(false);
+      setAccessCodeInput("");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
   const handleCreateItinerary = async () => {
     if (!newItineraryData.title.trim()) return;
@@ -136,13 +164,44 @@ const App = () => {
 
   return (
     <div
-      className={`min-h-screen ${morandiBackground} p-4 sm:p-8 font-sans pb-28`}
+      className={`min-h-screen ${morandiBackground} p-4 sm:p-8 font-sans pb-28 relative`}
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700&display=swap');
         .font-serif-tc { font-family: 'Yuji Syuku', serif; letter-spacing: 0.05em; }
         .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
       `}</style>
+
+      {/* ★★★ 右上角登入/登出按鈕區塊 ★★★ */}
+      <div className="absolute top-4 right-4 z-20 flex flex-col items-end">
+        {isAnonymous ? (
+          <button
+            onClick={() => setIsLoginModalOpen(true)}
+            className="flex items-center gap-2 bg-white/80 backdrop-blur border border-slate-200 shadow-sm px-4 py-2 rounded-full text-slate-600 hover:bg-white hover:shadow-md transition text-sm font-medium"
+          >
+            <ICON_SVG.check className="w-4 h-4 text-slate-400" />
+            登入 / 綁定通行碼
+          </button>
+        ) : (
+          <div className="flex items-center gap-3 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-sm border border-green-100">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] text-gray-400 uppercase tracking-wider">
+                Access Code
+              </span>
+              <span className="text-sm font-bold text-green-700 font-mono">
+                {userCode}
+              </span>
+            </div>
+            <div className="h-6 w-px bg-gray-200"></div>
+            <button
+              onClick={logout}
+              className="text-xs text-gray-500 hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded transition"
+            >
+              登出
+            </button>
+          </div>
+        )}
+      </div>
 
       {!itineraryId ? (
         // === 行程列表頁面 (首頁) ===
@@ -153,8 +212,7 @@ const App = () => {
           onEdit={openEditItineraryModal}
           onOpenCreateModal={() => setIsCreatingItinerary(true)}
         />
-      ) : // === 行程詳細頁面 (使用新組件) ===
-      // 如果找不到該行程(可能剛被刪除)，就回到列表
+      ) : // === 行程詳細頁面 ===
       currentItinerary ? (
         <TripDetails
           userId={userId}
@@ -306,6 +364,55 @@ const App = () => {
             儲存修改
           </button>
         </div>
+      </Modal>
+
+      {/* ★★★ 通行碼登入 Modal ★★★ */}
+      <Modal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        title="輸入行程通行碼"
+      >
+        <form onSubmit={handleLoginSubmit} className="space-y-4">
+          <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 mb-4">
+            <p className="font-bold flex items-center mb-1">
+              <ICON_SVG.listCollapse className="w-4 h-4 mr-1" />
+              通行碼機制說明
+            </p>
+            <ul className="list-disc list-inside mt-1 space-y-1 text-xs opacity-90">
+              <li>這是一個讓朋友快速加入的代號。</li>
+              <li>
+                若輸入<span className="font-bold">新的代號</span>
+                ，將會建立一個新的空白行程空間。
+              </li>
+              <li>
+                若輸入<span className="font-bold">現有的代號</span>
+                ，將會進入該空間並同步看到資料。
+              </li>
+              <li>請將代號分享給旅伴，大家就能一起規劃！</li>
+            </ul>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              設定或輸入通行碼
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="例如：Tokyo2025"
+              value={accessCodeInput}
+              onChange={(e) => setAccessCodeInput(e.target.value)}
+              className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-slate-500 focus:border-slate-500 text-lg tracking-wide text-center"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className={`w-full py-3 px-4 rounded-lg text-white font-bold shadow-md ${morandiButtonPrimary} transition-transform transform active:scale-95`}
+          >
+            進入行程空間 🚀
+          </button>
+        </form>
       </Modal>
     </div>
   );
