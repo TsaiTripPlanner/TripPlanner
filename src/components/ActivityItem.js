@@ -61,6 +61,7 @@ const ActivityItem = memo(
     onCancelEdit,
     dragHandleProps,
     isDragging,
+    totalDays,
   }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -179,6 +180,37 @@ const ActivityItem = memo(
                     })}
                   </div>
                 </div>
+                {/* 修改後的莫蘭迪風格配色 */}
+{totalDays > 1 && (
+  <div className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+      移動至其他天 (Day)
+    </label>
+    <div className="relative">
+      <select
+        name="day"
+        value={editData.day || activity.day}
+        onChange={(e) =>
+          onEditChange({
+            target: { name: "day", value: parseInt(e.target.value) },
+          })
+        }
+        className="block w-full py-2 px-3 border border-slate-300 bg-white text-slate-700 rounded-md text-sm appearance-none focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-colors cursor-pointer"
+      >
+        {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => (
+          <option key={d} value={d}>
+            Day {d} {d === activity.day ? "(目前所在)" : ""}
+          </option>
+        ))}
+      </select>
+      {/* 這裡加一個小箭頭裝飾，讓下拉選單看起來更精緻 */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+        <ICON_SVG.chevronDown className="w-4 h-4" />
+      </div>
+    </div>
+  </div>
+)}
+
                 {inputField("title", "標題")}
                 {inputField("location", "地點")}
                 <div className="grid grid-cols-2 gap-3 mb-3">
