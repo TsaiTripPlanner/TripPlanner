@@ -49,6 +49,7 @@ const App = () => {
 
   // 建立行程相關
   const [isCreatingItinerary, setIsCreatingItinerary] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newItineraryData, setNewItineraryData] = useState({
     title: "",
     days: 5,
@@ -72,13 +73,26 @@ const App = () => {
     e.preventDefault();
     if (!accessCodeInput.trim()) return;
 
+    // ★ 1. 開始忙碌，鎖按鈕
+    setIsSubmitting(true);
+
     try {
-      await loginWithCode(accessCodeInput.trim());
-      alert(`歡迎！已進入「${accessCodeInput}」的行程空間。`);
-      setIsLoginModalOpen(false);
-      setAccessCodeInput("");
-    } catch (error) {
-      alert(error.message);
+      await hookCreateItinerary({
+        title: newItineraryData.title.trim(),
+        days: newItineraryData.days,
+        startDate: newItineraryData.startDate,
+      });
+      setIsCreatingItinerary(false);
+      setNewItineraryData({
+        title: "",
+        days: 5,
+        startDate: new Date().toISOString().split("T")[0],
+      });
+    } catch (e) {
+      alert("建立失敗：" + e.message);
+    } finally {
+      // ★ 2. 不管成功或失敗，最後都要解鎖按鈕
+      setIsSubmitting(false);
     }
   };
 
@@ -299,10 +313,39 @@ const App = () => {
           </div>
           <button
             onClick={handleCreateItinerary}
-            disabled={!newItineraryData.title.trim()}
-            className={`w-full py-2 px-4 rounded-md text-white ${morandiButtonPrimary} disabled:opacity-50 mt-4`}
+            // 除了標題空白，如果正在忙 (isSubmitting) 也要鎖住
+            disabled={!newItineraryData.title.trim() || isSubmitting}
+            className={`w-full py-2 px-4 rounded-md text-white ${morandiButtonPrimary} disabled:opacity-50 mt-4 flex justify-center items-center`}
           >
-            開始規劃
+            {/* 根據狀態顯示不同文字 */}
+            {isSubmitting ? (
+              <>
+                {/* 加一個轉圈圈的小圖示 */}
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                建立中...
+              </>
+            ) : (
+              "開始規劃"
+            )}
           </button>
         </div>
       </Modal>

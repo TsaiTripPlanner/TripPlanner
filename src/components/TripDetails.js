@@ -32,6 +32,7 @@ const TripDetails = ({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(itinerary.title);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // === Hooks ===
   const {
@@ -71,11 +72,16 @@ const TripDetails = ({
   // ★ 2. 簡化後的 handleAddActivity
   // 現在它只負責接收資料，並呼叫 Hook
   const handleAddActivity = async (activityData) => {
+    // 設定忙碌狀態
+    setIsSubmitting(true);
     try {
       await hookAddActivity(activityData);
-      setIsModalOpen(false); // 成功後關閉 Modal
+      setIsModalOpen(false);
     } catch (error) {
       alert("新增失敗: " + error.message);
+    } finally {
+      // 解除忙碌狀態
+      setIsSubmitting(false);
     }
   };
 
@@ -337,8 +343,11 @@ const TripDetails = ({
         onClose={() => setIsModalOpen(false)}
         title={`新增活動 (Day ${activeDay})`}
       >
-        {/* ★ 3. 這裡只要放一行，乾淨俐落！ */}
-        <ActivityForm onSubmit={handleAddActivity} />
+        {/* 把狀態傳進去給 ActivityForm */}
+        <ActivityForm
+          onSubmit={handleAddActivity}
+          isSubmitting={isSubmitting}
+        />
       </Modal>
     </div>
   );

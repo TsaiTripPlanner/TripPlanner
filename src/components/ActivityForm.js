@@ -4,7 +4,7 @@ import { ICON_SVG } from "../utils/icons";
 import { ACTIVITY_TYPES } from "../utils/constants"; // 記得從常數拿
 import { morandiButtonPrimary, morandiAccentColor } from "../utils/theme";
 
-const ActivityForm = ({ onSubmit }) => {
+const ActivityForm = ({ onSubmit, isSubmitting }) => {
   // 1. 把原本在 TripDetails 的表單狀態搬進來
   const [formData, setFormData] = useState({
     title: "",
@@ -140,9 +140,11 @@ const ActivityForm = ({ onSubmit }) => {
 
       <button
         type="submit"
-        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${morandiButtonPrimary} transition duration-150 ease-in-out`}
+        // 加上 disabled
+        disabled={isSubmitting}
+        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${morandiButtonPrimary} transition duration-150 ease-in-out disabled:opacity-50 cursor-pointer`}
       >
-        確認新增活動
+        {isSubmitting ? "處理中..." : "確認新增活動"}
       </button>
     </form>
   );
