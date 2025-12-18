@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import {
   morandiSelectedDayButton,
   morandiDayButtonPassive,
@@ -21,11 +21,10 @@ const getDayInfo = (startDate, dayIndex) => {
   return { dateStr, weekStr };
 };
 
-const DayTabs = ({ totalDays, activeDay, setActiveDay, startDate }) => {
+const DayTabs = memo(({ totalDays, activeDay, setActiveDay, startDate }) => {
   return (
-    <div className="flex space-x-2 overflow-x-auto pb-4 mb-6 border-b border-gray-200 scrollbar-hide">
+    <div className="flex space-x-2 overflow-x-auto pb-4 mb-6 border-b border-gray-100 scrollbar-hide">
       {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => {
-        // 計算該天的日期與星期
         const { dateStr, weekStr } = getDayInfo(startDate, day);
 
         return (
@@ -38,9 +37,7 @@ const DayTabs = ({ totalDays, activeDay, setActiveDay, startDate }) => {
                 : morandiDayButtonPassive
             }`}
           >
-            {/* 上面顯示 Day X */}
             <span className="text-base font-bold">Day {day}</span>
-            {/* 下面顯示日期與星期，例如: 12/20 (五) */}
             {dateStr && (
               <span className="text-[10px] opacity-80 font-normal">
                 {dateStr} ({weekStr})
@@ -51,6 +48,6 @@ const DayTabs = ({ totalDays, activeDay, setActiveDay, startDate }) => {
       })}
     </div>
   );
-};
+});
 
 export default DayTabs;
