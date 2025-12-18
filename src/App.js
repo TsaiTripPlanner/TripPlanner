@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 
 // 常數與設定
 import { DEFAULT_DAYS_OPTIONS } from "./utils/constants";
@@ -13,7 +13,7 @@ import { ICON_SVG } from "./utils/icons"; // 記得引入 Icon
 // 組件
 import Modal from "./components/Modal";
 import ItineraryList from "./components/ItineraryList";
-import TripDetails from "./components/TripDetails";
+const TripDetails = React.lazy(() => import("./components/TripDetails"));
 
 // Hooks
 import { useAuth } from "./hooks/useAuth";
@@ -147,6 +147,14 @@ const App = () => {
   };
 
   // === 畫面渲染 ===
+  // 定義一個簡單的載入中畫面 (給懶人載入使用)
+  const LoadingSpinner = () => (
+    <div className="flex items-center justify-center py-20">
+      <div
+        className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${morandiAccentColor}-500`}
+      ></div>
+    </div>
+  );
 
   if (isItinerariesLoading && !errorMessage)
     return (
@@ -159,7 +167,6 @@ const App = () => {
       </div>
     );
 
-  // 取得目前選中的行程資料
   const currentItinerary = allItineraries.find((i) => i.id === itineraryId);
 
   return (
@@ -214,13 +221,17 @@ const App = () => {
         />
       ) : // === 行程詳細頁面 ===
       currentItinerary ? (
-        <TripDetails
-          userId={userId}
-          itinerary={currentItinerary}
-          allItineraries={allItineraries}
-          onBack={() => setItineraryId(null)}
-          onUpdateTitle={handleDetailTitleUpdate}
-        />
+        // 3. 這裡用 Suspense 包住 TripDetails
+        // fallback 屬性就是「還在載入時要顯示什麼？」
+        <Suspense fallback={<LoadingSpinner />}>
+          <TripDetails
+            userId={userId}
+            itinerary={currentItinerary}
+            allItineraries={allItineraries}
+            onBack={() => setItineraryId(null)}
+            onUpdateTitle={handleDetailTitleUpdate}
+          />
+        </Suspense>
       ) : (
         setItineraryId(null)
       )}
