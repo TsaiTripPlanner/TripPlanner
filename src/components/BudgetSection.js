@@ -11,27 +11,26 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-// 引用外部設定與工具
 import { db, appId } from "../config/firebase";
 import { ICON_SVG } from "../utils/icons";
-import { morandiAccentText, morandiButtonPrimary } from "../utils/theme";
+import { useTheme } from "../utils/theme";
 import {
   CURRENCIES,
   EXPENSE_CATEGORIES,
   PAYMENT_METHODS,
 } from "../utils/constants";
 
-// --- 旅行費用 (BudgetSection) 組件 ---
 const BudgetSection = memo(
   ({ itineraryId, userId, totalDays, itineraryStartDate }) => {
-    const [expenses, setExpenses] = useState([]);
+    const { theme } = useTheme();
 
+    const [expenses, setExpenses] = useState([]);
     const [newItem, setNewItem] = useState({
       title: "",
       amount: "",
       currency: "TWD",
       category: "food",
-      paymentMethod: "cash", // 預設為現金
+      paymentMethod: "cash",
       day: 1,
     });
 
@@ -51,28 +50,22 @@ const BudgetSection = memo(
         db,
         `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/expenses`
       );
-
       const q = query(expensesRef);
-
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const data = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-
-        // 前端排序：先依天數(由小到大)，再依建立時間(由新到舊)
         data.sort((a, b) => {
           if (a.day !== b.day) return a.day - b.day;
           return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
         });
-
         setExpenses(data);
       });
       return () => unsubscribe();
     }, [itineraryId, userId]);
 
     const currencyTotals = useMemo(() => {
-      // 這裡面的邏輯跟原本一模一樣
       return expenses.reduce((acc, item) => {
         const curr = item.currency || "TWD";
         const amt = parseFloat(item.amount) || 0;
@@ -83,7 +76,6 @@ const BudgetSection = memo(
 
     const addExpense = async () => {
       if (!newItem.title.trim() || newItem.amount === "") return;
-
       try {
         await addDoc(
           collection(
@@ -95,7 +87,7 @@ const BudgetSection = memo(
             amount: parseFloat(newItem.amount),
             currency: newItem.currency,
             category: newItem.category,
-            paymentMethod: newItem.paymentMethod, // 寫入付款方式
+            paymentMethod: newItem.paymentMethod,
             day: Number(newItem.day),
             createdAt: serverTimestamp(),
           }
@@ -114,7 +106,7 @@ const BudgetSection = memo(
         amount: item.amount,
         currency: item.currency || "TWD",
         category: item.category || "other",
-        paymentMethod: item.paymentMethod || "cash", // 讀取付款方式 (舊資料預設為現金)
+        paymentMethod: item.paymentMethod || "cash",
         day: item.day || 1,
       });
     };
@@ -131,7 +123,7 @@ const BudgetSection = memo(
             amount: parseFloat(editData.amount),
             currency: editData.currency,
             category: editData.category,
-            paymentMethod: editData.paymentMethod, // 更新付款方式
+            paymentMethod: editData.paymentMethod,
             day: Number(editData.day),
             updatedAt: serverTimestamp(),
           }
@@ -164,9 +156,7 @@ const BudgetSection = memo(
       return <IconComponent className="w-5 h-5" />;
     };
 
-    // 取得付款方式的圖示
     const getPaymentIcon = (methodId) => {
-      // 舊資料可能沒有 paymentMethod，預設為 cash
       const method = PAYMENT_METHODS.find((p) => p.id === (methodId || "cash"));
       const iconName = method ? method.icon : "banknotes";
       const IconComponent = ICON_SVG[iconName];
@@ -181,30 +171,30 @@ const BudgetSection = memo(
     };
 
     const { groupedExpenses, sortedDays } = useMemo(() => {
-      // 1. 先做分組
       const grouped = expenses.reduce((acc, item) => {
         const dayKey = item.day || 1;
         if (!acc[dayKey]) acc[dayKey] = [];
         acc[dayKey].push(item);
         return acc;
       }, {});
-
-      // 2. 再做排序
       const sorted = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
-
-      // 3. 一次回傳兩個結果
       return { groupedExpenses: grouped, sortedDays: sorted };
     }, [expenses]);
 
     return (
       <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
-        <h2 className="text-xl font-bold text-gray-700 mb-6 flex items-center">
-          <ICON_SVG.wallet className={`w-6 h-6 mr-2 ${morandiAccentText}`} />
+        <h2
+          className={`text-xl font-bold flex items-center mb-6 ${theme.accentText}`}
+        >
+          <ICON_SVG.wallet className={`w-6 h-6 mr-2 ${theme.accentText}`} />
           旅行費用
         </h2>
 
-        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-          <h3 className="text-sm font-bold text-gray-500 mb-2">
+        {/* ★ 修改：總支出框框背景與邊框 */}
+        <div
+          className={`${theme.infoBoxBg} p-4 rounded-lg border ${theme.infoBoxBorder} mb-6`}
+        >
+          <h3 className={`text-sm font-bold ${theme.infoBoxText} mb-2`}>
             總支出 (依幣別)
           </h3>
           <div className="flex flex-wrap gap-3">
@@ -228,8 +218,8 @@ const BudgetSection = memo(
           </div>
         </div>
 
-        {/* 新增項目區塊 */}
-        <div className="mb-6 p-4 bg-gray-100 rounded-lg space-y-3">
+        {/* ★ 修改：新增區塊背景 */}
+        <div className={`mb-6 p-4 ${theme.itemInputBg} rounded-lg space-y-3`}>
           <div className="flex items-center space-x-2">
             <select
               value={newItem.day}
@@ -255,7 +245,6 @@ const BudgetSection = memo(
                 </option>
               ))}
             </select>
-            {/* ★★★ 新增：付款方式選擇 (第一列) */}
             <select
               value={newItem.paymentMethod}
               onChange={(e) =>
@@ -305,7 +294,7 @@ const BudgetSection = memo(
               </select>
               <button
                 onClick={addExpense}
-                className={`px-4 py-2 text-white rounded text-sm font-medium ${morandiButtonPrimary} whitespace-nowrap`}
+                className={`px-4 py-2 text-white rounded text-sm font-medium ${theme.buttonPrimary} whitespace-nowrap`}
               >
                 記帳
               </button>
@@ -329,7 +318,7 @@ const BudgetSection = memo(
                 <div key={dayKey}>
                   <div className="flex items-center justify-between mb-2 pb-1 border-b border-gray-200">
                     <h4
-                      className={`text-md font-bold ${morandiAccentText} flex items-center`}
+                      className={`text-md font-bold ${theme.accentText} flex items-center`}
                     >
                       Day {dayKey}{" "}
                       <span className="text-xs text-gray-400 ml-2 font-normal">
@@ -351,7 +340,8 @@ const BudgetSection = memo(
                     {groupedExpenses[dayKey].map((item) => (
                       <div
                         key={item.id}
-                        className="p-3 bg-gray-50 rounded-lg flex justify-between items-center hover:bg-white hover:shadow-sm transition border border-transparent hover:border-gray-100"
+                        // ★ 修改：項目背景 theme.itemRowBg
+                        className={`p-3 ${theme.itemRowBg} rounded-lg flex justify-between items-center hover:bg-white hover:shadow-sm transition border border-transparent hover:border-gray-100`}
                       >
                         {editingId === item.id ? (
                           <div className="w-full flex flex-col gap-2">
@@ -391,7 +381,6 @@ const BudgetSection = memo(
                                   </option>
                                 ))}
                               </select>
-                              {/* ★★★ 編輯模式：付款方式 */}
                               <select
                                 value={editData.paymentMethod}
                                 onChange={(e) =>
@@ -470,12 +459,14 @@ const BudgetSection = memo(
                               <div className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-slate-500 mr-3 shadow-sm">
                                 {getCategoryIcon(item.category)}
                               </div>
-                              <span className="text-gray-800 text-sm font-medium">
+                              {/* ★ 修改：項目文字 theme.itemRowText */}
+                              <span
+                                className={`text-sm font-medium ${theme.itemRowText}`}
+                              >
                                 {item.title}
                               </span>
                             </div>
                             <div className="flex items-center">
-                              {/* ★★★ 顯示：付款方式圖示 */}
                               <div
                                 className="mr-2"
                                 title={
@@ -487,7 +478,10 @@ const BudgetSection = memo(
                                 {getPaymentIcon(item.paymentMethod)}
                               </div>
                               <div className="text-right mr-3 min-w-[5rem]">
-                                <div className="font-bold text-gray-700 text-sm">
+                                {/* ★ 修改：金額文字 theme.itemRowText */}
+                                <div
+                                  className={`font-bold text-sm ${theme.itemRowText}`}
+                                >
                                   <span className="text-xs text-gray-400 font-normal mr-1">
                                     {item.currency}
                                   </span>

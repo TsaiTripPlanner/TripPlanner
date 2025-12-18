@@ -1,7 +1,7 @@
 // src/components/ItineraryList.js
 import React from "react";
 import { ICON_SVG } from "../utils/icons";
-import { useTheme } from "../utils/theme"; // ★ 改用 useTheme
+import { useTheme } from "../utils/theme";
 import ItineraryCard from "./ItineraryCard";
 
 const ItineraryList = ({
@@ -11,12 +11,14 @@ const ItineraryList = ({
   onEdit,
   onOpenCreateModal,
 }) => {
-  const { theme } = useTheme(); // ★ 取得 theme
+  const { theme } = useTheme();
 
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-medium text-gray-800 font-cute flex items-center">
+        {/* ★ 修改重點：拿掉了 text-gray-800 和 font-cute */}
+        {/* 現在它會自動繼承外層的顏色 (theme.textMain) 和字體 (theme.font) */}
+        <h1 className="text-4xl font-medium flex items-center">
           <img
             src="/world_761505.jpg"
             alt="Logo"
@@ -26,7 +28,6 @@ const ItineraryList = ({
         </h1>
         <button
           onClick={onOpenCreateModal}
-          // ★ 使用 theme.buttonPrimary
           className={`flex items-center px-4 py-2 rounded-lg text-white shadow-md ${theme.buttonPrimary} transition transform hover:scale-105`}
         >
           <ICON_SVG.plusSmall className="w-5 h-5 mr-1" /> 建立新旅程

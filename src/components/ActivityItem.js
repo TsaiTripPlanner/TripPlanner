@@ -1,14 +1,9 @@
 // src/components/ActivityItem.js
 import React, { memo, useState } from "react";
 import { ICON_SVG } from "../utils/icons";
-import {
-  morandiAccentColor,
-  morandiAccentText,
-  morandiSelectedDayButton,
-} from "../utils/theme";
 import { ACTIVITY_TYPES } from "../utils/constants";
+import { useTheme } from "../utils/theme";
 
-// --- 小幫手工具 ---
 const URL_REGEX = /(https?:\/\/[^\s]+)/g;
 const renderDescriptionWithLinks = (text) => {
   if (!text) return null;
@@ -47,7 +42,6 @@ const calculateDuration = (start, end) => {
   return durationString;
 };
 
-// --- ActivityItem 元件 ---
 const ActivityItem = memo(
   ({
     activity,
@@ -63,20 +57,22 @@ const ActivityItem = memo(
     isDragging,
     totalDays,
   }) => {
+    const { theme } = useTheme();
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const cardClasses = `bg-white rounded-lg p-3 transition-all cursor-pointer ${
+    const cardClasses = `${
+      theme.cardBg
+    } rounded-lg p-3 transition-all cursor-pointer ${
       isEditing
-        ? "shadow-md ring-2 ring-opacity-50 ring-slate-400 border-transparent cursor-default"
+        ? `shadow-md ring-2 ring-opacity-50 ring-${theme.accent}-400 border-transparent cursor-default`
         : isDragging
-        ? "shadow-2xl ring-2 ring-slate-300 rotate-1 border-transparent z-50"
-        : "border border-gray-200 shadow-sm hover:border-gray-300"
+        ? `shadow-2xl ring-2 ring-${theme.accent}-300 rotate-1 border-transparent z-50`
+        : `border ${theme.cardBorder} shadow-sm hover:border-${theme.accent}-300`
     }`;
 
     const duration = calculateDuration(activity.startTime, activity.endTime);
     const timeDisplay = activity.startTime ? activity.startTime : "未定";
 
-    // 編輯模式的輸入框 helper
     const inputField = (name, label, type = "text") => (
       <div className="mb-2">
         <label
@@ -92,7 +88,6 @@ const ActivityItem = memo(
           value={editData[name] || ""}
           onChange={onEditChange}
           className="mt-1 h-9 block w-full min-w-0 max-w-full bg-white appearance-none px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-slate-500 focus:border-slate-500"
-          // ★★★ 修改：地點不再是 required，只有 title 是
           required={name === "title"}
         />
       </div>
@@ -103,12 +98,14 @@ const ActivityItem = memo(
         {/* 左側時間軸 */}
         <div className="w-14 sm:w-20 text-right flex-shrink-0 pr-2 sm:pr-4 pt-0.5 block pb-8">
           <div
-            className={`text-sm sm:text-lg font-bold ${morandiAccentText} leading-snug`}
+            className={`text-sm sm:text-lg font-bold ${theme.accentText} leading-snug`}
           >
             {timeDisplay}
           </div>
           {duration && (
-            <div className="text-xs text-gray-500 mt-0.5 whitespace-nowrap">
+            <div
+              className={`text-xs ${theme.cardMeta} mt-0.5 whitespace-nowrap`}
+            >
               ({duration})
             </div>
           )}
@@ -116,14 +113,20 @@ const ActivityItem = memo(
 
         {/* 中間線條與圓點 */}
         <div className="relative flex flex-col items-center flex-shrink-0 mr-2 sm:mr-0 w-4">
+          {/* ★ 修改重點：線條顏色改成變數 theme.timelineLine */}
           <div
-            className={`absolute w-px bg-gray-300 left-1/2 -translate-x-1/2 bottom-0 ${
+            className={`absolute w-px ${
+              theme.timelineLine
+            } left-1/2 -translate-x-1/2 bottom-0 ${
               index === 0 ? "top-2" : "top-0"
             }`}
           ></div>
+          {/* ★ 修改重點：未完成圓點改成變數 theme.timelineDotPassive */}
           <div
             className={`relative z-10 w-3 h-3 rounded-full ${
-              activity.isCompleted ? morandiSelectedDayButton : "bg-gray-400"
+              activity.isCompleted
+                ? theme.selectedDayButton
+                : theme.timelineDotPassive
             } flex-shrink-0 mt-1`}
           ></div>
         </div>
@@ -141,10 +144,9 @@ const ActivityItem = memo(
             {isEditing ? (
               // === 編輯模式 ===
               <div onClick={(e) => e.stopPropagation()}>
-                <h4 className={`text-lg font-bold mb-3 ${morandiAccentText}`}>
+                <h4 className={`text-lg font-bold mb-3 ${theme.accentText}`}>
                   編輯活動
                 </h4>
-                {/* 類別選擇器 */}
                 <div className="mb-4">
                   <label className="block text-xs font-medium text-gray-500 mb-2">
                     活動類別
@@ -176,7 +178,6 @@ const ActivityItem = memo(
                     })}
                   </div>
                 </div>
-                {/* 修改後的莫蘭迪風格配色 */}
                 {totalDays > 1 && (
                   <div className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
@@ -204,7 +205,6 @@ const ActivityItem = memo(
                           )
                         )}
                       </select>
-                      {/* 這裡加一個小箭頭裝飾，讓下拉選單看起來更精緻 */}
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
                         <ICON_SVG.chevronDown className="w-4 h-4" />
                       </div>
@@ -254,9 +254,7 @@ const ActivityItem = memo(
             ) : (
               // === 顯示模式 ===
               <div className="flex justify-between items-start">
-                {/* 左邊內容區塊 */}
                 <div className="flex-grow min-w-0">
-                  {/* ★★★ 設計修改：將類別移到標題正上方 (Eyebrow Style) */}
                   {(() => {
                     const typeData =
                       ACTIVITY_TYPES.find(
@@ -273,36 +271,39 @@ const ActivityItem = memo(
                     );
                   })()}
 
-                  {/* 標題 (獨佔一行) */}
-                  <h3 className="text-base font-bold text-gray-800 truncate leading-snug mb-1">
+                  <h3
+                    className={`text-base font-bold ${theme.cardTitle} truncate leading-snug mb-1`}
+                  >
                     {activity.title}
                   </h3>
 
-                  {/* 時間區間 */}
                   {(activity.startTime || activity.endTime) && (
-                    <h4 className="text-sm font-semibold text-gray-400 mb-1">
+                    <h4
+                      className={`text-sm font-semibold ${theme.cardMetaLight} mb-1`}
+                    >
                       {activity.startTime || "?"} ~ {activity.endTime || "?"}
                     </h4>
                   )}
 
-                  {/* ★★★ 修改：地點顯示邏輯 (有地點才顯示圖示和文字) */}
                   {activity.location && (
-                    <p className="flex items-center text-xs text-gray-500 mt-0.5">
+                    <p
+                      className={`flex items-center text-xs ${theme.cardMeta} mt-0.5`}
+                    >
                       <ICON_SVG.mapPin
-                        className={`w-3 h-3 mr-1 ${morandiAccentText} flex-shrink-0`}
+                        className={`w-3 h-3 mr-1 ${theme.accentText} flex-shrink-0`}
                       />
                       <span className="truncate">{activity.location}</span>
                     </p>
                   )}
 
-                  {/* 詳細說明 */}
                   {isExpanded && activity.description && (
-                    <div className="mt-3 pt-2 border-t border-gray-100 text-sm text-gray-600 whitespace-pre-wrap animate-fade-in">
+                    <div
+                      className={`mt-3 pt-2 border-t border-gray-100 text-sm ${theme.cardDesc} whitespace-pre-wrap animate-fade-in`}
+                    >
                       {renderDescriptionWithLinks(activity.description)}
                     </div>
                   )}
 
-                  {/* 收合提示箭頭 */}
                   {!isExpanded && activity.description && (
                     <div className="mt-1 text-center">
                       <ICON_SVG.chevronDown className="w-4 h-4 text-gray-300 mx-auto" />
@@ -315,7 +316,6 @@ const ActivityItem = memo(
                   )}
                 </div>
 
-                {/* 右側按鈕區塊 */}
                 <div
                   className="flex flex-col space-y-2 flex-shrink-0 ml-2 pt-1"
                   onClick={(e) => e.stopPropagation()}
@@ -323,7 +323,7 @@ const ActivityItem = memo(
                   <div className="flex space-x-1 justify-end">
                     <button
                       onClick={() => onStartEdit(activity)}
-                      className={`text-gray-400 hover:text-${morandiAccentColor}-600 transition p-1`}
+                      className={`text-gray-400 hover:text-${theme.accent}-600 transition p-1`}
                     >
                       <ICON_SVG.pencil className="w-5 h-5" />
                     </button>

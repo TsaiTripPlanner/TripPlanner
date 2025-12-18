@@ -1,64 +1,99 @@
 // src/utils/theme.js
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 
-// 這裡定義了兩種風格的顏色
 export const THEMES = {
-  // 1. 原本的設計 (保留不動)
+  // 1. 經典莫蘭迪
   morandi: {
     id: "morandi",
     name: "經典莫蘭迪",
     colors: {
-      // 這是給 React 用來組裝 class 的關鍵字，例如 border-slate-400
       accent: "slate",
-      // 整體背景色 (冷灰白)
       background: "bg-stone-50",
-      // 邊框顏色
       accentBorder: "border-slate-400",
-      // 強調文字顏色
       accentText: "text-slate-600",
-      // 選中的天數按鈕
       selectedDayButton: "bg-slate-500 text-white shadow-lg",
-      // 沒選中的天數按鈕
       dayButtonPassive: "bg-stone-200 text-gray-700 hover:bg-slate-100",
-      // 主要按鈕 (如建立行程)
       buttonPrimary: "bg-slate-600 hover:bg-slate-700",
-      // 下方導覽列 (選中)
       floatingSelectedText: "text-slate-600",
-      // 下方導覽列 (沒選中)
       floatingPassiveText: "text-gray-500 hover:text-gray-700",
-      // 登入框背景
       loginModalBg: "bg-[#F8F4E8]",
       loginText: "text-[#7D6B55]",
+      font: "font-cute",
+      textMain: "text-slate-600",
+
+      // 卡片配色
+      cardBg: "bg-white",
+      cardBorder: "border-gray-200",
+      cardTitle: "text-slate-700",
+      cardMeta: "text-slate-500",
+      cardMetaLight: "text-slate-400",
+      cardDesc: "text-slate-600",
+
+      // 時間軸
+      timelineLine: "bg-gray-300",
+      timelineDotPassive: "bg-gray-400",
+
+      // 資訊框配色
+      infoBoxBg: "bg-slate-100",
+      infoBoxBorder: "border-slate-200",
+      infoBoxText: "text-slate-600",
+
+      // ★★★ 新增：清單與費用項目的配色 (莫蘭迪)
+      categoryHeaderBg: "bg-slate-100", // 類別標題背景
+      itemRowBg: "bg-gray-50", // 項目背景
+      itemRowText: "text-gray-700", // 項目文字
+      itemInputBg: "bg-gray-100", // 輸入框背景
     },
   },
-  // 2. 新增：無印良品風 (Muji Style)
+  // 2. 無印簡約
   muji: {
     id: "muji",
     name: "無印簡約",
     colors: {
-      accent: "stone", // 使用暖石灰色系
-      // 背景色：非常淺的米色/棉麻色
-      background: "bg-[#F9F8F6]",
-      accentBorder: "border-[#A69B95]",
-      // 文字：深咖啡灰
-      accentText: "text-[#5E544A]",
-      // 選中按鈕：無印風的牛皮紙色/深卡其
+      accent: "stone",
+      background: "bg-[#EFECE6]",
+      accentBorder: "border-[#8C8279]",
+      accentText: "text-[#8C6A5D]",
       selectedDayButton: "bg-[#8E8071] text-white shadow-md",
-      dayButtonPassive: "bg-[#EAE8E4] text-[#5E544A] hover:bg-[#DCD6D0]",
-      buttonPrimary: "bg-[#8E8071] hover:bg-[#75685B]",
+      dayButtonPassive: "bg-[#DCD6D0] text-[#5E544A] hover:bg-[#C8C2BC]",
+      buttonPrimary: "bg-[#8E8071] hover:bg-[#6B5F52]",
       floatingSelectedText: "text-[#8E8071]",
       floatingPassiveText: "text-[#9E948B] hover:text-[#5E544A]",
-      loginModalBg: "bg-[#F2EFE9]",
+      loginModalBg: "bg-[#E6E2D8]",
       loginText: "text-[#5E544A]",
+      font: "font-sans-tc",
+      textMain: "text-[#5E544A]",
+
+      // 卡片配色
+      cardBg: "bg-[#FAF9F6]",
+      cardBorder: "border-[#C5BDB5]",
+      cardTitle: "text-[#594A3C]",
+      cardMeta: "text-[#998B82]",
+      cardMetaLight: "text-[#B0A69E]",
+      cardDesc: "text-[#6E6359]",
+
+      // 時間軸
+      timelineLine: "bg-[#C5BDB5]",
+      timelineDotPassive: "bg-[#A69B95]",
+
+      // 資訊框配色
+      // ★ 調亮：從 E2DED6 改成 EAE6DE (更柔和的淺亞麻色)
+      infoBoxBg: "bg-[#EAE6DE]",
+      infoBoxBorder: "border-[#C5BDB5]",
+      infoBoxText: "text-[#5E544A]",
+
+      // ★★★ 新增：清單與費用項目的配色 (無印風)
+      categoryHeaderBg: "bg-[#EAE6DE]", // 類別標題 (同資訊框)
+      itemRowBg: "bg-[#F7F5F2]", // 項目背景 (極淺的暖白)
+      itemRowText: "text-[#5E544A]", // 項目文字 (中褐灰)
+      itemInputBg: "bg-[#EAE6DE]", // 輸入框背景 (淺亞麻)
     },
   },
 };
 
-// 建立一個 Context (像是一個全域的廣播系統)
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  // 預設使用 'morandi'
   const [currentThemeId, setCurrentThemeId] = useState("morandi");
 
   const changeTheme = (themeId) => {
@@ -68,7 +103,7 @@ export const ThemeProvider = ({ children }) => {
   };
 
   const value = {
-    theme: THEMES[currentThemeId].colors, // 這裡會自動送出當前選中的顏色包
+    theme: THEMES[currentThemeId].colors,
     currentThemeId,
     changeTheme,
     allThemes: Object.values(THEMES),
@@ -79,7 +114,6 @@ export const ThemeProvider = ({ children }) => {
   );
 };
 
-// 讓其他檔案可以方便取得顏色的工具
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {

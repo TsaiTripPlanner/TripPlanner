@@ -3,7 +3,6 @@ import React, { useState, Suspense } from "react";
 
 // 常數與設定
 import { DEFAULT_DAYS_OPTIONS } from "./utils/constants";
-// ★ 注意：這裡改成引入 useTheme，不再引入 morandi...
 import { useTheme } from "./utils/theme";
 import { ICON_SVG } from "./utils/icons";
 
@@ -17,7 +16,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useItineraries } from "./hooks/useItineraries";
 
 const App = () => {
-  // ★ 1. 取得主題工具
+  // 1. 取得主題工具
   const { theme, changeTheme, currentThemeId, allThemes } = useTheme();
 
   const {
@@ -141,7 +140,6 @@ const App = () => {
 
   const LoadingSpinner = () => (
     <div className="flex items-center justify-center py-20">
-      {/* ★ 這裡用到 theme.accent */}
       <div
         className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${theme.accent}-500`}
       ></div>
@@ -150,7 +148,6 @@ const App = () => {
 
   if (isItinerariesLoading && !errorMessage)
     return (
-      // ★ 背景色換成變數
       <div
         className={`flex items-center justify-center min-h-screen ${theme.background}`}
       >
@@ -163,35 +160,45 @@ const App = () => {
   const currentItinerary = allItineraries.find((i) => i.id === itineraryId);
 
   return (
-    // ★ 背景色換成變數，並加上 transition-colors 讓切換時有動畫
+    // ★★★ 這裡加上了 theme.textMain 和 theme.font ★★★
+    // 這樣整個 APP 的字體和預設文字顏色就會跟著變
     <div
-      className={`min-h-screen ${theme.background} p-4 sm:p-8 font-sans pb-28 relative transition-colors duration-500`}
+      className={`min-h-screen ${theme.background} ${theme.textMain} ${theme.font} p-4 sm:p-8 pb-28 relative transition-colors duration-500`}
     >
+      {/* ★★★ 這裡引入了新的字體 Noto Sans TC (思源黑體) ★★★ */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700&display=swap');
+        
         .font-serif-tc { font-family: 'Yuji Syuku', serif; letter-spacing: 0.05em; }
         .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
+        /* 新定義的無印風字體 class */
+        .font-sans-tc { font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.02em; }
       `}</style>
 
-      {/* ★★★ 主題切換按鈕 (左上角) ★★★ */}
+      {/* 主題切換按鈕 */}
       <div className="flex justify-between items-center mb-4 z-20 relative">
         <div className="flex space-x-2 bg-white/50 p-1 rounded-full backdrop-blur-sm">
-          {allThemes.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => changeTheme(t.id)}
-              className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                currentThemeId === t.id
-                  ? "bg-slate-700 text-white shadow-md scale-105"
-                  : "bg-transparent text-gray-500 hover:bg-white/80"
-              }`}
-            >
-              {t.name}
-            </button>
-          ))}
+          {allThemes.map((t) => {
+            const activeColorClass =
+              t.id === "muji" ? "bg-[#8E8071]" : "bg-slate-600";
+
+            return (
+              <button
+                key={t.id}
+                onClick={() => changeTheme(t.id)}
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                  currentThemeId === t.id
+                    ? `${activeColorClass} text-white shadow-md scale-105`
+                    : "bg-transparent text-gray-500 hover:bg-white/80"
+                }`}
+              >
+                {t.name}
+              </button>
+            );
+          })}
         </div>
 
-        {/* 右上角登入區塊 */}
+        {/* 登入區塊 */}
         <div>
           {isAnonymous ? (
             <button
@@ -309,7 +316,6 @@ const App = () => {
           <button
             onClick={handleCreateItinerary}
             disabled={!newItineraryData.title.trim() || isSubmitting}
-            // ★ 替換按鈕顏色：theme.buttonPrimary
             className={`w-full py-2 px-4 rounded-md text-white ${theme.buttonPrimary} disabled:opacity-50 mt-4 flex justify-center items-center`}
           >
             {isSubmitting ? (
@@ -406,7 +412,6 @@ const App = () => {
           <button
             onClick={handleUpdateItinerary}
             disabled={!editingItineraryData.title.trim()}
-            // ★ 替換按鈕顏色：theme.buttonPrimary
             className={`w-full py-2 px-4 rounded-md text-white ${theme.buttonPrimary} disabled:opacity-50 mt-4`}
           >
             儲存修改
@@ -421,7 +426,6 @@ const App = () => {
         title="輸入行程通行碼"
       >
         <form onSubmit={handleLoginSubmit} className="space-y-4">
-          {/* ★ 替換背景色和文字色：theme.loginModalBg, theme.loginText */}
           <div
             className={`${theme.loginModalBg} p-4 rounded-lg text-sm ${theme.loginText} mb-4 border border-[#DEC9B5]/30`}
           >
@@ -459,7 +463,6 @@ const App = () => {
 
           <button
             type="submit"
-            // ★ 替換按鈕顏色：theme.buttonPrimary
             className={`w-full py-3 px-4 rounded-lg text-white font-bold shadow-md ${theme.buttonPrimary} transition-transform transform active:scale-95`}
           >
             進入行程空間

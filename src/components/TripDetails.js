@@ -4,18 +4,14 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 import { TABS } from "../utils/constants";
 import { ICON_SVG } from "../utils/icons";
-import {
-  morandiButtonPrimary,
-  morandiFloatingSelectedText,
-  morandiFloatingPassiveText,
-} from "../utils/theme";
+import { useTheme } from "../utils/theme";
 
 import Modal from "./Modal";
 import ActivityItem from "./ActivityItem";
 import ListSection from "./ListSection";
 import BudgetSection from "./BudgetSection";
 import DayTabs from "./DayTabs";
-import ActivityForm from "./ActivityForm"; // ★ 1. 引入新組件
+import ActivityForm from "./ActivityForm";
 
 import { useActivities } from "../hooks/useActivities";
 import { usePackingList } from "../hooks/usePackingList";
@@ -27,6 +23,8 @@ const TripDetails = ({
   onUpdateTitle,
   allItineraries,
 }) => {
+  const { theme } = useTheme();
+
   const [activeTab, setActiveTab] = useState(TABS.ITINERARY);
   const [activeDay, setActiveDay] = useState(1);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -34,7 +32,6 @@ const TripDetails = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // === Hooks ===
   const {
     listCategories,
     addCategory,
@@ -55,12 +52,9 @@ const TripDetails = ({
     reorderActivities,
   } = useActivities(userId, itinerary.id, activeDay);
 
-  // === 狀態 (已經移除了 newActivity 和 formError 相關狀態) ===
   const [editingActivityId, setEditingActivityId] = useState(null);
   const [editFormData, setEditFormData] = useState({});
   const [newCategoryName, setNewCategoryName] = useState("");
-
-  // === 處理函式 ===
 
   const handleTitleSave = () => {
     if (tempTitle.trim()) {
@@ -69,10 +63,7 @@ const TripDetails = ({
     }
   };
 
-  // ★ 2. 簡化後的 handleAddActivity
-  // 現在它只負責接收資料，並呼叫 Hook
   const handleAddActivity = async (activityData) => {
-    // 設定忙碌狀態
     setIsSubmitting(true);
     try {
       await hookAddActivity(activityData);
@@ -80,7 +71,6 @@ const TripDetails = ({
     } catch (error) {
       alert("新增失敗: " + error.message);
     } finally {
-      // 解除忙碌狀態
       setIsSubmitting(false);
     }
   };
@@ -145,7 +135,9 @@ const TripDetails = ({
                   type="text"
                   value={tempTitle}
                   onChange={(e) => setTempTitle(e.target.value)}
-                  className="text-2xl sm:text-3xl font-normal text-gray-800 border-b-2 border-slate-500 focus:outline-none w-full bg-transparent font-cute"
+                  // ★ 修改重點：這裡原本有 font-cute 和 text-gray-800，現在拿掉
+                  // 加上 bg-transparent 和繼承外層文字顏色
+                  className="text-2xl sm:text-3xl font-normal border-b-2 border-slate-500 focus:outline-none w-full bg-transparent"
                   autoFocus
                 />
                 <button
@@ -163,7 +155,8 @@ const TripDetails = ({
               </div>
             ) : (
               <div className="flex items-center space-x-2 group">
-                <h1 className="text-3xl sm:text-4xl font-normal text-gray-800 tracking-tight font-cute break-words leading-tight max-w-xs sm:max-w-xl">
+                {/* ★ 修改重點：標題拿掉 font-cute 和 text-gray-800 */}
+                <h1 className="text-3xl sm:text-4xl font-normal tracking-tight break-words leading-tight max-w-xs sm:max-w-xl">
                   {itinerary.title}
                 </h1>
                 <button
@@ -186,9 +179,6 @@ const TripDetails = ({
 
       {activeTab === TABS.ITINERARY && (
         <div className="bg-white p-2 sm:p-6 rounded-xl shadow-lg relative min-h-[500px]">
-          {" "}
-          {/* 加個 min-h 讓視覺更好 */}
-          {/* ★★★ 修改這裡：加入 sticky positioning ★★★ */}
           <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm pt-2 pb-2 -mx-2 px-2 border-b border-gray-100 mb-4">
             <DayTabs
               totalDays={itinerary.durationDays}
@@ -197,8 +187,8 @@ const TripDetails = ({
               startDate={itinerary.startDate}
             />
           </div>
-          {/* 下方原本的標題 */}
-          <h3 className="text-2xl font-semibold text-gray-800 mb-6 font-cute pt-2">
+          {/* ★ 修改重點：下方小標題拿掉 font-cute 和 text-gray-800 */}
+          <h3 className="text-2xl font-semibold mb-6 pt-2">
             Day {activeDay}{" "}
             <span className="text-base text-gray-400 font-normal ml-2">
               的活動
@@ -233,7 +223,6 @@ const TripDetails = ({
                                 onDelete={deleteActivity}
                                 onStartEdit={startEditActivity}
                                 isEditing={editingActivityId === activity.id}
-                                // 如果是正在編輯的人，才給它資料；否則給它 undefined (這是一個永遠不變的值)
                                 editData={
                                   editingActivityId === activity.id
                                     ? editFormData
@@ -296,8 +285,8 @@ const TripDetails = ({
           <div
             className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/3 text-center justify-center ${
               activeTab === TABS.ITINERARY
-                ? morandiFloatingSelectedText
-                : morandiFloatingPassiveText
+                ? theme.floatingSelectedText
+                : theme.floatingPassiveText
             }`}
             onClick={() => setActiveTab(TABS.ITINERARY)}
           >
@@ -307,8 +296,8 @@ const TripDetails = ({
           <div
             className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/3 text-center justify-center ${
               activeTab === TABS.PACKING
-                ? morandiFloatingSelectedText
-                : morandiFloatingPassiveText
+                ? theme.floatingSelectedText
+                : theme.floatingPassiveText
             }`}
             onClick={() => setActiveTab(TABS.PACKING)}
           >
@@ -318,8 +307,8 @@ const TripDetails = ({
           <div
             className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/3 text-center justify-center ${
               activeTab === TABS.BUDGET
-                ? morandiFloatingSelectedText
-                : morandiFloatingPassiveText
+                ? theme.floatingSelectedText
+                : theme.floatingPassiveText
             }`}
             onClick={() => setActiveTab(TABS.BUDGET)}
           >
@@ -332,7 +321,7 @@ const TripDetails = ({
       {activeTab === TABS.ITINERARY && (
         <button
           onClick={() => setIsModalOpen(true)}
-          className={`fixed right-6 bottom-32 sm:right-10 sm:bottom-32 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white ${morandiButtonPrimary} transition-all duration-300 transform hover:scale-105 z-40`}
+          className={`fixed right-6 bottom-32 sm:right-10 sm:bottom-32 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white ${theme.buttonPrimary} transition-all duration-300 transform hover:scale-105 z-40`}
         >
           <ICON_SVG.plusSmall className="w-8 h-8" />
         </button>
@@ -343,7 +332,6 @@ const TripDetails = ({
         onClose={() => setIsModalOpen(false)}
         title={`新增活動 (Day ${activeDay})`}
       >
-        {/* 把狀態傳進去給 ActivityForm */}
         <ActivityForm
           onSubmit={handleAddActivity}
           isSubmitting={isSubmitting}

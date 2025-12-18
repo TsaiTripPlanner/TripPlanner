@@ -1,36 +1,29 @@
+// src/components/ListSection.js
 import React, { useState, memo } from "react";
 import { ICON_SVG } from "../utils/icons";
-import {
-  morandiAccentText,
-  morandiButtonPrimary,
-  morandiAccentColor,
-} from "../utils/theme";
+import { useTheme } from "../utils/theme";
 
-// --- 清單管理 (ListSection) 組件 ---
 const ListSection = memo(
   ({
     listCategories,
     newCategoryName,
     setNewCategoryName,
     addCategory,
-    updateCategoryName, // 新增
+    updateCategoryName,
     deleteCategory,
     addItemToList,
-    updateItemName, // 新增
+    updateItemName,
     toggleItemCompletion,
     deleteItem,
-    importFromItinerary, // 新增
-    allItineraries, // 新增
-    currentItineraryId, // 新增
+    importFromItinerary,
+    allItineraries,
+    currentItineraryId,
   }) => {
-    // 既有的狀態
+    const { theme } = useTheme();
+
     const [newItemInput, setNewItemInput] = useState({});
     const [collapsedCategories, setCollapsedCategories] = useState({});
-
-    // ★★★ 新增：匯入功能的選擇狀態
     const [selectedImportId, setSelectedImportId] = useState("");
-
-    // ★★★ 新增：編輯模式的狀態 (紀錄正在編輯哪個 ID，以及目前的暫存文字)
     const [editingCategoryId, setEditingCategoryId] = useState(null);
     const [editingItemId, setEditingItemId] = useState(null);
     const [tempEditText, setTempEditText] = useState("");
@@ -52,7 +45,6 @@ const ListSection = memo(
         [categoryId]: !prev[categoryId],
       }));
 
-    // --- 編輯功能的小幫手 ---
     const startEditCategory = (id, currentName) => {
       setEditingCategoryId(id);
       setTempEditText(currentName);
@@ -77,7 +69,6 @@ const ListSection = memo(
       setEditingItemId(null);
     };
 
-    // --- 匯入功能 ---
     const handleImport = () => {
       if (!selectedImportId) return;
       if (
@@ -86,30 +77,36 @@ const ListSection = memo(
         )
       ) {
         importFromItinerary(selectedImportId);
-        setSelectedImportId(""); // 重置
+        setSelectedImportId("");
       }
     };
 
-    // 過濾掉自己，只顯示其他行程
     const availableItineraries =
       allItineraries?.filter((i) => i.id !== currentItineraryId) || [];
 
     return (
-      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+      <div className={`bg-white p-4 sm:p-6 rounded-xl shadow-lg`}>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-700 flex items-center">
+          <h2
+            className={`text-xl font-bold flex items-center ${theme.accentText}`}
+          >
             <ICON_SVG.clipboardCheck
-              className={`w-6 h-6 mr-2 ${morandiAccentText}`}
+              className={`w-6 h-6 mr-2 ${theme.accentText}`}
             />
             清單管理
           </h2>
         </div>
 
-        {/* ★★★ 修改樣式後的：匯入區域 */}
         {availableItineraries.length > 0 && (
-          <div className="mb-6 p-4 bg-stone-100 border border-stone-200 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
-            <div className="flex items-center text-sm text-gray-600 font-medium">
-              <ICON_SVG.listCollapse className="w-5 h-5 mr-2 text-gray-500" />
+          <div
+            className={`mb-6 p-4 ${theme.infoBoxBg} border ${theme.infoBoxBorder} rounded-lg flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm`}
+          >
+            <div
+              className={`flex items-center text-sm ${theme.infoBoxText} font-medium`}
+            >
+              <ICON_SVG.listCollapse
+                className={`w-5 h-5 mr-2 ${theme.infoBoxText}`}
+              />
               <span>從其他行程匯入清單：</span>
             </div>
             <div className="flex w-full sm:w-auto gap-2">
@@ -128,7 +125,7 @@ const ListSection = memo(
               <button
                 onClick={handleImport}
                 disabled={!selectedImportId}
-                className={`px-4 py-1.5 text-white text-sm rounded-md shadow-sm whitespace-nowrap transition disabled:opacity-50 disabled:cursor-not-allowed ${morandiButtonPrimary}`}
+                className={`px-4 py-1.5 text-white text-sm rounded-md shadow-sm whitespace-nowrap transition disabled:opacity-50 disabled:cursor-not-allowed ${theme.buttonPrimary}`}
               >
                 匯入
               </button>
@@ -136,7 +133,10 @@ const ListSection = memo(
           </div>
         )}
 
-        <div className="mb-8 p-4 bg-stone-50 rounded-lg border border-stone-200 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+        {/* 新增類別區塊 (背景也換成 infoBoxBg) */}
+        <div
+          className={`mb-8 p-4 ${theme.infoBoxBg} rounded-lg border ${theme.infoBoxBorder} flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4`}
+        >
           <input
             type="text"
             placeholder="輸入新類別名稱 (如: 服飾, 藥品)"
@@ -153,7 +153,7 @@ const ListSection = memo(
           <button
             onClick={addCategory}
             disabled={!newCategoryName.trim()}
-            className={`flex-shrink-0 px-4 py-2 text-sm font-medium rounded-md text-white ${morandiButtonPrimary} disabled:opacity-50 transition`}
+            className={`flex-shrink-0 px-4 py-2 text-sm font-medium rounded-md text-white ${theme.buttonPrimary} disabled:opacity-50 transition`}
           >
             <ICON_SVG.plusSmall className="w-5 h-5 inline-block -mt-0.5 mr-1" />{" "}
             新增類別
@@ -162,7 +162,9 @@ const ListSection = memo(
 
         <div className="space-y-8">
           {listCategories.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+            <div
+              className={`text-center py-8 ${theme.infoBoxText} ${theme.itemRowBg} rounded-lg`}
+            >
               <p>目前沒有任何清單類別。</p>
             </div>
           ) : (
@@ -176,16 +178,12 @@ const ListSection = memo(
               return (
                 <div
                   key={category.id}
-                  className="border border-gray-200 rounded-xl shadow-md overflow-hidden bg-gray-50"
+                  className="border border-gray-200 rounded-xl shadow-md overflow-hidden bg-white"
                 >
                   <div
-                    className={`p-3 flex justify-between items-center ${
-                      morandiAccentColor === "slate"
-                        ? "bg-slate-100"
-                        : "bg-gray-200"
-                    }`}
+                    // ★ 修改：類別標題背景改用 theme.categoryHeaderBg
+                    className={`p-3 flex justify-between items-center ${theme.categoryHeaderBg}`}
                   >
-                    {/* 類別標題區塊：顯示模式 vs 編輯模式 */}
                     {isEditingCat ? (
                       <div className="flex items-center flex-grow space-x-2 mr-2">
                         <input
@@ -214,13 +212,15 @@ const ListSection = memo(
                         className="flex items-center flex-grow text-left focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 p-1 -m-1 rounded-md"
                       >
                         <h3
-                          className={`text-lg font-semibold flex items-center ${morandiAccentText}`}
+                          className={`text-lg font-semibold flex items-center ${theme.accentText}`}
                         >
                           <ICON_SVG.bookmark className="w-5 h-5 mr-2 flex-shrink-0" />
                           {category.name} ({itemsCompleted}/
                           {category.items.length})
                         </h3>
-                        <span className="ml-3 text-gray-500 transition-transform duration-300">
+                        <span
+                          className={`ml-3 transition-transform duration-300 ${theme.infoBoxText}`}
+                        >
                           {isCollapsed ? (
                             <ICON_SVG.chevronDown className="w-5 h-5" />
                           ) : (
@@ -236,14 +236,14 @@ const ListSection = memo(
                           onClick={() =>
                             startEditCategory(category.id, category.name)
                           }
-                          className="text-gray-400 hover:text-blue-500 transition p-1 rounded hover:bg-white flex-shrink-0 ml-1"
+                          className={`hover:text-blue-500 transition p-1 rounded hover:bg-white flex-shrink-0 ml-1 ${theme.infoBoxText}`}
                         >
                           <ICON_SVG.pencil className="w-4 h-4" />
                         </button>
                       )}
                       <button
                         onClick={() => deleteCategory(category.id)}
-                        className="text-gray-400 hover:text-red-500 transition p-1 rounded hover:bg-white flex-shrink-0 ml-1"
+                        className={`hover:text-red-500 transition p-1 rounded hover:bg-white flex-shrink-0 ml-1 ${theme.infoBoxText}`}
                       >
                         <ICON_SVG.trash className="w-5 h-5" />
                       </button>
@@ -257,9 +257,9 @@ const ListSection = memo(
                         return (
                           <li
                             key={item.id}
-                            className="p-3 flex justify-between items-center hover:bg-gray-50 transition"
+                            // ★ 修改：hover 背景顏色
+                            className={`p-3 flex justify-between items-center transition hover:bg-gray-50`}
                           >
-                            {/* 項目區塊：顯示模式 vs 編輯模式 */}
                             {isEditingItem ? (
                               <div className="flex items-center flex-grow space-x-2 mr-2">
                                 <input
@@ -291,17 +291,18 @@ const ListSection = memo(
                                   checked={item.isCompleted}
                                   onChange={(e) =>
                                     toggleItemCompletion(
-                                      item.id, // 注意：這裡現在只需要 item.id
+                                      item.id,
                                       e.target.checked
                                     )
                                   }
-                                  className={`form-checkbox h-5 w-5 ${morandiAccentText} rounded transition duration-150 ease-in-out border-gray-300 focus:ring-slate-500`}
+                                  className={`form-checkbox h-5 w-5 ${theme.accentText} rounded transition duration-150 ease-in-out border-gray-300 focus:ring-slate-500`}
                                 />
                                 <span
-                                  className={`text-gray-800 text-base flex-grow min-w-0 truncate ${
+                                  // ★ 修改：文字顏色 theme.itemRowText
+                                  className={`text-base flex-grow min-w-0 truncate ${
                                     item.isCompleted
                                       ? "line-through text-gray-400"
-                                      : ""
+                                      : theme.itemRowText
                                   }`}
                                 >
                                   {item.name}
@@ -330,7 +331,8 @@ const ListSection = memo(
                           </li>
                         );
                       })}
-                      <li className="p-3 bg-gray-100">
+                      {/* ★ 修改：新增項目的背景 theme.itemInputBg */}
+                      <li className={`p-3 ${theme.itemInputBg}`}>
                         <div className="flex space-x-2">
                           <input
                             type="text"
@@ -350,7 +352,7 @@ const ListSection = memo(
                           <button
                             onClick={() => handleAddItemPress(category.id)}
                             disabled={!newItemInput[category.id]?.trim()}
-                            className={`flex-shrink-0 px-3 py-1 text-sm font-medium rounded-md text-white ${morandiButtonPrimary} disabled:opacity-50 transition`}
+                            className={`flex-shrink-0 px-3 py-1 text-sm font-medium rounded-md text-white ${theme.buttonPrimary} disabled:opacity-50 transition`}
                           >
                             {" "}
                             +{" "}

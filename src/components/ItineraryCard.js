@@ -2,7 +2,6 @@
 import React from "react";
 import { ICON_SVG } from "../utils/icons";
 
-// --- 組件：行程卡片 ---
 const ItineraryCard = ({ data, onSelect, onDelete, onEdit }) => {
   let displayDate = "";
   if (data.startDate) {
@@ -17,7 +16,8 @@ const ItineraryCard = ({ data, onSelect, onDelete, onEdit }) => {
       className="bg-white p-5 rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer border border-gray-100 group relative flex items-center justify-between"
     >
       <div className="flex-grow pr-4">
-        <h3 className="text-xl text-gray-800 mb-2 group-hover:text-slate-600 transition font-cute break-words leading-relaxed">
+        {/* ★ 修改重點：拿掉了 text-gray-800 和 font-cute */}
+        <h3 className="text-xl mb-2 group-hover:opacity-75 transition break-words leading-relaxed font-bold">
           {data.title}
         </h3>
         <p className="text-sm text-gray-500 flex items-center">
@@ -56,4 +56,4 @@ const ItineraryCard = ({ data, onSelect, onDelete, onEdit }) => {
     </div>
   );
 };
-export default ItineraryCard; // 記得匯出！
+export default ItineraryCard;

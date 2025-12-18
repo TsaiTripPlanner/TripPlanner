@@ -1,11 +1,14 @@
 // src/components/ActivityForm.js
 import React, { useState } from "react";
 import { ICON_SVG } from "../utils/icons";
-import { ACTIVITY_TYPES } from "../utils/constants"; // 記得從常數拿
-import { morandiButtonPrimary, morandiAccentColor } from "../utils/theme";
+import { ACTIVITY_TYPES } from "../utils/constants";
+// ★ 改用 useTheme
+import { useTheme } from "../utils/theme";
 
 const ActivityForm = ({ onSubmit, isSubmitting }) => {
-  // 1. 把原本在 TripDetails 的表單狀態搬進來
+  // ★ 取得主題
+  const { theme } = useTheme();
+
   const [formData, setFormData] = useState({
     title: "",
     location: "",
@@ -16,20 +19,17 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
   });
   const [error, setError] = useState("");
 
-  // 2. 處理輸入變更
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
   };
 
-  // 3. 處理送出
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.title.trim()) {
       setError("活動標題為必填欄位！");
       return;
     }
-    // 把乾淨的資料交給父母元件，並重置表單
     onSubmit(formData);
     setFormData({
       title: "",
@@ -43,7 +43,7 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* 類別選擇按鈕 (水平滑動) */}
+      {/* 類別選擇按鈕 */}
       <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
         {ACTIVITY_TYPES.map((type) => {
           const Icon = ICON_SVG[type.icon];
@@ -74,7 +74,8 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
           value={formData.title}
           onChange={handleChange}
           placeholder="活動標題 *"
-          className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm`}
+          // ★ theme.accent
+          className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${theme.accent}-500 focus:border-${theme.accent}-500 text-sm`}
           required
         />
         <input
@@ -83,15 +84,12 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
           value={formData.location}
           onChange={handleChange}
           placeholder="地點 (選填)"
-          className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm`}
+          // ★ theme.accent
+          className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${theme.accent}-500 focus:border-${theme.accent}-500 text-sm`}
         />
       </div>
 
       {/* 時間 */}
-      {/* 
-         改用 Flexbox 強制左右平分空間 
-         原本的 Grid 在某些手機瀏覽器無法壓縮 input 的預設寬度
-      */}
       <div className="flex gap-2 w-full">
         <div className="flex-1 min-w-0">
           <label className="block text-sm font-medium text-gray-700 mb-1 truncate">
@@ -102,13 +100,8 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
             name="startTime"
             value={formData.startTime}
             onChange={handleChange}
-            /* 
-               關鍵修改：
-               1. appearance-none: 移除手機原生樣式 (如 iOS 的圓角和陰影)
-               2. px-1: 減少內距，讓數字有更多空間顯示
-               3. text-center: 讓時間居中比較好看
-            */
-            className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm text-center`}
+            // ★ theme.accent
+            className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${theme.accent}-500 focus:border-${theme.accent}-500 text-sm text-center`}
           />
         </div>
         <div className="flex-1 min-w-0">
@@ -120,7 +113,8 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
             name="endTime"
             value={formData.endTime}
             onChange={handleChange}
-            className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm text-center`}
+            // ★ theme.accent
+            className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${theme.accent}-500 focus:border-${theme.accent}-500 text-sm text-center`}
           />
         </div>
       </div>
@@ -132,17 +126,17 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
         onChange={handleChange}
         rows="3"
         placeholder="詳細說明 (選填)"
-        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${morandiAccentColor}-500 focus:border-${morandiAccentColor}-500 text-sm`}
+        // ★ theme.accent
+        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${theme.accent}-500 focus:border-${theme.accent}-500 text-sm`}
       ></textarea>
 
-      {/* 錯誤訊息與按鈕 */}
       {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
 
       <button
         type="submit"
-        // 加上 disabled
         disabled={isSubmitting}
-        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${morandiButtonPrimary} transition duration-150 ease-in-out disabled:opacity-50 cursor-pointer`}
+        // ★ theme.buttonPrimary
+        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${theme.buttonPrimary} transition duration-150 ease-in-out disabled:opacity-50 cursor-pointer`}
       >
         {isSubmitting ? "處理中..." : "確認新增活動"}
       </button>

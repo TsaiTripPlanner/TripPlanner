@@ -1,8 +1,7 @@
+// src/components/DayTabs.js
 import React, { memo } from "react";
-import {
-  morandiSelectedDayButton,
-  morandiDayButtonPassive,
-} from "../utils/theme";
+// ★ 改用 useTheme，不再引入舊的變數
+import { useTheme } from "../utils/theme";
 
 // 輔助函式：計算第 N 天是幾月幾號以及星期幾
 const getDayInfo = (startDate, dayIndex) => {
@@ -22,6 +21,9 @@ const getDayInfo = (startDate, dayIndex) => {
 };
 
 const DayTabs = memo(({ totalDays, activeDay, setActiveDay, startDate }) => {
+  // ★ 取得主題
+  const { theme } = useTheme();
+
   return (
     <div className="flex space-x-2 overflow-x-auto pb-4 mb-6 border-b border-gray-100 scrollbar-hide">
       {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => {
@@ -31,10 +33,11 @@ const DayTabs = memo(({ totalDays, activeDay, setActiveDay, startDate }) => {
           <button
             key={day}
             onClick={() => setActiveDay(day)}
+            // ★ 替換變數：theme.selectedDayButton / theme.dayButtonPassive
             className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 flex flex-col items-center justify-center min-w-[4.5rem] gap-1.5 ${
               activeDay === day
-                ? morandiSelectedDayButton
-                : morandiDayButtonPassive
+                ? theme.selectedDayButton
+                : theme.dayButtonPassive
             }`}
           >
             <span className="text-base font-bold">Day {day}</span>
