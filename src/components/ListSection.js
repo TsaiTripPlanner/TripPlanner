@@ -2,6 +2,7 @@
 import React, { useState, memo } from "react";
 import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";
+import ConfirmModal from "./ConfirmModal"; // ★ 1. 引入確認視窗
 
 const ListSection = memo(
   ({
@@ -27,6 +28,9 @@ const ListSection = memo(
     const [editingCategoryId, setEditingCategoryId] = useState(null);
     const [editingItemId, setEditingItemId] = useState(null);
     const [tempEditText, setTempEditText] = useState("");
+
+    // ★ 2. 新增：刪除確認的設定狀態 (用來記錄現在要刪誰、是什麼類型)
+    const [deleteConfig, setDeleteConfig] = useState(null);
 
     const handleNewItemChange = (categoryId, value) =>
       setNewItemInput((prev) => ({ ...prev, [categoryId]: value }));
@@ -79,6 +83,41 @@ const ListSection = memo(
         importFromItinerary(selectedImportId);
         setSelectedImportId("");
       }
+    };
+
+    // ★ 3. 新增：處理點擊「刪除分類」
+    const handleDeleteCategoryClick = (id, name) => {
+      setDeleteConfig({
+        type: "category",
+        id: id,
+        title: "刪除分類",
+        message: `確定要刪除「${name}」這個分類嗎？該分類下的所有項目也會一併被刪除。`,
+      });
+    };
+
+    // ★ 4. 新增：處理點擊「刪除項目」
+    const handleDeleteItemClick = (categoryId, itemId, name) => {
+      setDeleteConfig({
+        type: "item",
+        categoryId: categoryId,
+        itemId: itemId,
+        title: "刪除項目",
+        message: `確定要刪除「${name}」嗎？`,
+      });
+    };
+
+    // ★ 5. 新增：執行刪除 (按下 Modal 的確定後)
+    const handleConfirmDelete = () => {
+      if (!deleteConfig) return;
+
+      if (deleteConfig.type === "category") {
+        deleteCategory(deleteConfig.id);
+      } else if (deleteConfig.type === "item") {
+        deleteItem(deleteConfig.categoryId, deleteConfig.itemId);
+      }
+
+      // 關閉 Modal
+      setDeleteConfig(null);
     };
 
     const availableItineraries =
@@ -147,7 +186,6 @@ const ListSection = memo(
                 addCategory();
               }
             }}
-            // ★ 手機版優化：text-base 防止縮放
             className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base focus:ring-slate-500 focus:border-slate-500"
           />
           <button
@@ -241,7 +279,10 @@ const ListSection = memo(
                         </button>
                       )}
                       <button
-                        onClick={() => deleteCategory(category.id)}
+                        // ★ 6. 修改：點擊垃圾桶時，呼叫新的確認函式
+                        onClick={() =>
+                          handleDeleteCategoryClick(category.id, category.name)
+                        }
                         className={`hover:text-red-500 transition p-1 rounded hover:bg-white flex-shrink-0 ml-1 ${theme.infoBoxText}`}
                       >
                         <ICON_SVG.trash className="w-5 h-5" />
@@ -319,7 +360,14 @@ const ListSection = memo(
                                 </button>
                               )}
                               <button
-                                onClick={() => deleteItem(category.id, item.id)}
+                                // ★ 7. 修改：點擊項目垃圾桶時，呼叫確認函式
+                                onClick={() =>
+                                  handleDeleteItemClick(
+                                    category.id,
+                                    item.id,
+                                    item.name
+                                  )
+                                }
                                 className={`hover:text-red-400 transition ml-2 flex-shrink-0 ${theme.itemMetaText}`}
                               >
                                 <ICON_SVG.trash className="w-4 h-4" />
@@ -329,7 +377,6 @@ const ListSection = memo(
                         );
                       })}
 
-                      {/* ★★★ 修改重點：新增項目列 ★★★ */}
                       <li className={`p-3 ${theme.itemInputBg}`}>
                         <div className="flex space-x-2 items-center">
                           <input
@@ -345,15 +392,11 @@ const ListSection = memo(
                                 handleAddItemPress(category.id);
                               }
                             }}
-                            // 1. 改成 text-base (16px) 防止 iPhone 自動放大
-                            // 2. 加上 min-w-0 確保在小螢幕不會爆版
                             className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base focus:ring-slate-500 focus:border-slate-500 min-w-0"
                           />
                           <button
                             onClick={() => handleAddItemPress(category.id)}
                             disabled={!newItemInput[category.id]?.trim()}
-                            // 3. 改用 Icon 而不是文字 +
-                            // 4. padding 改成 p-2 比較好按
                             className={`flex-shrink-0 p-2 rounded-md text-white ${theme.buttonPrimary} disabled:opacity-50 transition`}
                           >
                             <ICON_SVG.plusSmall className="w-6 h-6" />
@@ -367,6 +410,17 @@ const ListSection = memo(
             })
           )}
         </div>
+
+        {/* ★ 8. 加入確認視窗 */}
+        <ConfirmModal
+          isOpen={!!deleteConfig}
+          onClose={() => setDeleteConfig(null)}
+          onConfirm={handleConfirmDelete}
+          title={deleteConfig?.title}
+          message={deleteConfig?.message}
+          confirmText="刪除"
+          isDanger={true}
+        />
       </div>
     );
   }
