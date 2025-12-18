@@ -16,8 +16,11 @@ export const THEMES = {
       buttonPrimary: "bg-slate-600 hover:bg-slate-700",
       floatingSelectedText: "text-slate-600",
       floatingPassiveText: "text-gray-500 hover:text-gray-700",
-      loginModalBg: "bg-[#F8F4E8]",
+
+      // ★ 修改處 1：調亮背景色 (原本是 #F8F4E8，改成更接近白色的奶油色)
+      loginModalBg: "bg-[#FCF9F2]",
       loginText: "text-[#7D6B55]",
+
       font: "font-cute",
       textMain: "text-slate-600",
 
@@ -42,7 +45,7 @@ export const THEMES = {
       categoryHeaderBg: "bg-slate-100",
       itemRowBg: "bg-gray-50",
       itemRowText: "text-gray-700",
-      itemMetaText: "text-gray-400", // 次要文字 (幣別/圖示)
+      itemMetaText: "text-gray-400",
       itemInputBg: "bg-gray-100",
     },
   },
@@ -60,9 +63,12 @@ export const THEMES = {
       buttonPrimary: "bg-[#8E8071] hover:bg-[#6B5F52]",
       floatingSelectedText: "text-[#8E8071]",
       floatingPassiveText: "text-[#9E948B] hover:text-[#5E544A]",
-      loginModalBg: "bg-[#E6E2D8]",
+
+      // ★ 修改處 2：大幅調亮背景色 (原本是偏深的 #E6E2D8，改成極淺的暖灰米色)
+      loginModalBg: "bg-[#F2EFE9]",
       loginText: "text-[#5E544A]",
-      font: "font-sans-tc",
+
+      font: "font-zen-kaku font-light",
       textMain: "text-[#5E544A]",
 
       // 卡片
@@ -77,16 +83,16 @@ export const THEMES = {
       timelineLine: "bg-[#C5BDB5]",
       timelineDotPassive: "bg-[#A69B95]",
 
-      // ★★★ 資訊框調亮 (從深灰變成極淺暖灰)
-      infoBoxBg: "bg-[#F5F3EF]", // 很淺的米色
-      infoBoxBorder: "border-[#D6CEC5]", // 邊框維持
-      infoBoxText: "text-[#5E544A]", // 咖啡色文字
+      // 資訊框
+      infoBoxBg: "bg-[#F5F3EF]",
+      infoBoxBorder: "border-[#D6CEC5]",
+      infoBoxText: "text-[#5E544A]",
 
-      // ★★★ 列表項目
-      categoryHeaderBg: "bg-[#F5F3EF]", // 跟資訊框一樣
-      itemRowBg: "bg-white", // 項目背景改純白，比較乾淨
-      itemRowText: "text-[#594A3C]", // 深咖啡色 (標題)
-      itemMetaText: "text-[#9E948B]", // 淺咖啡色 (幣別/圖示)
+      // 列表項目
+      categoryHeaderBg: "bg-[#F5F3EF]",
+      itemRowBg: "bg-white",
+      itemRowText: "text-[#594A3C]",
+      itemMetaText: "text-[#9E948B]",
       itemInputBg: "bg-[#F5F3EF]",
     },
   },
