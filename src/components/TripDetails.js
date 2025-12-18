@@ -4,12 +4,11 @@ import { TABS } from "../utils/constants";
 import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";
 
-// 引入三個主要的分頁組件
-import ItineraryTab from "./ItineraryTab"; // ★ 這是我們剛剛新增的
+// 引入拆分後的組件
+import ItineraryTab from "./ItineraryTab";
 import ListSection from "./ListSection";
 import BudgetSection from "./BudgetSection";
 
-// Hooks (只保留 ListSection 需要的，行程的 Hook 已經搬去 ItineraryTab 了)
 import { usePackingList } from "../hooks/usePackingList";
 
 const TripDetails = ({
@@ -21,14 +20,11 @@ const TripDetails = ({
 }) => {
   const { theme } = useTheme();
 
-  // 狀態：目前選中的分頁 (預設是行程)
   const [activeTab, setActiveTab] = useState(TABS.ITINERARY);
-
-  // 狀態：標題編輯
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(itinerary.title);
 
-  // --- ListSection 相關邏輯 (這裡暫時保留在最上層，沒關係) ---
+  // 清單邏輯保留在頂層
   const {
     listCategories,
     addCategory,
@@ -49,7 +45,6 @@ const TripDetails = ({
     setNewCategoryName("");
   }, [addCategory, newCategoryName]);
 
-  // --- 標題更新邏輯 ---
   const handleTitleSave = () => {
     if (tempTitle.trim()) {
       onUpdateTitle(itinerary.id, tempTitle.trim());
@@ -59,7 +54,6 @@ const TripDetails = ({
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* 1. 頂部導航列 (返回按鈕 + 標題) */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between">
         <div className="flex items-center mb-4 sm:mb-0">
           <button
@@ -116,14 +110,10 @@ const TripDetails = ({
         </div>
       </div>
 
-      {/* 2. 內容顯示區 (根據 activeTab 顯示不同組件) */}
-
-      {/* ★ 如果是行程分頁，就顯示新的 ItineraryTab */}
       {activeTab === TABS.ITINERARY && (
         <ItineraryTab userId={userId} itinerary={itinerary} />
       )}
 
-      {/* ★ 如果是清單分頁 */}
       {activeTab === TABS.PACKING && (
         <ListSection
           listCategories={listCategories}
@@ -142,7 +132,6 @@ const TripDetails = ({
         />
       )}
 
-      {/* ★ 如果是預算分頁 */}
       {activeTab === TABS.BUDGET && (
         <BudgetSection
           itineraryId={itinerary.id}
@@ -152,7 +141,6 @@ const TripDetails = ({
         />
       )}
 
-      {/* 3. 底部懸浮切換按鈕 (Footer Menu) */}
       <div className="fixed inset-x-0 bottom-0 z-50 bg-white shadow-2xl pt-2 pb-safe border-t border-gray-200">
         <div className="max-w-4xl mx-auto px-4 flex justify-around sm:px-8 space-x-2">
           <div

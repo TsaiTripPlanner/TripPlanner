@@ -9,6 +9,7 @@ import { ICON_SVG } from "./utils/icons";
 // 組件
 import Modal from "./components/Modal";
 import ItineraryList from "./components/ItineraryList";
+import ConfirmModal from "./components/ConfirmModal"; // 引入
 const TripDetails = React.lazy(() => import("./components/TripDetails"));
 
 // Hooks
@@ -16,7 +17,6 @@ import { useAuth } from "./hooks/useAuth";
 import { useItineraries } from "./hooks/useItineraries";
 
 const App = () => {
-  // 1. 取得主題工具
   const { theme, changeTheme, currentThemeId, allThemes } = useTheme();
 
   const {
@@ -57,6 +57,10 @@ const App = () => {
     days: 1,
     startDate: "",
   });
+
+  // 刪除確認相關狀態
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   // === 處理函式 ===
 
@@ -128,13 +132,22 @@ const App = () => {
     }
   };
 
-  const handleDeleteItinerary = async (id) => {
-    if (!window.confirm("確定要永久刪除此行程及其所有資料嗎？")) return;
+  // 點擊刪除 (開啟確認視窗)
+  const handleDeleteClick = (id) => {
+    setItemToDelete(id);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  // 確認刪除 (實際執行)
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
     try {
-      await hookDeleteItinerary(id);
+      await hookDeleteItinerary(itemToDelete);
     } catch (e) {
       console.error("刪除行程失敗", e);
       alert("刪除失敗");
+    } finally {
+      setItemToDelete(null);
     }
   };
 
@@ -160,18 +173,13 @@ const App = () => {
   const currentItinerary = allItineraries.find((i) => i.id === itineraryId);
 
   return (
-    // ★★★ 這裡加上了 theme.textMain 和 theme.font ★★★
-    // 這樣整個 APP 的字體和預設文字顏色就會跟著變
     <div
       className={`min-h-screen ${theme.background} ${theme.textMain} ${theme.font} p-4 sm:p-8 pb-28 relative transition-colors duration-500`}
     >
-      {/* ★★★ 這裡引入了新的字體 Noto Sans TC (思源黑體) ★★★ */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700&display=swap');
-        
         .font-serif-tc { font-family: 'Yuji Syuku', serif; letter-spacing: 0.05em; }
         .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
-        /* 新定義的無印風字體 class */
         .font-sans-tc { font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.02em; }
       `}</style>
 
@@ -181,7 +189,6 @@ const App = () => {
           {allThemes.map((t) => {
             const activeColorClass =
               t.id === "muji" ? "bg-[#8E8071]" : "bg-slate-600";
-
             return (
               <button
                 key={t.id}
@@ -234,7 +241,7 @@ const App = () => {
         <ItineraryList
           allItineraries={allItineraries}
           onSelect={(id) => setItineraryId(id)}
-          onDelete={handleDeleteItinerary}
+          onDelete={handleDeleteClick} // 修改：傳入開啟 Modal 的函式
           onEdit={openEditItineraryModal}
           onOpenCreateModal={() => setIsCreatingItinerary(true)}
         />
@@ -469,6 +476,17 @@ const App = () => {
           </button>
         </form>
       </Modal>
+
+      {/* 刪除確認 Modal */}
+      <ConfirmModal
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="刪除旅程"
+        message="確定要永久刪除此行程及其所有資料嗎？此操作無法復原。"
+        confirmText="刪除"
+        isDanger={true}
+      />
     </div>
   );
 };

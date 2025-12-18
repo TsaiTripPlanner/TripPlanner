@@ -2,26 +2,20 @@
 import React, { useState, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-// 引入需要的組件
 import DayTabs from "./DayTabs";
 import ActivityItem from "./ActivityItem";
 import Modal from "./Modal";
 import ActivityForm from "./ActivityForm";
 
-// 引入圖示與主題
 import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";
-
-// 引入邏輯 Hook
 import { useActivities } from "../hooks/useActivities";
 
 const ItineraryTab = ({ userId, itinerary }) => {
   const { theme } = useTheme();
 
-  // 1. 管理目前是第幾天
   const [activeDay, setActiveDay] = useState(1);
 
-  // 2. 這裡呼叫 useActivities，把讀取資料的責任交給這個組件
   const {
     activities,
     addActivity: hookAddActivity,
@@ -30,15 +24,11 @@ const ItineraryTab = ({ userId, itinerary }) => {
     reorderActivities,
   } = useActivities(userId, itinerary.id, activeDay);
 
-  // 3. 管理編輯活動的狀態
   const [editingActivityId, setEditingActivityId] = useState(null);
   const [editFormData, setEditFormData] = useState({});
 
-  // 4. 管理新增活動 Modal 的狀態
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // --- 處理函式開始 ---
 
   const handleDragEnd = useCallback(
     (result) => {
@@ -87,11 +77,8 @@ const ItineraryTab = ({ userId, itinerary }) => {
     }
   };
 
-  // --- 畫面渲染 ---
-
   return (
     <div className="bg-white p-2 sm:p-6 rounded-xl shadow-lg relative min-h-[500px]">
-      {/* 1. 上方的 Day 1, Day 2 切換按鈕 */}
       <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm pt-2 pb-2 -mx-2 px-2 border-b border-gray-100 mb-4">
         <DayTabs
           totalDays={itinerary.durationDays}
@@ -106,7 +93,6 @@ const ItineraryTab = ({ userId, itinerary }) => {
         <span className="text-base text-gray-400 font-normal ml-2">的活動</span>
       </h3>
 
-      {/* 2. 活動列表 (拖曳區) */}
       <div className="relative mb-10">
         {activities.length > 0 ? (
           <DragDropContext onDragEnd={handleDragEnd}>
@@ -164,7 +150,6 @@ const ItineraryTab = ({ userId, itinerary }) => {
         )}
       </div>
 
-      {/* 3. 浮動的新增按鈕 (只有在行程分頁才顯示) */}
       <button
         onClick={() => setIsModalOpen(true)}
         className={`fixed right-6 bottom-32 sm:right-10 sm:bottom-32 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white ${theme.buttonPrimary} transition-all duration-300 transform hover:scale-105 z-40`}
@@ -172,7 +157,6 @@ const ItineraryTab = ({ userId, itinerary }) => {
         <ICON_SVG.plusSmall className="w-8 h-8" />
       </button>
 
-      {/* 4. 新增活動的 Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

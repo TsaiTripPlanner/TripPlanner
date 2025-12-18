@@ -19,6 +19,7 @@ import {
   EXPENSE_CATEGORIES,
   PAYMENT_METHODS,
 } from "../utils/constants";
+import ConfirmModal from "./ConfirmModal";
 
 const BudgetSection = memo(
   ({ itineraryId, userId, totalDays, itineraryStartDate }) => {
@@ -43,6 +44,8 @@ const BudgetSection = memo(
       paymentMethod: "cash",
       day: 1,
     });
+
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
     useEffect(() => {
       if (!itineraryId || !userId || !db) return;
@@ -135,17 +138,23 @@ const BudgetSection = memo(
       }
     };
 
-    const deleteExpense = async (id) => {
-      if (!window.confirm("確定刪除此筆消費？")) return;
+    const handleDeleteClick = (id) => {
+      setDeleteConfirmId(id);
+    };
+
+    const handleConfirmDelete = async () => {
+      if (!deleteConfirmId) return;
       try {
         await deleteDoc(
           doc(
             db,
-            `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/expenses/${id}`
+            `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/expenses/${deleteConfirmId}`
           )
         );
       } catch (e) {
         console.error(e);
+      } finally {
+        setDeleteConfirmId(null);
       }
     };
 
@@ -156,12 +165,10 @@ const BudgetSection = memo(
       return <IconComponent className="w-5 h-5" />;
     };
 
-    // ★ 修改：現在這個函式會接收 theme.itemMetaText 來改變顏色
     const getPaymentIcon = (methodId) => {
       const method = PAYMENT_METHODS.find((p) => p.id === (methodId || "cash"));
       const iconName = method ? method.icon : "banknotes";
       const IconComponent = ICON_SVG[iconName];
-      // ★ 這裡改用 theme.itemMetaText
       return <IconComponent className={`w-4 h-4 ${theme.itemMetaText}`} />;
     };
 
@@ -489,7 +496,6 @@ const BudgetSection = memo(
                                 <div
                                   className={`font-bold text-sm ${theme.itemRowText}`}
                                 >
-                                  {/* ★ 修改：幣別文字 theme.itemMetaText */}
                                   <span
                                     className={`text-xs font-normal mr-1 ${theme.itemMetaText}`}
                                   >
@@ -505,7 +511,7 @@ const BudgetSection = memo(
                                 <ICON_SVG.pencil className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => deleteExpense(item.id)}
+                                onClick={() => handleDeleteClick(item.id)}
                                 className={`hover:text-red-400 p-1 ${theme.itemMetaText}`}
                               >
                                 <ICON_SVG.trash className="w-4 h-4" />
@@ -521,6 +527,16 @@ const BudgetSection = memo(
             })
           )}
         </div>
+
+        <ConfirmModal
+          isOpen={!!deleteConfirmId}
+          onClose={() => setDeleteConfirmId(null)}
+          onConfirm={handleConfirmDelete}
+          title="刪除消費紀錄"
+          message="確定要刪除此筆消費嗎？此操作無法復原。"
+          confirmText="刪除"
+          isDanger={true}
+        />
       </div>
     );
   }
