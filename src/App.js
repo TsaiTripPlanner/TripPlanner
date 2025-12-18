@@ -3,12 +3,9 @@ import React, { useState, Suspense } from "react";
 
 // 常數與設定
 import { DEFAULT_DAYS_OPTIONS } from "./utils/constants";
-import {
-  morandiBackground,
-  morandiAccentColor,
-  morandiButtonPrimary,
-} from "./utils/theme";
-import { ICON_SVG } from "./utils/icons"; // 記得引入 Icon
+// ★ 注意：這裡改成引入 useTheme，不再引入 morandi...
+import { useTheme } from "./utils/theme";
+import { ICON_SVG } from "./utils/icons";
 
 // 組件
 import Modal from "./components/Modal";
@@ -20,18 +17,19 @@ import { useAuth } from "./hooks/useAuth";
 import { useItineraries } from "./hooks/useItineraries";
 
 const App = () => {
-  // 1. 身分驗證 (引入新的 loginWithCode, logout, userCode)
+  // ★ 1. 取得主題工具
+  const { theme, changeTheme, currentThemeId, allThemes } = useTheme();
+
   const {
     userId,
     isAuthReady,
     authError: errorMessage,
-    loginWithCode, // ★ 新功能：用通行碼登入
-    logout, // ★ 新功能：登出
-    isAnonymous, // ★ 新功能：判斷是否為訪客
-    userCode, // ★ 新功能：顯示目前的通行碼
+    loginWithCode,
+    logout,
+    isAnonymous,
+    userCode,
   } = useAuth();
 
-  // 2. 行程列表管理 Hook
   const {
     allItineraries,
     isLoading: isItinerariesLoading,
@@ -40,14 +38,10 @@ const App = () => {
     deleteItinerary: hookDeleteItinerary,
   } = useItineraries(userId);
 
-  // 3. UI 狀態
-  const [itineraryId, setItineraryId] = useState(null); // 目前選中的行程 ID
-
-  // 登入 Modal 狀態
+  const [itineraryId, setItineraryId] = useState(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [accessCodeInput, setAccessCodeInput] = useState("");
 
-  // 建立行程相關
   const [isCreatingItinerary, setIsCreatingItinerary] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newItineraryData, setNewItineraryData] = useState({
@@ -56,7 +50,6 @@ const App = () => {
     startDate: new Date().toISOString().split("T")[0],
   });
 
-  // 編輯行程相關 (在列表頁修改基本資訊)
   const [isEditItineraryModalOpen, setIsEditItineraryModalOpen] =
     useState(false);
   const [editingItineraryData, setEditingItineraryData] = useState({
@@ -68,30 +61,17 @@ const App = () => {
 
   // === 處理函式 ===
 
-  // ★ 處理通行碼登入
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!accessCodeInput.trim()) return;
-
-    // ★ 1. 開始忙碌，鎖按鈕
     setIsSubmitting(true);
-
     try {
-      await hookCreateItinerary({
-        title: newItineraryData.title.trim(),
-        days: newItineraryData.days,
-        startDate: newItineraryData.startDate,
-      });
-      setIsCreatingItinerary(false);
-      setNewItineraryData({
-        title: "",
-        days: 5,
-        startDate: new Date().toISOString().split("T")[0],
-      });
+      await loginWithCode(accessCodeInput);
+      setIsLoginModalOpen(false);
+      setAccessCodeInput("");
     } catch (e) {
-      alert("建立失敗：" + e.message);
+      alert("登入失敗：" + e.message);
     } finally {
-      // ★ 2. 不管成功或失敗，最後都要解鎖按鈕
       setIsSubmitting(false);
     }
   };
@@ -140,7 +120,6 @@ const App = () => {
     }
   };
 
-  // 提供給詳細頁使用的標題更新功能
   const handleDetailTitleUpdate = async (id, newTitle) => {
     try {
       await hookUpdateItinerary(id, { title: newTitle });
@@ -160,23 +139,23 @@ const App = () => {
     }
   };
 
-  // === 畫面渲染 ===
-  // 定義一個簡單的載入中畫面 (給懶人載入使用)
   const LoadingSpinner = () => (
     <div className="flex items-center justify-center py-20">
+      {/* ★ 這裡用到 theme.accent */}
       <div
-        className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${morandiAccentColor}-500`}
+        className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${theme.accent}-500`}
       ></div>
     </div>
   );
 
   if (isItinerariesLoading && !errorMessage)
     return (
+      // ★ 背景色換成變數
       <div
-        className={`flex items-center justify-center min-h-screen ${morandiBackground}`}
+        className={`flex items-center justify-center min-h-screen ${theme.background}`}
       >
         <div
-          className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${morandiAccentColor}-500`}
+          className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${theme.accent}-500`}
         ></div>
       </div>
     );
@@ -184,8 +163,9 @@ const App = () => {
   const currentItinerary = allItineraries.find((i) => i.id === itineraryId);
 
   return (
+    // ★ 背景色換成變數，並加上 transition-colors 讓切換時有動畫
     <div
-      className={`min-h-screen ${morandiBackground} p-4 sm:p-8 font-sans pb-28 relative`}
+      className={`min-h-screen ${theme.background} p-4 sm:p-8 font-sans pb-28 relative transition-colors duration-500`}
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700&display=swap');
@@ -193,39 +173,57 @@ const App = () => {
         .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
       `}</style>
 
-      {/* ★★★ 右上角登入/登出按鈕區塊 ★★★ */}
-      <div className="flex justify-end mb-4 z-20 relative">
-        {isAnonymous ? (
-          <button
-            onClick={() => setIsLoginModalOpen(true)}
-            className="flex items-center gap-2 bg-white/80 backdrop-blur border border-slate-200 shadow-sm px-4 py-2 rounded-full text-slate-600 hover:bg-white hover:shadow-md transition text-sm font-medium"
-          >
-            <ICON_SVG.check className="w-4 h-4 text-slate-400" />
-            登入 / 綁定通行碼
-          </button>
-        ) : (
-          <div className="flex items-center gap-3 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-sm border border-green-100">
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider">
-                Access Code
-              </span>
-              <span className="text-sm font-bold text-green-700 font-mono">
-                {userCode}
-              </span>
-            </div>
-            <div className="h-6 w-px bg-gray-200"></div>
+      {/* ★★★ 主題切換按鈕 (左上角) ★★★ */}
+      <div className="flex justify-between items-center mb-4 z-20 relative">
+        <div className="flex space-x-2 bg-white/50 p-1 rounded-full backdrop-blur-sm">
+          {allThemes.map((t) => (
             <button
-              onClick={logout}
-              className="text-xs text-gray-500 hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded transition"
+              key={t.id}
+              onClick={() => changeTheme(t.id)}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                currentThemeId === t.id
+                  ? "bg-slate-700 text-white shadow-md scale-105"
+                  : "bg-transparent text-gray-500 hover:bg-white/80"
+              }`}
             >
-              登出
+              {t.name}
             </button>
-          </div>
-        )}
+          ))}
+        </div>
+
+        {/* 右上角登入區塊 */}
+        <div>
+          {isAnonymous ? (
+            <button
+              onClick={() => setIsLoginModalOpen(true)}
+              className="flex items-center gap-2 bg-white/80 backdrop-blur border border-slate-200 shadow-sm px-4 py-2 rounded-full text-slate-600 hover:bg-white hover:shadow-md transition text-sm font-medium"
+            >
+              <ICON_SVG.check className="w-4 h-4 text-slate-400" />
+              登入 / 綁定通行碼
+            </button>
+          ) : (
+            <div className="flex items-center gap-3 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-sm border border-green-100">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] text-gray-400 uppercase tracking-wider">
+                  Access Code
+                </span>
+                <span className="text-sm font-bold text-green-700 font-mono">
+                  {userCode}
+                </span>
+              </div>
+              <div className="h-6 w-px bg-gray-200"></div>
+              <button
+                onClick={logout}
+                className="text-xs text-gray-500 hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded transition"
+              >
+                登出
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {!itineraryId ? (
-        // === 行程列表頁面 (首頁) ===
         <ItineraryList
           allItineraries={allItineraries}
           onSelect={(id) => setItineraryId(id)}
@@ -233,10 +231,7 @@ const App = () => {
           onEdit={openEditItineraryModal}
           onOpenCreateModal={() => setIsCreatingItinerary(true)}
         />
-      ) : // === 行程詳細頁面 ===
-      currentItinerary ? (
-        // 3. 這裡用 Suspense 包住 TripDetails
-        // fallback 屬性就是「還在載入時要顯示什麼？」
+      ) : currentItinerary ? (
         <Suspense fallback={<LoadingSpinner />}>
           <TripDetails
             userId={userId}
@@ -313,14 +308,12 @@ const App = () => {
           </div>
           <button
             onClick={handleCreateItinerary}
-            // 除了標題空白，如果正在忙 (isSubmitting) 也要鎖住
             disabled={!newItineraryData.title.trim() || isSubmitting}
-            className={`w-full py-2 px-4 rounded-md text-white ${morandiButtonPrimary} disabled:opacity-50 mt-4 flex justify-center items-center`}
+            // ★ 替換按鈕顏色：theme.buttonPrimary
+            className={`w-full py-2 px-4 rounded-md text-white ${theme.buttonPrimary} disabled:opacity-50 mt-4 flex justify-center items-center`}
           >
-            {/* 根據狀態顯示不同文字 */}
             {isSubmitting ? (
               <>
-                {/* 加一個轉圈圈的小圖示 */}
                 <svg
                   className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                   xmlns="http://www.w3.org/2000/svg"
@@ -350,7 +343,7 @@ const App = () => {
         </div>
       </Modal>
 
-      {/* 編輯行程 Modal (列表頁用) */}
+      {/* 編輯行程 Modal */}
       <Modal
         isOpen={isEditItineraryModalOpen}
         onClose={() => setIsEditItineraryModalOpen(false)}
@@ -413,31 +406,29 @@ const App = () => {
           <button
             onClick={handleUpdateItinerary}
             disabled={!editingItineraryData.title.trim()}
-            className={`w-full py-2 px-4 rounded-md text-white ${morandiButtonPrimary} disabled:opacity-50 mt-4`}
+            // ★ 替換按鈕顏色：theme.buttonPrimary
+            className={`w-full py-2 px-4 rounded-md text-white ${theme.buttonPrimary} disabled:opacity-50 mt-4`}
           >
             儲存修改
           </button>
         </div>
       </Modal>
 
-      {/* ★★★ 通行碼登入 Modal ★★★ */}
+      {/* 通行碼登入 Modal */}
       <Modal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         title="輸入行程通行碼"
       >
         <form onSubmit={handleLoginSubmit} className="space-y-4">
-          {/* 奶茶色系背景 */}
-          <div className="bg-[#F8F4E8] p-4 rounded-lg text-sm text-[#7D6B55] mb-4 border border-[#DEC9B5]/30">
+          {/* ★ 替換背景色和文字色：theme.loginModalBg, theme.loginText */}
+          <div
+            className={`${theme.loginModalBg} p-4 rounded-lg text-sm ${theme.loginText} mb-4 border border-[#DEC9B5]/30`}
+          >
             <p className="font-bold flex items-center mb-1">
               <ICON_SVG.listCollapse className="w-4 h-4 mr-1" />
               通行碼機制說明
             </p>
-            {/* 
-                ★ 修改重點：
-                1. list-inside 改為 list-outside (圓點移出文字流)
-                2. 加上 ml-4 (左側留白，避免圓點跑出框框)
-            */}
             <ul className="list-disc list-outside ml-4 mt-1 space-y-1 text-xs opacity-90">
               <li>這是一個讓朋友快速加入的代號。</li>
               <li>
@@ -468,7 +459,8 @@ const App = () => {
 
           <button
             type="submit"
-            className={`w-full py-3 px-4 rounded-lg text-white font-bold shadow-md ${morandiButtonPrimary} transition-transform transform active:scale-95`}
+            // ★ 替換按鈕顏色：theme.buttonPrimary
+            className={`w-full py-3 px-4 rounded-lg text-white font-bold shadow-md ${theme.buttonPrimary} transition-transform transform active:scale-95`}
           >
             進入行程空間
           </button>
