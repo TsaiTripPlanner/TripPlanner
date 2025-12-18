@@ -5,7 +5,7 @@ export const THEMES = {
   // 1. 經典莫蘭迪
   morandi: {
     id: "morandi",
-    name: "經典莫蘭迪",
+    name: "莫蘭迪",
     colors: {
       accent: "slate",
       background: "bg-stone-50",
