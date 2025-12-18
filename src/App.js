@@ -172,13 +172,7 @@ const App = () => {
         .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
       `}</style>
 
-      {/* ★★★ 右上角登入/登出按鈕區塊 (修改版) ★★★ */}
-      {/* 
-          修改說明：
-          1. 移除了 absolute top-4 right-4 (不再飄浮)
-          2. 加入了 flex justify-end (靠右對齊)
-          3. 加入了 mb-4 (下方留白，把底下的內容往下推)
-      */}
+      {/* ★★★ 右上角登入/登出按鈕區塊 ★★★ */}
       <div className="flex justify-end mb-4 z-20 relative">
         {isAnonymous ? (
           <button
@@ -379,12 +373,18 @@ const App = () => {
         title="輸入行程通行碼"
       >
         <form onSubmit={handleLoginSubmit} className="space-y-4">
-          <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 mb-4">
+          {/* 奶茶色系背景 */}
+          <div className="bg-[#F8F4E8] p-4 rounded-lg text-sm text-[#7D6B55] mb-4 border border-[#DEC9B5]/30">
             <p className="font-bold flex items-center mb-1">
               <ICON_SVG.listCollapse className="w-4 h-4 mr-1" />
               通行碼機制說明
             </p>
-            <ul className="list-disc list-inside mt-1 space-y-1 text-xs opacity-90">
+            {/* 
+                ★ 修改重點：
+                1. list-inside 改為 list-outside (圓點移出文字流)
+                2. 加上 ml-4 (左側留白，避免圓點跑出框框)
+            */}
+            <ul className="list-disc list-outside ml-4 mt-1 space-y-1 text-xs opacity-90">
               <li>這是一個讓朋友快速加入的代號。</li>
               <li>
                 若輸入<span className="font-bold">新的代號</span>
@@ -416,7 +416,7 @@ const App = () => {
             type="submit"
             className={`w-full py-3 px-4 rounded-lg text-white font-bold shadow-md ${morandiButtonPrimary} transition-transform transform active:scale-95`}
           >
-            進入行程空間 🚀
+            進入行程空間
           </button>
         </form>
       </Modal>
