@@ -133,7 +133,6 @@ const ListSection = memo(
           </div>
         )}
 
-        {/* 新增類別區塊 (背景也換成 infoBoxBg) */}
         <div
           className={`mb-8 p-4 ${theme.infoBoxBg} rounded-lg border ${theme.infoBoxBorder} flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4`}
         >
@@ -181,7 +180,6 @@ const ListSection = memo(
                   className="border border-gray-200 rounded-xl shadow-md overflow-hidden bg-white"
                 >
                   <div
-                    // ★ 修改：類別標題背景改用 theme.categoryHeaderBg
                     className={`p-3 flex justify-between items-center ${theme.categoryHeaderBg}`}
                   >
                     {isEditingCat ? (
@@ -257,7 +255,6 @@ const ListSection = memo(
                         return (
                           <li
                             key={item.id}
-                            // ★ 修改：hover 背景顏色
                             className={`p-3 flex justify-between items-center transition hover:bg-gray-50`}
                           >
                             {isEditingItem ? (
@@ -298,7 +295,6 @@ const ListSection = memo(
                                   className={`form-checkbox h-5 w-5 ${theme.accentText} rounded transition duration-150 ease-in-out border-gray-300 focus:ring-slate-500`}
                                 />
                                 <span
-                                  // ★ 修改：文字顏色 theme.itemRowText
                                   className={`text-base flex-grow min-w-0 truncate ${
                                     item.isCompleted
                                       ? "line-through text-gray-400"
@@ -316,14 +312,14 @@ const ListSection = memo(
                                   onClick={() =>
                                     startEditItem(item.id, item.name)
                                   }
-                                  className="text-gray-300 hover:text-blue-500 transition ml-2 flex-shrink-0"
+                                  className={`hover:text-blue-500 transition ml-2 flex-shrink-0 ${theme.itemMetaText}`}
                                 >
                                   <ICON_SVG.pencil className="w-4 h-4" />
                                 </button>
                               )}
                               <button
                                 onClick={() => deleteItem(category.id, item.id)}
-                                className="text-gray-300 hover:text-red-400 transition ml-2 flex-shrink-0"
+                                className={`hover:text-red-400 transition ml-2 flex-shrink-0 ${theme.itemMetaText}`}
                               >
                                 <ICON_SVG.trash className="w-4 h-4" />
                               </button>
@@ -331,7 +327,6 @@ const ListSection = memo(
                           </li>
                         );
                       })}
-                      {/* ★ 修改：新增項目的背景 theme.itemInputBg */}
                       <li className={`p-3 ${theme.itemInputBg}`}>
                         <div className="flex space-x-2">
                           <input

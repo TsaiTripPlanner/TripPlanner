@@ -21,7 +21,7 @@ export const THEMES = {
       font: "font-cute",
       textMain: "text-slate-600",
 
-      // 卡片配色
+      // 卡片
       cardBg: "bg-white",
       cardBorder: "border-gray-200",
       cardTitle: "text-slate-700",
@@ -33,19 +33,20 @@ export const THEMES = {
       timelineLine: "bg-gray-300",
       timelineDotPassive: "bg-gray-400",
 
-      // 資訊框配色
+      // 資訊框 (匯入、總支出)
       infoBoxBg: "bg-slate-100",
       infoBoxBorder: "border-slate-200",
       infoBoxText: "text-slate-600",
 
-      // ★★★ 新增：清單與費用項目的配色 (莫蘭迪)
-      categoryHeaderBg: "bg-slate-100", // 類別標題背景
-      itemRowBg: "bg-gray-50", // 項目背景
-      itemRowText: "text-gray-700", // 項目文字
-      itemInputBg: "bg-gray-100", // 輸入框背景
+      // 列表項目 (清單、費用)
+      categoryHeaderBg: "bg-slate-100",
+      itemRowBg: "bg-gray-50",
+      itemRowText: "text-gray-700",
+      itemMetaText: "text-gray-400", // 次要文字 (幣別/圖示)
+      itemInputBg: "bg-gray-100",
     },
   },
-  // 2. 無印簡約
+  // 2. 無印簡約 (調整版)
   muji: {
     id: "muji",
     name: "無印簡約",
@@ -64,7 +65,7 @@ export const THEMES = {
       font: "font-sans-tc",
       textMain: "text-[#5E544A]",
 
-      // 卡片配色
+      // 卡片
       cardBg: "bg-[#FAF9F6]",
       cardBorder: "border-[#C5BDB5]",
       cardTitle: "text-[#594A3C]",
@@ -76,17 +77,17 @@ export const THEMES = {
       timelineLine: "bg-[#C5BDB5]",
       timelineDotPassive: "bg-[#A69B95]",
 
-      // 資訊框配色
-      // ★ 調亮：從 E2DED6 改成 EAE6DE (更柔和的淺亞麻色)
-      infoBoxBg: "bg-[#EAE6DE]",
-      infoBoxBorder: "border-[#C5BDB5]",
-      infoBoxText: "text-[#5E544A]",
+      // ★★★ 資訊框調亮 (從深灰變成極淺暖灰)
+      infoBoxBg: "bg-[#F5F3EF]", // 很淺的米色
+      infoBoxBorder: "border-[#D6CEC5]", // 邊框維持
+      infoBoxText: "text-[#5E544A]", // 咖啡色文字
 
-      // ★★★ 新增：清單與費用項目的配色 (無印風)
-      categoryHeaderBg: "bg-[#EAE6DE]", // 類別標題 (同資訊框)
-      itemRowBg: "bg-[#F7F5F2]", // 項目背景 (極淺的暖白)
-      itemRowText: "text-[#5E544A]", // 項目文字 (中褐灰)
-      itemInputBg: "bg-[#EAE6DE]", // 輸入框背景 (淺亞麻)
+      // ★★★ 列表項目
+      categoryHeaderBg: "bg-[#F5F3EF]", // 跟資訊框一樣
+      itemRowBg: "bg-white", // 項目背景改純白，比較乾淨
+      itemRowText: "text-[#594A3C]", // 深咖啡色 (標題)
+      itemMetaText: "text-[#9E948B]", // 淺咖啡色 (幣別/圖示)
+      itemInputBg: "bg-[#F5F3EF]",
     },
   },
 };
@@ -117,7 +118,7 @@ export const ThemeProvider = ({ children }) => {
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error("useTheme 必須被包在 ThemeProvider 裡面");
+    throw new Error("useTheme must be used within a ThemeProvider");
   }
   return context;
 };

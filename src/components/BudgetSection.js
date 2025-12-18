@@ -156,11 +156,13 @@ const BudgetSection = memo(
       return <IconComponent className="w-5 h-5" />;
     };
 
+    // ★ 修改：現在這個函式會接收 theme.itemMetaText 來改變顏色
     const getPaymentIcon = (methodId) => {
       const method = PAYMENT_METHODS.find((p) => p.id === (methodId || "cash"));
       const iconName = method ? method.icon : "banknotes";
       const IconComponent = ICON_SVG[iconName];
-      return <IconComponent className="w-4 h-4 text-gray-400" />;
+      // ★ 這裡改用 theme.itemMetaText
+      return <IconComponent className={`w-4 h-4 ${theme.itemMetaText}`} />;
     };
 
     const getDisplayDate = (dayNum) => {
@@ -190,7 +192,6 @@ const BudgetSection = memo(
           旅行費用
         </h2>
 
-        {/* ★ 修改：總支出框框背景與邊框 */}
         <div
           className={`${theme.infoBoxBg} p-4 rounded-lg border ${theme.infoBoxBorder} mb-6`}
         >
@@ -199,14 +200,18 @@ const BudgetSection = memo(
           </h3>
           <div className="flex flex-wrap gap-3">
             {Object.entries(currencyTotals).length === 0 ? (
-              <span className="text-gray-400 text-sm">尚未有紀錄</span>
+              <span className={`text-sm ${theme.itemMetaText}`}>
+                尚未有紀錄
+              </span>
             ) : (
               Object.entries(currencyTotals).map(([curr, total]) => (
                 <div
                   key={curr}
                   className="bg-white px-3 py-1.5 rounded shadow-sm border border-gray-100 flex items-center"
                 >
-                  <span className="text-xs font-bold bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded mr-2">
+                  <span
+                    className={`text-xs font-bold ${theme.infoBoxBg} ${theme.infoBoxText} px-1.5 py-0.5 rounded mr-2`}
+                  >
                     {curr}
                   </span>
                   <span className="font-mono font-medium text-gray-700">
@@ -218,7 +223,6 @@ const BudgetSection = memo(
           </div>
         </div>
 
-        {/* ★ 修改：新增區塊背景 */}
         <div className={`mb-6 p-4 ${theme.itemInputBg} rounded-lg space-y-3`}>
           <div className="flex items-center space-x-2">
             <select
@@ -304,7 +308,9 @@ const BudgetSection = memo(
 
         <div className="space-y-6">
           {sortedDays.length === 0 ? (
-            <p className="text-center text-gray-400 py-4">目前沒有消費紀錄。</p>
+            <p className={`text-center py-4 ${theme.itemMetaText}`}>
+              目前沒有消費紀錄。
+            </p>
           ) : (
             sortedDays.map((dayKey) => {
               const dailyTotal = groupedExpenses[dayKey].reduce((acc, item) => {
@@ -321,7 +327,9 @@ const BudgetSection = memo(
                       className={`text-md font-bold ${theme.accentText} flex items-center`}
                     >
                       Day {dayKey}{" "}
-                      <span className="text-xs text-gray-400 ml-2 font-normal">
+                      <span
+                        className={`text-xs ml-2 font-normal ${theme.itemMetaText}`}
+                      >
                         {getDisplayDate(dayKey)}
                       </span>
                     </h4>
@@ -329,7 +337,7 @@ const BudgetSection = memo(
                       {Object.entries(dailyTotal).map(([c, t]) => (
                         <span
                           key={c}
-                          className="text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded"
+                          className={`text-xs ${theme.infoBoxBg} ${theme.itemRowText} px-1.5 py-0.5 rounded`}
                         >
                           {c} {t.toLocaleString()}
                         </span>
@@ -340,8 +348,7 @@ const BudgetSection = memo(
                     {groupedExpenses[dayKey].map((item) => (
                       <div
                         key={item.id}
-                        // ★ 修改：項目背景 theme.itemRowBg
-                        className={`p-3 ${theme.itemRowBg} rounded-lg flex justify-between items-center hover:bg-white hover:shadow-sm transition border border-transparent hover:border-gray-100`}
+                        className={`p-3 ${theme.itemRowBg} rounded-lg flex justify-between items-center hover:shadow-sm transition border border-transparent hover:border-gray-100`}
                       >
                         {editingId === item.id ? (
                           <div className="w-full flex flex-col gap-2">
@@ -456,10 +463,11 @@ const BudgetSection = memo(
                         ) : (
                           <>
                             <div className="flex items-center">
-                              <div className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-slate-500 mr-3 shadow-sm">
+                              <div
+                                className={`w-9 h-9 rounded-full ${theme.infoBoxBg} border border-gray-200 flex items-center justify-center ${theme.itemRowText} mr-3 shadow-sm`}
+                              >
                                 {getCategoryIcon(item.category)}
                               </div>
-                              {/* ★ 修改：項目文字 theme.itemRowText */}
                               <span
                                 className={`text-sm font-medium ${theme.itemRowText}`}
                               >
@@ -478,11 +486,13 @@ const BudgetSection = memo(
                                 {getPaymentIcon(item.paymentMethod)}
                               </div>
                               <div className="text-right mr-3 min-w-[5rem]">
-                                {/* ★ 修改：金額文字 theme.itemRowText */}
                                 <div
                                   className={`font-bold text-sm ${theme.itemRowText}`}
                                 >
-                                  <span className="text-xs text-gray-400 font-normal mr-1">
+                                  {/* ★ 修改：幣別文字 theme.itemMetaText */}
+                                  <span
+                                    className={`text-xs font-normal mr-1 ${theme.itemMetaText}`}
+                                  >
                                     {item.currency}
                                   </span>
                                   {item.amount.toLocaleString()}
@@ -490,13 +500,13 @@ const BudgetSection = memo(
                               </div>
                               <button
                                 onClick={() => startEdit(item)}
-                                className="text-gray-300 hover:text-blue-500 p-1 mr-1"
+                                className={`hover:text-blue-500 p-1 mr-1 ${theme.itemMetaText}`}
                               >
                                 <ICON_SVG.pencil className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => deleteExpense(item.id)}
-                                className="text-gray-300 hover:text-red-400 p-1"
+                                className={`hover:text-red-400 p-1 ${theme.itemMetaText}`}
                               >
                                 <ICON_SVG.trash className="w-4 h-4" />
                               </button>
