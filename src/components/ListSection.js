@@ -147,7 +147,8 @@ const ListSection = memo(
                 addCategory();
               }
             }}
-            className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-slate-500 focus:border-slate-500"
+            // ★ 手機版優化：text-base 防止縮放
+            className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base focus:ring-slate-500 focus:border-slate-500"
           />
           <button
             onClick={addCategory}
@@ -189,7 +190,7 @@ const ListSection = memo(
                           type="text"
                           value={tempEditText}
                           onChange={(e) => setTempEditText(e.target.value)}
-                          className="flex-grow px-2 py-1 border border-gray-300 rounded text-sm"
+                          className="flex-grow px-2 py-1 border border-gray-300 rounded text-base"
                         />
                         <button
                           onClick={() => saveEditCategory(category.id)}
@@ -266,7 +267,7 @@ const ListSection = memo(
                                   onChange={(e) =>
                                     setTempEditText(e.target.value)
                                   }
-                                  className="flex-grow px-2 py-1 border border-gray-300 rounded text-sm"
+                                  className="flex-grow px-2 py-1 border border-gray-300 rounded text-base"
                                 />
                                 <button
                                   onClick={() => saveEditItem(item.id)}
@@ -292,7 +293,7 @@ const ListSection = memo(
                                       e.target.checked
                                     )
                                   }
-                                  className={`form-checkbox h-5 w-5 ${theme.accentText} rounded transition duration-150 ease-in-out border-gray-300 focus:ring-slate-500`}
+                                  className={`form-checkbox h-5 w-5 ${theme.accentText} rounded transition duration-150 ease-in-out border-gray-300 focus:ring-slate-500 flex-shrink-0`}
                                 />
                                 <span
                                   className={`text-base flex-grow min-w-0 truncate ${
@@ -327,8 +328,10 @@ const ListSection = memo(
                           </li>
                         );
                       })}
+
+                      {/* ★★★ 修改重點：新增項目列 ★★★ */}
                       <li className={`p-3 ${theme.itemInputBg}`}>
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2 items-center">
                           <input
                             type="text"
                             placeholder="新增項目名稱"
@@ -342,15 +345,18 @@ const ListSection = memo(
                                 handleAddItemPress(category.id);
                               }
                             }}
-                            className="flex-grow px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-slate-500 focus:border-slate-500"
+                            // 1. 改成 text-base (16px) 防止 iPhone 自動放大
+                            // 2. 加上 min-w-0 確保在小螢幕不會爆版
+                            className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base focus:ring-slate-500 focus:border-slate-500 min-w-0"
                           />
                           <button
                             onClick={() => handleAddItemPress(category.id)}
                             disabled={!newItemInput[category.id]?.trim()}
-                            className={`flex-shrink-0 px-3 py-1 text-sm font-medium rounded-md text-white ${theme.buttonPrimary} disabled:opacity-50 transition`}
+                            // 3. 改用 Icon 而不是文字 +
+                            // 4. padding 改成 p-2 比較好按
+                            className={`flex-shrink-0 p-2 rounded-md text-white ${theme.buttonPrimary} disabled:opacity-50 transition`}
                           >
-                            {" "}
-                            +{" "}
+                            <ICON_SVG.plusSmall className="w-6 h-6" />
                           </button>
                         </div>
                       </li>
