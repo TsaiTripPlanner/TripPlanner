@@ -1,5 +1,5 @@
 // src/components/BudgetSection.js
-import React, { useState, useEffect, memo } from "react";
+import React, { useState, useEffect, memo, useMemo } from "react";
 import {
   collection,
   query,
@@ -71,12 +71,15 @@ const BudgetSection = memo(
       return () => unsubscribe();
     }, [itineraryId, userId]);
 
-    const currencyTotals = expenses.reduce((acc, item) => {
-      const curr = item.currency || "TWD";
-      const amt = parseFloat(item.amount) || 0;
-      acc[curr] = (acc[curr] || 0) + amt;
-      return acc;
-    }, {});
+    const currencyTotals = useMemo(() => {
+      // 這裡面的邏輯跟原本一模一樣
+      return expenses.reduce((acc, item) => {
+        const curr = item.currency || "TWD";
+        const amt = parseFloat(item.amount) || 0;
+        acc[curr] = (acc[curr] || 0) + amt;
+        return acc;
+      }, {});
+    }, [expenses]);
 
     const addExpense = async () => {
       if (!newItem.title.trim() || newItem.amount === "") return;
@@ -177,16 +180,21 @@ const BudgetSection = memo(
       return `(${start.getMonth() + 1}/${start.getDate()})`;
     };
 
-    const groupedExpenses = expenses.reduce((acc, item) => {
-      const dayKey = item.day || 1;
-      if (!acc[dayKey]) acc[dayKey] = [];
-      acc[dayKey].push(item);
-      return acc;
-    }, {});
+    const { groupedExpenses, sortedDays } = useMemo(() => {
+      // 1. 先做分組
+      const grouped = expenses.reduce((acc, item) => {
+        const dayKey = item.day || 1;
+        if (!acc[dayKey]) acc[dayKey] = [];
+        acc[dayKey].push(item);
+        return acc;
+      }, {});
 
-    const sortedDays = Object.keys(groupedExpenses).sort(
-      (a, b) => Number(a) - Number(b)
-    );
+      // 2. 再做排序
+      const sorted = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
+
+      // 3. 一次回傳兩個結果
+      return { groupedExpenses: grouped, sortedDays: sorted };
+    }, [expenses]);
 
     return (
       <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
