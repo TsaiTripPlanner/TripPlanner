@@ -179,25 +179,25 @@ const TripDetails = ({
       </div>
 
       {activeTab === TABS.ITINERARY && (
-        <div className="bg-white p-2 sm:p-6 rounded-xl shadow-lg relative min-h-[500px]"> {/* 加個 min-h 讓視覺更好 */}
+        <div className="bg-white p-2 sm:p-6 rounded-xl shadow-lg relative min-h-[500px]">
+          {" "}
+          {/* 加個 min-h 讓視覺更好 */}
           {/* ★★★ 修改這裡：加入 sticky positioning ★★★ */}
-        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm pt-2 pb-2 -mx-2 px-2 border-b border-gray-100 mb-4">
-          <DayTabs
-           totalDays={itinerary.durationDays}
-           activeDay={activeDay}
-           setActiveDay={setActiveDay}
-           startDate={itinerary.startDate}
-         />
-        </div>
-
-    {/* 下方原本的標題 */}
-    <h3 className="text-2xl font-semibold text-gray-800 mb-6 font-cute pt-2">
-      Day {activeDay}{" "}
-      <span className="text-base text-gray-400 font-normal ml-2">
-        的活動
-      </span>
-    </h3>
-
+          <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm pt-2 pb-2 -mx-2 px-2 border-b border-gray-100 mb-4">
+            <DayTabs
+              totalDays={itinerary.durationDays}
+              activeDay={activeDay}
+              setActiveDay={setActiveDay}
+              startDate={itinerary.startDate}
+            />
+          </div>
+          {/* 下方原本的標題 */}
+          <h3 className="text-2xl font-semibold text-gray-800 mb-6 font-cute pt-2">
+            Day {activeDay}{" "}
+            <span className="text-base text-gray-400 font-normal ml-2">
+              的活動
+            </span>
+          </h3>
           <div className="relative mb-10">
             {activities.length > 0 ? (
               <DragDropContext onDragEnd={handleDragEnd}>
@@ -227,7 +227,12 @@ const TripDetails = ({
                                 onDelete={deleteActivity}
                                 onStartEdit={startEditActivity}
                                 isEditing={editingActivityId === activity.id}
-                                editData={editFormData}
+                                // 如果是正在編輯的人，才給它資料；否則給它 undefined (這是一個永遠不變的值)
+                                editData={
+                                  editingActivityId === activity.id
+                                    ? editFormData
+                                    : undefined
+                                }
                                 onEditChange={handleEditInputChange}
                                 onSaveEdit={saveEdit}
                                 onCancelEdit={cancelEdit}
