@@ -11,6 +11,10 @@ import BudgetSection from "./BudgetSection";
 
 import { usePackingList } from "../hooks/usePackingList";
 
+// 引入新組件與 Hook
+import ReferenceSection from "./ReferenceSection";
+import { useReferences } from "../hooks/useReferences";
+
 const TripDetails = ({
   userId,
   itinerary,
@@ -175,6 +179,46 @@ const TripDetails = ({
           >
             <ICON_SVG.wallet className="w-6 h-6" />
             <span className="text-xs mt-1 font-medium">旅行費用</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  // 使用新 Hook
+  const { references, addReference, deleteReference } = useReferences(
+    userId,
+    itinerary.id
+  );
+
+  return (
+    <div className="max-w-4xl mx-auto">
+      {/* ... 標題區塊 ... */}
+
+      {/* 新增判斷邏輯 */}
+      {activeTab === TABS.REFERENCE && (
+        <ReferenceSection
+          references={references}
+          onAdd={addReference}
+          onDelete={deleteReference}
+        />
+      )}
+
+      {/* 更新底部導覽列 (Bottom Nav) */}
+      <div className="fixed inset-x-0 bottom-0 z-50 bg-white shadow-2xl pt-2 pb-safe border-t border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 flex justify-around sm:px-8 space-x-1">
+          {/* 行程、清單、費用按鈕保持原樣 ... 但調整寬度為 w-1/4 */}
+
+          {/* 新增 參考資料 按鈕 */}
+          <div
+            className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/4 text-center justify-center ${
+              activeTab === TABS.REFERENCE
+                ? theme.floatingSelectedText
+                : theme.floatingPassiveText
+            }`}
+            onClick={() => setActiveTab(TABS.REFERENCE)}
+          >
+            <ICON_SVG.paperClip className="w-6 h-6" />
+            <span className="text-[10px] mt-1 font-medium">參考資料</span>
           </div>
         </div>
       </div>

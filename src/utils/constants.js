@@ -6,6 +6,7 @@ export const TABS = {
   ITINERARY: "itinerary",
   PACKING: "packing",
   BUDGET: "budget",
+  REFERENCE: "reference",
 };
 
 // 2. 預設天數選項
