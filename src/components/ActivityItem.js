@@ -26,6 +26,7 @@ const renderDescriptionWithLinks = (text) => {
   });
 };
 
+// ★ 修改重點：縮短時長文字顯示 (例如 1h 30m)
 const calculateDuration = (start, end) => {
   if (!start || !end) return "";
   const [startHour, startMinute] = start.split(":").map(Number);
@@ -36,10 +37,11 @@ const calculateDuration = (start, end) => {
   if (durationMinutes < 0) durationMinutes += 24 * 60;
   const hours = Math.floor(durationMinutes / 60);
   const minutes = durationMinutes % 60;
+
   let durationString = "";
-  if (hours > 0) durationString += `${hours}小時`;
-  if (minutes > 0) durationString += ` ${minutes}分鐘`;
-  return durationString;
+  if (hours > 0) durationString += `${hours}h`;
+  if (minutes > 0) durationString += ` ${minutes}m`;
+  return durationString.trim();
 };
 
 const ActivityItem = memo(
@@ -95,8 +97,8 @@ const ActivityItem = memo(
 
     return (
       <div className="flex relative h-full">
-        {/* 左側時間軸 */}
-        <div className="w-14 sm:w-20 text-right flex-shrink-0 pr-2 sm:pr-4 pt-0.5 block pb-8">
+        {/* ★ 修改重點：調整手機版寬度為 w-16 (原為 w-14)，並移除 whitespace-nowrap */}
+        <div className="w-16 sm:w-20 text-right flex-shrink-0 pr-2 sm:pr-4 pt-0.5 block pb-8">
           <div
             className={`text-sm sm:text-lg font-bold ${theme.accentText} leading-snug`}
           >
@@ -104,7 +106,7 @@ const ActivityItem = memo(
           </div>
           {duration && (
             <div
-              className={`text-xs ${theme.cardMeta} mt-0.5 whitespace-nowrap`}
+              className={`text-[10px] sm:text-xs ${theme.cardMeta} mt-0.5 opacity-80`}
             >
               ({duration})
             </div>
@@ -113,7 +115,6 @@ const ActivityItem = memo(
 
         {/* 中間線條與圓點 */}
         <div className="relative flex flex-col items-center flex-shrink-0 mr-2 sm:mr-0 w-4">
-          {/* ★ 修改重點：線條顏色改成變數 theme.timelineLine */}
           <div
             className={`absolute w-px ${
               theme.timelineLine
@@ -121,7 +122,6 @@ const ActivityItem = memo(
               index === 0 ? "top-2" : "top-0"
             }`}
           ></div>
-          {/* ★ 修改重點：未完成圓點改成變數 theme.timelineDotPassive */}
           <div
             className={`relative z-10 w-3 h-3 rounded-full ${
               activity.isCompleted
