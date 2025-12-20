@@ -26,7 +26,6 @@ const renderDescriptionWithLinks = (text) => {
   });
 };
 
-// ★ 修改重點：縮短時長文字顯示 (例如 1h 30m)
 const calculateDuration = (start, end) => {
   if (!start || !end) return "";
   const [startHour, startMinute] = start.split(":").map(Number);
@@ -97,8 +96,11 @@ const ActivityItem = memo(
 
     return (
       <div className="flex relative h-full">
-        {/* ★ 修改重點：調整手機版寬度為 w-16 (原為 w-14)，並移除 whitespace-nowrap */}
-        <div className="w-16 sm:w-20 text-right flex-shrink-0 pr-2 sm:pr-4 pt-0.5 block pb-8">
+        {/* ★ 修改重點：
+            1. 寬度設為 w-14 (56px)，確保時長有足夠空間在一行內
+            2. pr-1 (減少與線條的右間距)
+        */}
+        <div className="w-14 sm:w-20 text-right flex-shrink-0 pr-1 sm:pr-4 pt-0.5 block pb-8">
           <div
             className={`text-sm sm:text-lg font-bold ${theme.accentText} leading-snug`}
           >
@@ -106,7 +108,8 @@ const ActivityItem = memo(
           </div>
           {duration && (
             <div
-              className={`text-[10px] sm:text-xs ${theme.cardMeta} mt-0.5 opacity-80`}
+              /* ★ 加入 whitespace-nowrap 確保不換行，text-[9px] 稍微再縮小一點點點 */
+              className={`text-[9px] sm:text-xs ${theme.cardMeta} mt-0.5 opacity-80 whitespace-nowrap`}
             >
               ({duration})
             </div>
