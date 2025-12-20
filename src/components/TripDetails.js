@@ -4,16 +4,15 @@ import { TABS } from "../utils/constants";
 import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";
 
-// 引入拆分後的組件
+// 引入組件
 import ItineraryTab from "./ItineraryTab";
 import ListSection from "./ListSection";
 import BudgetSection from "./BudgetSection";
+import ReferenceSection from "./ReferenceSection"; // 新增
 
+// 引入 Hooks
 import { usePackingList } from "../hooks/usePackingList";
-
-// 引入新組件與 Hook
-import ReferenceSection from "./ReferenceSection";
-import { useReferences } from "../hooks/useReferences";
+import { useReferences } from "../hooks/useReferences"; // 新增
 
 const TripDetails = ({
   userId,
@@ -28,7 +27,7 @@ const TripDetails = ({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(itinerary.title);
 
-  // 清單邏輯保留在頂層
+  // 1. 所有 Hooks 必須放在組件頂部
   const {
     listCategories,
     addCategory,
@@ -40,6 +39,11 @@ const TripDetails = ({
     deleteItem,
     importFromItinerary,
   } = usePackingList(userId, itinerary.id);
+
+  const { references, addReference, deleteReference } = useReferences(
+    userId,
+    itinerary.id
+  );
 
   const [newCategoryName, setNewCategoryName] = useState("");
 
@@ -56,8 +60,10 @@ const TripDetails = ({
     }
   };
 
+  // 2. 只有一個 return 區塊
   return (
     <div className="max-w-4xl mx-auto">
+      {/* 頂部標題與返回按鈕 */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between">
         <div className="flex items-center mb-4 sm:mb-0">
           <button
@@ -114,41 +120,54 @@ const TripDetails = ({
         </div>
       </div>
 
-      {activeTab === TABS.ITINERARY && (
-        <ItineraryTab userId={userId} itinerary={itinerary} />
-      )}
+      {/* 內容區域：根據 activeTab 顯示不同組件 */}
+      <div className="pb-20">
+        {activeTab === TABS.ITINERARY && (
+          <ItineraryTab userId={userId} itinerary={itinerary} />
+        )}
 
-      {activeTab === TABS.PACKING && (
-        <ListSection
-          listCategories={listCategories}
-          newCategoryName={newCategoryName}
-          setNewCategoryName={setNewCategoryName}
-          addCategory={handleAddCategory}
-          deleteCategory={deleteCategory}
-          addItemToList={addItemToList}
-          toggleItemCompletion={toggleItemCompletion}
-          deleteItem={deleteItem}
-          updateCategoryName={updateCategoryName}
-          updateItemName={updateItemName}
-          importFromItinerary={importFromItinerary}
-          allItineraries={allItineraries}
-          currentItineraryId={itinerary.id}
-        />
-      )}
+        {activeTab === TABS.PACKING && (
+          <ListSection
+            listCategories={listCategories}
+            newCategoryName={newCategoryName}
+            setNewCategoryName={setNewCategoryName}
+            addCategory={handleAddCategory}
+            deleteCategory={deleteCategory}
+            addItemToList={addItemToList}
+            toggleItemCompletion={toggleItemCompletion}
+            deleteItem={deleteItem}
+            updateCategoryName={updateCategoryName}
+            updateItemName={updateItemName}
+            importFromItinerary={importFromItinerary}
+            allItineraries={allItineraries}
+            currentItineraryId={itinerary.id}
+          />
+        )}
 
-      {activeTab === TABS.BUDGET && (
-        <BudgetSection
-          itineraryId={itinerary.id}
-          userId={userId}
-          totalDays={itinerary.durationDays}
-          itineraryStartDate={itinerary.startDate}
-        />
-      )}
+        {activeTab === TABS.BUDGET && (
+          <BudgetSection
+            itineraryId={itinerary.id}
+            userId={userId}
+            totalDays={itinerary.durationDays}
+            itineraryStartDate={itinerary.startDate}
+          />
+        )}
 
+        {activeTab === TABS.REFERENCE && (
+          <ReferenceSection
+            references={references}
+            onAdd={addReference}
+            onDelete={deleteReference}
+          />
+        )}
+      </div>
+
+      {/* 底部導覽列：現在改為 4 個按鈕 */}
       <div className="fixed inset-x-0 bottom-0 z-50 bg-white shadow-2xl pt-2 pb-safe border-t border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 flex justify-around sm:px-8 space-x-2">
+        <div className="max-w-4xl mx-auto px-4 flex justify-around sm:px-8 space-x-1">
+          {/* 行程規劃 */}
           <div
-            className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/3 text-center justify-center ${
+            className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/4 text-center justify-center ${
               activeTab === TABS.ITINERARY
                 ? theme.floatingSelectedText
                 : theme.floatingPassiveText
@@ -156,10 +175,12 @@ const TripDetails = ({
             onClick={() => setActiveTab(TABS.ITINERARY)}
           >
             <ICON_SVG.listCollapse className="w-6 h-6" />
-            <span className="text-xs mt-1 font-medium">行程規劃</span>
+            <span className="text-[10px] mt-1 font-medium">行程規劃</span>
           </div>
+
+          {/* 清單 */}
           <div
-            className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/3 text-center justify-center ${
+            className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/4 text-center justify-center ${
               activeTab === TABS.PACKING
                 ? theme.floatingSelectedText
                 : theme.floatingPassiveText
@@ -167,10 +188,12 @@ const TripDetails = ({
             onClick={() => setActiveTab(TABS.PACKING)}
           >
             <ICON_SVG.clipboardCheck className="w-6 h-6" />
-            <span className="text-xs mt-1 font-medium">清單</span>
+            <span className="text-[10px] mt-1 font-medium">清單</span>
           </div>
+
+          {/* 旅行費用 */}
           <div
-            className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/3 text-center justify-center ${
+            className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/4 text-center justify-center ${
               activeTab === TABS.BUDGET
                 ? theme.floatingSelectedText
                 : theme.floatingPassiveText
@@ -178,37 +201,10 @@ const TripDetails = ({
             onClick={() => setActiveTab(TABS.BUDGET)}
           >
             <ICON_SVG.wallet className="w-6 h-6" />
-            <span className="text-xs mt-1 font-medium">旅行費用</span>
+            <span className="text-[10px] mt-1 font-medium">旅行費用</span>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-  // 使用新 Hook
-  const { references, addReference, deleteReference } = useReferences(
-    userId,
-    itinerary.id
-  );
 
-  return (
-    <div className="max-w-4xl mx-auto">
-      {/* ... 標題區塊 ... */}
-
-      {/* 新增判斷邏輯 */}
-      {activeTab === TABS.REFERENCE && (
-        <ReferenceSection
-          references={references}
-          onAdd={addReference}
-          onDelete={deleteReference}
-        />
-      )}
-
-      {/* 更新底部導覽列 (Bottom Nav) */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white shadow-2xl pt-2 pb-safe border-t border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 flex justify-around sm:px-8 space-x-1">
-          {/* 行程、清單、費用按鈕保持原樣 ... 但調整寬度為 w-1/4 */}
-
-          {/* 新增 參考資料 按鈕 */}
+          {/* 參考資料 (新增) */}
           <div
             className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition duration-200 w-1/4 text-center justify-center ${
               activeTab === TABS.REFERENCE

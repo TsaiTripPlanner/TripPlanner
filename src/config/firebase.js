@@ -3,7 +3,6 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// 1. 加上 export，讓別的檔案可以讀取 appId
 export const appId = "my-trip-app-v18-burger-icon";
 
 const firebaseConfig = {
@@ -32,5 +31,4 @@ if (firebaseConfig && firebaseConfig.apiKey) {
   }
 }
 
-// 2. 把設定好的 db 和 auth 匯出給其他檔案使用
 export { db, auth };
