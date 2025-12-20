@@ -78,7 +78,6 @@ const ItineraryTab = ({ userId, itinerary }) => {
   };
 
   return (
-    /* ★ 修改重點：把 p-2 改成 pl-1 pr-2 (左邊縮小到 4px，右邊維持 8px) */
     <div className="bg-white pl-1 pr-2 py-2 sm:p-6 rounded-xl shadow-lg relative min-h-[500px]">
       <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm pt-2 pb-2 -mx-2 px-2 border-b border-gray-100 mb-4">
         <DayTabs
@@ -88,7 +87,7 @@ const ItineraryTab = ({ userId, itinerary }) => {
           startDate={itinerary.startDate}
         />
       </div>
-      /* ★ 修改重點：這裡的標題也稍微左移 px-1 */
+
       <h3 className="text-2xl font-semibold mb-6 pt-2 px-1">
         Day {activeDay}{" "}
         <span className="text-base text-gray-400 font-normal ml-2">的活動</span>

@@ -61,14 +61,24 @@ const ActivityItem = memo(
     const { theme } = useTheme();
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const cardClasses = `${
-      theme.cardBg
-    } rounded-lg p-3 transition-all cursor-pointer ${
+    // ★ 修改重點 1：提前找到類型資料，用來決定背景
+    const typeData =
+      ACTIVITY_TYPES.find((t) => t.id === (activity.type || "other")) ||
+      ACTIVITY_TYPES.find((t) => t.id === "other");
+    const isSightseeing = activity.type === "sightseeing";
+
+    // ★ 修改重點 2：動態決定卡片背景色
+    // 如果是景點，我們給它一個淺藍色背景 (bg-sky-50/80) 搭配稍微明顯的藍色邊框
+    const customCardBg = isSightseeing
+      ? "bg-sky-50/80 border-sky-200/70"
+      : `${theme.cardBg} ${theme.cardBorder}`;
+
+    const cardClasses = `rounded-lg p-3 transition-all cursor-pointer ${customCardBg} ${
       isEditing
         ? `shadow-md ring-2 ring-opacity-50 ring-${theme.accent}-400 border-transparent cursor-default`
         : isDragging
         ? `shadow-2xl ring-2 ring-${theme.accent}-300 rotate-1 border-transparent z-50`
-        : `border ${theme.cardBorder} shadow-sm hover:border-${theme.accent}-300`
+        : `border shadow-sm hover:border-${theme.accent}-300`
     }`;
 
     const duration = calculateDuration(activity.startTime, activity.endTime);
@@ -96,10 +106,6 @@ const ActivityItem = memo(
 
     return (
       <div className="flex relative h-full">
-        {/* ★ 修改重點：
-            1. 寬度設為 w-14 (56px)，確保時長有足夠空間在一行內
-            2. pr-1 (減少與線條的右間距)
-        */}
         <div className="w-14 sm:w-20 text-right flex-shrink-0 pr-1 sm:pr-4 pt-0.5 block pb-8">
           <div
             className={`text-sm sm:text-lg font-bold ${theme.accentText} leading-snug`}
@@ -108,7 +114,6 @@ const ActivityItem = memo(
           </div>
           {duration && (
             <div
-              /* ★ 加入 whitespace-nowrap 確保不換行，text-[9px] 稍微再縮小一點點點 */
               className={`text-[9px] sm:text-xs ${theme.cardMeta} mt-0.5 opacity-80 whitespace-nowrap`}
             >
               ({duration})
@@ -126,9 +131,12 @@ const ActivityItem = memo(
             }`}
           ></div>
           <div
+            /* ★ 這裡如果也是景點，圓點可以稍微亮一點點 */
             className={`relative z-10 w-3 h-3 rounded-full ${
               activity.isCompleted
                 ? theme.selectedDayButton
+                : isSightseeing
+                ? "bg-sky-400"
                 : theme.timelineDotPassive
             } flex-shrink-0 mt-1`}
           ></div>
@@ -259,10 +267,6 @@ const ActivityItem = memo(
               <div className="flex justify-between items-start">
                 <div className="flex-grow min-w-0">
                   {(() => {
-                    const typeData =
-                      ACTIVITY_TYPES.find(
-                        (t) => t.id === (activity.type || "other")
-                      ) || ACTIVITY_TYPES.find((t) => t.id === "other");
                     const Icon = ICON_SVG[typeData.icon];
                     return (
                       <div
