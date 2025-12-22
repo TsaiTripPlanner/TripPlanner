@@ -2,13 +2,10 @@
 import React, { useState } from "react";
 import { ICON_SVG } from "../utils/icons";
 import { ACTIVITY_TYPES } from "../utils/constants";
-// ★ 改用 useTheme
 import { useTheme } from "../utils/theme";
 
 const ActivityForm = ({ onSubmit, isSubmitting }) => {
-  // ★ 取得主題
   const { theme } = useTheme();
-
   const [formData, setFormData] = useState({
     title: "",
     location: "",
@@ -43,7 +40,6 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* 類別選擇按鈕 */}
       <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
         {ACTIVITY_TYPES.map((type) => {
           const Icon = ICON_SVG[type.icon];
@@ -59,14 +55,11 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
                   : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
               }`}
             >
-              <Icon className="w-4 h-4 mr-1.5" />
-              {type.name}
+              <Icon className="w-4 h-4 mr-1.5" /> {type.name}
             </button>
           );
         })}
       </div>
-
-      {/* 標題與地點 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <input
           type="text"
@@ -74,7 +67,6 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
           value={formData.title}
           onChange={handleChange}
           placeholder="活動標題 *"
-          // ★ theme.accent
           className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm`}
           required
         />
@@ -84,12 +76,9 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
           value={formData.location}
           onChange={handleChange}
           placeholder="地點 (選填)"
-          // ★ theme.accent
           className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm`}
         />
       </div>
-
-      {/* 時間 */}
       <div className="flex gap-2 w-full">
         <div className="flex-1 min-w-0">
           <label className="block text-sm font-medium text-gray-700 mb-1 truncate">
@@ -100,7 +89,6 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
             name="startTime"
             value={formData.startTime}
             onChange={handleChange}
-            // ★ theme.accent
             className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm text-center`}
           />
         </div>
@@ -113,29 +101,22 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
             name="endTime"
             value={formData.endTime}
             onChange={handleChange}
-            // ★ theme.accent
             className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm text-center`}
           />
         </div>
       </div>
-
-      {/* 描述 */}
       <textarea
         name="description"
         value={formData.description}
         onChange={handleChange}
         rows="3"
         placeholder="詳細說明 (選填)"
-        // ★ theme.accent
         className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm`}
       ></textarea>
-
       {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
-
       <button
         type="submit"
         disabled={isSubmitting}
-        // ★ theme.buttonPrimary
         className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${theme.buttonPrimary} transition duration-150 ease-in-out disabled:opacity-50 cursor-pointer`}
       >
         {isSubmitting ? "處理中..." : "確認新增活動"}
@@ -143,5 +124,4 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
     </form>
   );
 };
-
 export default ActivityForm;

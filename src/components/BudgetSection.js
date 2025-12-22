@@ -10,7 +10,6 @@ import {
   doc,
   serverTimestamp,
 } from "firebase/firestore";
-
 import { db, appId } from "../config/firebase";
 import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";
@@ -24,7 +23,6 @@ import ConfirmModal from "./ConfirmModal";
 const BudgetSection = memo(
   ({ itineraryId, userId, totalDays, itineraryStartDate }) => {
     const { theme } = useTheme();
-
     const [expenses, setExpenses] = useState([]);
     const [newItem, setNewItem] = useState({
       title: "",
@@ -34,7 +32,6 @@ const BudgetSection = memo(
       paymentMethod: "cash",
       day: 1,
     });
-
     const [editingId, setEditingId] = useState(null);
     const [editData, setEditData] = useState({
       title: "",
@@ -44,38 +41,40 @@ const BudgetSection = memo(
       paymentMethod: "cash",
       day: 1,
     });
-
     const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
     useEffect(() => {
       if (!itineraryId || !userId || !db) return;
-      const expensesRef = collection(
-        db,
-        `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/expenses`
+      const unsubscribe = onSnapshot(
+        collection(
+          db,
+          `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/expenses`
+        ),
+        (snapshot) => {
+          const data = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          data.sort((a, b) =>
+            a.day !== b.day
+              ? a.day - b.day
+              : (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+          );
+          setExpenses(data);
+        }
       );
-      const q = query(expensesRef);
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        data.sort((a, b) => {
-          if (a.day !== b.day) return a.day - b.day;
-          return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
-        });
-        setExpenses(data);
-      });
       return () => unsubscribe();
     }, [itineraryId, userId]);
 
-    const currencyTotals = useMemo(() => {
-      return expenses.reduce((acc, item) => {
-        const curr = item.currency || "TWD";
-        const amt = parseFloat(item.amount) || 0;
-        acc[curr] = (acc[curr] || 0) + amt;
-        return acc;
-      }, {});
-    }, [expenses]);
+    const currencyTotals = useMemo(
+      () =>
+        expenses.reduce((acc, item) => {
+          const curr = item.currency || "TWD";
+          acc[curr] = (acc[curr] || 0) + (parseFloat(item.amount) || 0);
+          return acc;
+        }, {}),
+      [expenses]
+    );
 
     const addExpense = async () => {
       if (!newItem.title.trim() || newItem.amount === "") return;
@@ -86,32 +85,17 @@ const BudgetSection = memo(
             `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/expenses`
           ),
           {
+            ...newItem,
             title: newItem.title.trim(),
             amount: parseFloat(newItem.amount),
-            currency: newItem.currency,
-            category: newItem.category,
-            paymentMethod: newItem.paymentMethod,
             day: Number(newItem.day),
             createdAt: serverTimestamp(),
           }
         );
         setNewItem({ ...newItem, title: "", amount: "" });
       } catch (e) {
-        console.error(e);
-        alert("新增失敗，請檢查網路連線");
+        alert("新增失敗");
       }
-    };
-
-    const startEdit = (item) => {
-      setEditingId(item.id);
-      setEditData({
-        title: item.title,
-        amount: item.amount,
-        currency: item.currency || "TWD",
-        category: item.category || "other",
-        paymentMethod: item.paymentMethod || "cash",
-        day: item.day || 1,
-      });
     };
 
     const saveEdit = async (id) => {
@@ -122,54 +106,17 @@ const BudgetSection = memo(
             `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/expenses/${id}`
           ),
           {
+            ...editData,
             title: editData.title.trim(),
             amount: parseFloat(editData.amount),
-            currency: editData.currency,
-            category: editData.category,
-            paymentMethod: editData.paymentMethod,
             day: Number(editData.day),
             updatedAt: serverTimestamp(),
           }
         );
         setEditingId(null);
       } catch (e) {
-        console.error(e);
         alert("更新失敗");
       }
-    };
-
-    const handleDeleteClick = (id) => {
-      setDeleteConfirmId(id);
-    };
-
-    const handleConfirmDelete = async () => {
-      if (!deleteConfirmId) return;
-      try {
-        await deleteDoc(
-          doc(
-            db,
-            `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/expenses/${deleteConfirmId}`
-          )
-        );
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setDeleteConfirmId(null);
-      }
-    };
-
-    const getCategoryIcon = (catId) => {
-      const category = EXPENSE_CATEGORIES.find((c) => c.id === catId);
-      const iconName = category ? category.icon : "dots";
-      const IconComponent = ICON_SVG[iconName] || ICON_SVG.dots;
-      return <IconComponent className="w-5 h-5" />;
-    };
-
-    const getPaymentIcon = (methodId) => {
-      const method = PAYMENT_METHODS.find((p) => p.id === (methodId || "cash"));
-      const iconName = method ? method.icon : "banknotes";
-      const IconComponent = ICON_SVG[iconName];
-      return <IconComponent className={`w-4 h-4 ${theme.itemMetaText}`} />;
     };
 
     const getDisplayDate = (dayNum) => {
@@ -178,7 +125,6 @@ const BudgetSection = memo(
       start.setDate(start.getDate() + (dayNum - 1));
       return `(${start.getMonth() + 1}/${start.getDate()})`;
     };
-
     const { groupedExpenses, sortedDays } = useMemo(() => {
       const grouped = expenses.reduce((acc, item) => {
         const dayKey = item.day || 1;
@@ -186,8 +132,10 @@ const BudgetSection = memo(
         acc[dayKey].push(item);
         return acc;
       }, {});
-      const sorted = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
-      return { groupedExpenses: grouped, sortedDays: sorted };
+      return {
+        groupedExpenses: grouped,
+        sortedDays: Object.keys(grouped).sort((a, b) => Number(a) - Number(b)),
+      };
     }, [expenses]);
 
     return (
@@ -195,8 +143,7 @@ const BudgetSection = memo(
         <h2
           className={`text-xl font-bold flex items-center mb-6 ${theme.accentText}`}
         >
-          <ICON_SVG.wallet className={`w-6 h-6 mr-2 ${theme.accentText}`} />
-          旅行費用
+          <ICON_SVG.wallet className="w-6 h-6 mr-2" /> 旅行費用
         </h2>
 
         <div
@@ -235,7 +182,7 @@ const BudgetSection = memo(
             <select
               value={newItem.day}
               onChange={(e) => setNewItem({ ...newItem, day: e.target.value })}
-              className="w-24 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm bg-white"
+              className={`w-24 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm bg-white`}
             >
               {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => (
                 <option key={d} value={d}>
@@ -248,7 +195,7 @@ const BudgetSection = memo(
               onChange={(e) =>
                 setNewItem({ ...newItem, category: e.target.value })
               }
-              className="flex-grow px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm"
+              className={`flex-grow px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm`}
             >
               {EXPENSE_CATEGORIES.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -261,7 +208,7 @@ const BudgetSection = memo(
               onChange={(e) =>
                 setNewItem({ ...newItem, paymentMethod: e.target.value })
               }
-              className="w-28 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm"
+              className={`w-28 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm`}
             >
               {PAYMENT_METHODS.map((method) => (
                 <option key={method.id} value={method.id}>
@@ -278,7 +225,7 @@ const BudgetSection = memo(
               onChange={(e) =>
                 setNewItem({ ...newItem, title: e.target.value })
               }
-              className="flex-grow px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm"
+              className={`flex-grow px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm`}
             />
             <div className="flex gap-2">
               <input
@@ -288,14 +235,14 @@ const BudgetSection = memo(
                 onChange={(e) =>
                   setNewItem({ ...newItem, amount: e.target.value })
                 }
-                className="w-24 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm"
+                className={`w-24 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm`}
               />
               <select
                 value={newItem.currency}
                 onChange={(e) =>
                   setNewItem({ ...newItem, currency: e.target.value })
                 }
-                className="w-20 px-1 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm"
+                className={`w-20 px-1 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm`}
               >
                 {CURRENCIES.map((c) => (
                   <option key={c} value={c}>
@@ -314,226 +261,171 @@ const BudgetSection = memo(
         </div>
 
         <div className="space-y-6">
-          {sortedDays.length === 0 ? (
-            <p className={`text-center py-4 ${theme.itemMetaText}`}>
-              目前沒有消費紀錄。
-            </p>
-          ) : (
-            sortedDays.map((dayKey) => {
-              const dailyTotal = groupedExpenses[dayKey].reduce((acc, item) => {
-                const curr = item.currency || "TWD";
-                const amt = parseFloat(item.amount) || 0;
-                acc[curr] = (acc[curr] || 0) + amt;
-                return acc;
-              }, {});
-
-              return (
-                <div key={dayKey}>
-                  <div className="flex items-center justify-between mb-2 pb-1 border-b border-gray-200">
-                    <h4
-                      className={`text-md font-bold ${theme.accentText} flex items-center`}
-                    >
-                      Day {dayKey}{" "}
+          {sortedDays.map((dayKey) => {
+            const dailyTotal = groupedExpenses[dayKey].reduce((acc, item) => {
+              const curr = item.currency || "TWD";
+              acc[curr] = (acc[curr] || 0) + (parseFloat(item.amount) || 0);
+              return acc;
+            }, {});
+            return (
+              <div key={dayKey}>
+                <div className="flex items-center justify-between mb-2 pb-1 border-b border-gray-200">
+                  <h4 className={`text-md font-bold ${theme.accentText}`}>
+                    Day {dayKey}{" "}
+                    <span className="text-xs ml-2 font-normal text-gray-400">
+                      {getDisplayDate(dayKey)}
+                    </span>
+                  </h4>
+                  <div className="flex gap-2">
+                    {Object.entries(dailyTotal).map(([c, t]) => (
                       <span
-                        className={`text-xs ml-2 font-normal ${theme.itemMetaText}`}
+                        key={c}
+                        className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"
                       >
-                        {getDisplayDate(dayKey)}
+                        {c} {t.toLocaleString()}
                       </span>
-                    </h4>
-                    <div className="flex gap-2">
-                      {Object.entries(dailyTotal).map(([c, t]) => (
-                        <span
-                          key={c}
-                          className={`text-xs ${theme.infoBoxBg} ${theme.itemRowText} px-1.5 py-0.5 rounded`}
-                        >
-                          {c} {t.toLocaleString()}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    {groupedExpenses[dayKey].map((item) => (
-                      <div
-                        key={item.id}
-                        className={`p-3 ${theme.itemRowBg} rounded-lg flex justify-between items-center hover:shadow-sm transition border border-transparent hover:border-gray-100`}
-                      >
-                        {editingId === item.id ? (
-                          <div className="w-full flex flex-col gap-2">
-                            <div className="flex gap-2">
-                              <select
-                                value={editData.day}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    day: e.target.value,
-                                  })
-                                }
-                                className="px-2 py-1 border border-gray-300 rounded text-sm w-20"
-                              >
-                                {Array.from(
-                                  { length: totalDays },
-                                  (_, i) => i + 1
-                                ).map((d) => (
-                                  <option key={d} value={d}>
-                                    Day {d}
-                                  </option>
-                                ))}
-                              </select>
-                              <select
-                                value={editData.category}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    category: e.target.value,
-                                  })
-                                }
-                                className="px-2 py-1 border border-gray-300 rounded text-sm flex-grow"
-                              >
-                                {EXPENSE_CATEGORIES.map((cat) => (
-                                  <option key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                  </option>
-                                ))}
-                              </select>
-                              <select
-                                value={editData.paymentMethod}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    paymentMethod: e.target.value,
-                                  })
-                                }
-                                className="px-2 py-1 border border-gray-300 rounded text-sm w-24"
-                              >
-                                {PAYMENT_METHODS.map((method) => (
-                                  <option key={method.id} value={method.id}>
-                                    {method.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                              <input
-                                type="text"
-                                value={editData.title}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    title: e.target.value,
-                                  })
-                                }
-                                className="flex-grow px-2 py-1 border border-gray-300 rounded text-sm"
-                              />
-                              <div className="flex gap-2">
-                                <input
-                                  type="number"
-                                  value={editData.amount}
-                                  onChange={(e) =>
-                                    setEditData({
-                                      ...editData,
-                                      amount: e.target.value,
-                                    })
-                                  }
-                                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-                                />
-                                <select
-                                  value={editData.currency}
-                                  onChange={(e) =>
-                                    setEditData({
-                                      ...editData,
-                                      currency: e.target.value,
-                                    })
-                                  }
-                                  className="w-18 px-1 py-1 border border-gray-300 rounded text-sm"
-                                >
-                                  {CURRENCIES.map((c) => (
-                                    <option key={c} value={c}>
-                                      {c}
-                                    </option>
-                                  ))}
-                                </select>
-                                <button
-                                  onClick={() => saveEdit(item.id)}
-                                  className="text-green-600 hover:text-green-800 p-1"
-                                >
-                                  <ICON_SVG.check className="w-5 h-5" />
-                                </button>
-                                <button
-                                  onClick={() => setEditingId(null)}
-                                  className="text-gray-400 hover:text-gray-600 p-1"
-                                >
-                                  <ICON_SVG.xMark className="w-5 h-5" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex items-center">
-                              <div
-                                className={`w-9 h-9 rounded-full ${theme.infoBoxBg} border border-gray-200 flex items-center justify-center ${theme.itemRowText} mr-3 shadow-sm`}
-                              >
-                                {getCategoryIcon(item.category)}
-                              </div>
-                              <span
-                                className={`text-sm font-medium ${theme.itemRowText}`}
-                              >
-                                {item.title}
-                              </span>
-                            </div>
-                            <div className="flex items-center">
-                              <div
-                                className="mr-2"
-                                title={
-                                  item.paymentMethod === "card"
-                                    ? "信用卡"
-                                    : "現金"
-                                }
-                              >
-                                {getPaymentIcon(item.paymentMethod)}
-                              </div>
-                              <div className="text-right mr-3 min-w-[5rem]">
-                                <div
-                                  className={`font-bold text-sm ${theme.itemRowText}`}
-                                >
-                                  <span
-                                    className={`text-xs font-normal mr-1 ${theme.itemMetaText}`}
-                                  >
-                                    {item.currency}
-                                  </span>
-                                  {item.amount.toLocaleString()}
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => startEdit(item)}
-                                className={`hover:text-blue-500 p-1 mr-1 ${theme.itemMetaText}`}
-                              >
-                                <ICON_SVG.pencil className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteClick(item.id)}
-                                className={`hover:text-red-400 p-1 ${theme.itemMetaText}`}
-                              >
-                                <ICON_SVG.trash className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
                     ))}
                   </div>
                 </div>
-              );
-            })
-          )}
+                <div className="space-y-2">
+                  {groupedExpenses[dayKey].map((item) => (
+                    <div
+                      key={item.id}
+                      className={`p-3 ${theme.itemRowBg} rounded-lg flex justify-between items-center hover:shadow-sm transition`}
+                    >
+                      {editingId === item.id ? (
+                        <div className="w-full flex flex-col gap-2">
+                          <div className="flex gap-2">
+                            <select
+                              value={editData.day}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  day: e.target.value,
+                                })
+                              }
+                              className="px-2 py-1 border rounded text-sm w-20"
+                            >
+                              {Array.from(
+                                { length: totalDays },
+                                (_, i) => i + 1
+                              ).map((d) => (
+                                <option key={d} value={d}>
+                                  Day {d}
+                                </option>
+                              ))}
+                            </select>
+                            <select
+                              value={editData.category}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  category: e.target.value,
+                                })
+                              }
+                              className="px-2 py-1 border rounded text-sm flex-grow"
+                            >
+                              {EXPENSE_CATEGORIES.map((cat) => (
+                                <option key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={editData.title}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  title: e.target.value,
+                                })
+                              }
+                              className="flex-grow px-2 py-1 border rounded text-sm"
+                            />
+                            <input
+                              type="number"
+                              value={editData.amount}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  amount: e.target.value,
+                                })
+                              }
+                              className="w-20 px-2 py-1 border rounded text-sm"
+                            />
+                            <button
+                              onClick={() => saveEdit(item.id)}
+                              className="text-green-600 p-1"
+                            >
+                              <ICON_SVG.check className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center">
+                            <div
+                              className={`w-9 h-9 rounded-full ${theme.infoBoxBg} flex items-center justify-center mr-3`}
+                            >
+                              {(() => {
+                                const cat = EXPENSE_CATEGORIES.find(
+                                  (c) => c.id === item.category
+                                );
+                                const Icon = ICON_SVG[cat?.icon || "dots"];
+                                return <Icon className="w-5 h-5" />;
+                              })()}
+                            </div>
+                            <span className="text-sm font-medium">
+                              {item.title}
+                            </span>
+                          </div>
+                          <div className="flex items-center">
+                            <div className="text-right mr-3">
+                              <div className="font-bold text-sm">
+                                {item.currency} {item.amount.toLocaleString()}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setEditingId(item.id);
+                                setEditData(item);
+                              }}
+                              className="hover:text-blue-500 p-1"
+                            >
+                              <ICON_SVG.pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(item.id)}
+                              className="hover:text-red-400 p-1"
+                            >
+                              <ICON_SVG.trash className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
-
         <ConfirmModal
           isOpen={!!deleteConfirmId}
           onClose={() => setDeleteConfirmId(null)}
-          onConfirm={handleConfirmDelete}
+          onConfirm={async () => {
+            await deleteDoc(
+              doc(
+                db,
+                `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/expenses/${deleteConfirmId}`
+              )
+            );
+            setDeleteConfirmId(null);
+          }}
           title="刪除消費紀錄"
-          message="確定要刪除此筆消費嗎？此操作無法復原。"
+          message="確定要刪除嗎？"
           confirmText="刪除"
           isDanger={true}
         />

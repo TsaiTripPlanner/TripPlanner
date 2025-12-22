@@ -81,7 +81,7 @@ const TripDetails = ({
                   type="text"
                   value={tempTitle}
                   onChange={(e) => setTempTitle(e.target.value)}
-                  className="text-2xl sm:text-3xl font-normal border-b-2 ${theme.accentBorder} focus:outline-none w-full bg-transparent"
+                  className={`text-2xl sm:text-3xl font-normal border-b-2 ${theme.accentBorder} focus:outline-none w-full bg-transparent`}
                   autoFocus
                 />
                 <button

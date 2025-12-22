@@ -152,7 +152,7 @@ const ListSection = memo(
               <select
                 value={selectedImportId}
                 onChange={(e) => setSelectedImportId(e.target.value)}
-                className="flex-grow sm:w-56 px-3 py-1.5 border border-gray-300 rounded-md text-sm ${theme.ringFocus} ${theme.borderFocus} bg-white text-gray-700"
+                className={`flex-grow sm:w-56 px-3 py-1.5 border border-gray-300 rounded-md text-sm ${theme.ringFocus} ${theme.borderFocus} bg-white text-gray-700`}
               >
                 <option value="">-- 請選擇來源行程 --</option>
                 {availableItineraries.map((trip) => (
@@ -177,16 +177,10 @@ const ListSection = memo(
         >
           <input
             type="text"
-            placeholder="輸入新類別名稱 (如: 服飾, 藥品)"
+            placeholder="輸入新類別名稱"
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addCategory();
-              }
-            }}
-            className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base ${theme.ringFocus} ${theme.borderFocus}"
+            className={`flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base ${theme.ringFocus} ${theme.borderFocus}`}
           />
           <button
             onClick={addCategory}
@@ -334,7 +328,7 @@ const ListSection = memo(
                                       e.target.checked
                                     )
                                   }
-                                  className={`form-checkbox h-5 w-5 ${theme.accentText} rounded transition duration-150 ease-in-out border-gray-300 focus:ring-0 flex-shrink-0`}
+                                  className={`form-checkbox h-5 w-5 ${theme.accentText} rounded transition border-gray-300 focus:ring-0 flex-shrink-0`}
                                 />
                                 <span
                                   className={`text-base flex-grow min-w-0 truncate ${
@@ -386,13 +380,7 @@ const ListSection = memo(
                             onChange={(e) =>
                               handleNewItemChange(category.id, e.target.value)
                             }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                handleAddItemPress(category.id);
-                              }
-                            }}
-                            className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base ${theme.ringFocus} ${theme.borderFocus} min-w-0"
+                            className={`flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base ${theme.ringFocus} ${theme.borderFocus} min-w-0`}
                           />
                           <button
                             onClick={() => handleAddItemPress(category.id)}
