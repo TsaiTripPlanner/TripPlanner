@@ -12,13 +12,13 @@ import {
 } from "firebase/firestore";
 import { db, appId } from "../config/firebase";
 
-export const usePackingList = (userId, itineraryId) => {
+export const usePackingList = (userId, itineraryId, isEnabled) => {
   const [categories, setCategories] = useState([]);
   const [allItems, setAllItems] = useState([]);
 
   // 1. 監聽資料 (維持原本優化後的寫法)
   useEffect(() => {
-    if (!itineraryId || !userId || !db) {
+    if (!isEnabled || !itineraryId || !userId || !db) {
       setCategories([]);
       setAllItems([]);
       return;
@@ -49,7 +49,7 @@ export const usePackingList = (userId, itineraryId) => {
       unsubCategories();
       unsubItems();
     };
-  }, [itineraryId, userId]);
+  }, [itineraryId, userId, isEnabled]);
 
   // 2. 組裝資料
   const listCategories = useMemo(() => {

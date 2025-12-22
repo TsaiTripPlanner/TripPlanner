@@ -11,11 +11,11 @@ import {
 } from "firebase/firestore";
 import { db, appId } from "../config/firebase";
 
-export const useReferences = (userId, itineraryId) => {
+export const useReferences = (userId, itineraryId, isEnabled) => {
   const [references, setReferences] = useState([]);
 
   useEffect(() => {
-    if (!itineraryId || !userId || !db) return;
+    if (!isEnabled || !itineraryId || !userId || !db) return;
     const refCol = collection(
       db,
       `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/references`
@@ -29,7 +29,7 @@ export const useReferences = (userId, itineraryId) => {
       setReferences(data);
     });
     return () => unsubscribe();
-  }, [itineraryId, userId]);
+  }, [itineraryId, userId, isEnabled]);
 
   const addReference = useCallback(
     async (data) => {

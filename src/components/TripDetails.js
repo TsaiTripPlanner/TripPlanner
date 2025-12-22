@@ -38,11 +38,16 @@ const TripDetails = ({
     toggleItemCompletion,
     deleteItem,
     importFromItinerary,
-  } = usePackingList(userId, itinerary.id);
+  } = usePackingList(
+    userId, 
+    itinerary.id, 
+    activeTab === TABS.PACKING // 只有在分頁是「清單」時，開關才會是 true
+  );
 
   const { references, addReference, deleteReference } = useReferences(
     userId,
-    itinerary.id
+    itinerary.id,
+    activeTab === TABS.REFERENCE // 只有在分頁是「參考資料」時，開關才會是 true
   );
 
   const [newCategoryName, setNewCategoryName] = useState("");
