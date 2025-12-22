@@ -241,6 +241,7 @@ const ReferenceSection = ({ references, onAdd, onDelete }) => {
                     <img
                       src={ref.imageUrl}
                       alt=""
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                   </div>

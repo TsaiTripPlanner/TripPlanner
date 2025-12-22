@@ -154,7 +154,7 @@ const App = () => {
   const LoadingSpinner = () => (
     <div className="flex items-center justify-center py-20">
       <div
-        className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${theme.accent}-500`}
+        className={`animate-spin rounded-full h-12 w-12 border-b-2 ${theme.spinnerBorder}`}
       ></div>
     </div>
   );
@@ -165,7 +165,7 @@ const App = () => {
         className={`flex items-center justify-center min-h-screen ${theme.background}`}
       >
         <div
-          className={`animate-spin rounded-full h-12 w-12 border-b-2 border-${theme.accent}-500`}
+          className={`animate-spin rounded-full h-12 w-12 border-b-2 ${theme.spinnerBorder}`}
         ></div>
       </div>
     );
@@ -282,7 +282,7 @@ const App = () => {
                 })
               }
               placeholder="例如：東京五日遊"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm ${theme.ringFocus} ${theme.borderFocus}"
             />
           </div>
           <div>
@@ -298,7 +298,7 @@ const App = () => {
                   startDate: e.target.value,
                 })
               }
-              className="block w-full max-w-full bg-white appearance-none box-border px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500"
+              className="block w-full max-w-full bg-white appearance-none box-border px-3 py-2 border border-gray-300 rounded-md shadow-sm ${theme.ringFocus} ${theme.borderFocus}"
             />
           </div>
           <div>
@@ -313,7 +313,7 @@ const App = () => {
                   days: parseInt(e.target.value),
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm ${theme.ringFocus} ${theme.borderFocus}"
             >
               {DEFAULT_DAYS_OPTIONS.map((day) => (
                 <option key={day} value={day}>
@@ -378,7 +378,7 @@ const App = () => {
                   title: e.target.value,
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm ${theme.ringFocus} ${theme.borderFocus}"
             />
           </div>
           <div>
@@ -394,7 +394,7 @@ const App = () => {
                   startDate: e.target.value,
                 })
               }
-              className="block w-full max-w-full bg-white appearance-none box-border px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500"
+              className="block w-full max-w-full bg-white appearance-none box-border px-3 py-2 border border-gray-300 rounded-md shadow-sm ${theme.ringFocus} ${theme.borderFocus}"
             />
           </div>
           <div>
@@ -409,7 +409,7 @@ const App = () => {
                   days: parseInt(e.target.value),
                 })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm ${theme.ringFocus} ${theme.borderFocus}"
             >
               {DEFAULT_DAYS_OPTIONS.map((day) => (
                 <option key={day} value={day}>
@@ -466,7 +466,7 @@ const App = () => {
               placeholder="例如：Tokyo2025"
               value={accessCodeInput}
               onChange={(e) => setAccessCodeInput(e.target.value)}
-              className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-slate-500 focus:border-slate-500 text-lg tracking-wide text-center"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm ${theme.ringFocus} ${theme.borderFocus} text-lg tracking-wide text-center"
             />
           </div>
 

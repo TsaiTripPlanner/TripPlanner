@@ -75,7 +75,7 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
           onChange={handleChange}
           placeholder="活動標題 *"
           // ★ theme.accent
-          className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${theme.accent}-500 focus:border-${theme.accent}-500 text-sm`}
+          className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm`}
           required
         />
         <input
@@ -85,7 +85,7 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
           onChange={handleChange}
           placeholder="地點 (選填)"
           // ★ theme.accent
-          className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${theme.accent}-500 focus:border-${theme.accent}-500 text-sm`}
+          className={`px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm`}
         />
       </div>
 
@@ -101,7 +101,7 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
             value={formData.startTime}
             onChange={handleChange}
             // ★ theme.accent
-            className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${theme.accent}-500 focus:border-${theme.accent}-500 text-sm text-center`}
+            className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm text-center`}
           />
         </div>
         <div className="flex-1 min-w-0">
@@ -114,7 +114,7 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
             value={formData.endTime}
             onChange={handleChange}
             // ★ theme.accent
-            className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${theme.accent}-500 focus:border-${theme.accent}-500 text-sm text-center`}
+            className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm text-center`}
           />
         </div>
       </div>
@@ -127,7 +127,7 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
         rows="3"
         placeholder="詳細說明 (選填)"
         // ★ theme.accent
-        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-${theme.accent}-500 focus:border-${theme.accent}-500 text-sm`}
+        className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm`}
       ></textarea>
 
       {error && <p className="text-sm text-red-500 font-medium">{error}</p>}

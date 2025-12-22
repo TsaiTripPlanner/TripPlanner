@@ -75,7 +75,7 @@ const ActivityItem = memo(
 
     const cardClasses = `rounded-lg p-3 transition-all cursor-pointer ${customCardBg} ${
       isEditing
-        ? `shadow-md ring-2 ring-opacity-50 ring-${theme.accent}-400 border-transparent cursor-default`
+        ? `shadow-md ring-2 ring-opacity-50 ${theme.accentRing} border-transparent cursor-default`
         : isDragging
         ? `shadow-2xl ring-2 ring-${theme.accent}-300 rotate-1 border-transparent z-50`
         : `border shadow-sm hover:border-${theme.accent}-300`
@@ -98,7 +98,7 @@ const ActivityItem = memo(
           name={name}
           value={editData[name] || ""}
           onChange={onEditChange}
-          className="mt-1 h-9 block w-full min-w-0 max-w-full bg-white appearance-none px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-slate-500 focus:border-slate-500"
+          className="mt-1 h-9 block w-full min-w-0 max-w-full bg-white appearance-none px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm ${theme.ringFocus} ${theme.borderFocus}"
           required={name === "title"}
         />
       </div>
@@ -242,7 +242,7 @@ const ActivityItem = memo(
                     value={editData.description || ""}
                     onChange={onEditChange}
                     rows="4"
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-slate-500 focus:border-slate-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm ${theme.ringFocus} ${theme.borderFocus}"
                   ></textarea>
                 </div>
                 <div className="flex justify-end space-x-2 mt-4">

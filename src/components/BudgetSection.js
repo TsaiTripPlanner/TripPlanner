@@ -235,7 +235,7 @@ const BudgetSection = memo(
             <select
               value={newItem.day}
               onChange={(e) => setNewItem({ ...newItem, day: e.target.value })}
-              className="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-slate-500 text-sm bg-white"
+              className="w-24 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm bg-white"
             >
               {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => (
                 <option key={d} value={d}>
@@ -248,7 +248,7 @@ const BudgetSection = memo(
               onChange={(e) =>
                 setNewItem({ ...newItem, category: e.target.value })
               }
-              className="flex-grow px-3 py-2 border border-gray-300 rounded focus:ring-slate-500 bg-white text-sm"
+              className="flex-grow px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm"
             >
               {EXPENSE_CATEGORIES.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -261,7 +261,7 @@ const BudgetSection = memo(
               onChange={(e) =>
                 setNewItem({ ...newItem, paymentMethod: e.target.value })
               }
-              className="w-28 px-3 py-2 border border-gray-300 rounded focus:ring-slate-500 bg-white text-sm"
+              className="w-28 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm"
             >
               {PAYMENT_METHODS.map((method) => (
                 <option key={method.id} value={method.id}>
@@ -278,7 +278,7 @@ const BudgetSection = memo(
               onChange={(e) =>
                 setNewItem({ ...newItem, title: e.target.value })
               }
-              className="flex-grow px-3 py-2 border border-gray-300 rounded focus:ring-slate-500 text-sm"
+              className="flex-grow px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm"
             />
             <div className="flex gap-2">
               <input
@@ -288,14 +288,14 @@ const BudgetSection = memo(
                 onChange={(e) =>
                   setNewItem({ ...newItem, amount: e.target.value })
                 }
-                className="w-24 px-3 py-2 border border-gray-300 rounded focus:ring-slate-500 text-sm"
+                className="w-24 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm"
               />
               <select
                 value={newItem.currency}
                 onChange={(e) =>
                   setNewItem({ ...newItem, currency: e.target.value })
                 }
-                className="w-20 px-1 py-2 border border-gray-300 rounded focus:ring-slate-500 bg-white text-sm"
+                className="w-20 px-1 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm"
               >
                 {CURRENCIES.map((c) => (
                   <option key={c} value={c}>

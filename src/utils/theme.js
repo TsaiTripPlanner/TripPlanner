@@ -8,6 +8,10 @@ export const THEMES = {
     name: "莫蘭迪",
     colors: {
       accent: "slate",
+      ringFocus: "focus:ring-slate-500",
+      borderFocus: "focus:border-slate-500",
+      spinnerBorder: "border-slate-500",
+      accentRing: "ring-slate-400",
       background: "bg-stone-50",
       accentBorder: "border-slate-400",
       accentText: "text-slate-600",
@@ -55,6 +59,10 @@ export const THEMES = {
     name: "無印簡約",
     colors: {
       accent: "stone",
+      ringFocus: "focus:ring-stone-500",
+      borderFocus: "focus:border-stone-500",
+      spinnerBorder: "border-stone-500",
+      accentRing: "ring-stone-400",
       background: "bg-[#EFECE6]",
       accentBorder: "border-[#8C8279]",
       accentText: "text-[#8C6A5D]",

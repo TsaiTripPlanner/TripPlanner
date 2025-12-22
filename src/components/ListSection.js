@@ -152,7 +152,7 @@ const ListSection = memo(
               <select
                 value={selectedImportId}
                 onChange={(e) => setSelectedImportId(e.target.value)}
-                className="flex-grow sm:w-56 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-slate-500 focus:border-slate-500 bg-white text-gray-700"
+                className="flex-grow sm:w-56 px-3 py-1.5 border border-gray-300 rounded-md text-sm ${theme.ringFocus} ${theme.borderFocus} bg-white text-gray-700"
               >
                 <option value="">-- 請選擇來源行程 --</option>
                 {availableItineraries.map((trip) => (
@@ -186,7 +186,7 @@ const ListSection = memo(
                 addCategory();
               }
             }}
-            className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base focus:ring-slate-500 focus:border-slate-500"
+            className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base ${theme.ringFocus} ${theme.borderFocus}"
           />
           <button
             onClick={addCategory}
@@ -392,7 +392,7 @@ const ListSection = memo(
                                 handleAddItemPress(category.id);
                               }
                             }}
-                            className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base focus:ring-slate-500 focus:border-slate-500 min-w-0"
+                            className="flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base ${theme.ringFocus} ${theme.borderFocus} min-w-0"
                           />
                           <button
                             onClick={() => handleAddItemPress(category.id)}
