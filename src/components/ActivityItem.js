@@ -114,7 +114,8 @@ const ActivityItem = memo(
           </div>
           {duration && (
             <div
-              className={`text-[9px] sm:text-xs ${theme.cardMeta} mt-0.5 opacity-80 whitespace-nowrap`}
+              /* 移除 opacity-80，並加上 font-medium 讓它更紮實 */
+              className={`text-[9px] sm:text-xs ${theme.cardMeta} mt-0.5 font-medium whitespace-nowrap`}
             >
               ({duration})
             </div>
@@ -285,9 +286,8 @@ const ActivityItem = memo(
                   </h3>
 
                   {(activity.startTime || activity.endTime) && (
-                    <h4
-                      className={`text-sm font-semibold ${theme.cardMetaLight} mb-1`}
-                    >
+                    // 把 cardMetaLight 改為 cardMeta，顏色會更深一點
+                    <h4 className={`text-sm font-bold ${theme.cardMeta} mb-1`}>
                       {activity.startTime || "?"} ~ {activity.endTime || "?"}
                     </h4>
                   )}

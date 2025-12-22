@@ -71,8 +71,8 @@ export const THEMES = {
       cardBg: "bg-[#FAF9F6]",
       cardBorder: "border-[#C5BDB5]",
       cardTitle: "text-[#594A3C]",
-      cardMeta: "text-[#998B82]",
-      cardMetaLight: "text-[#B0A69E]",
+      cardMeta: "text-[#7A6E64]", // 從淺褐灰色變為深褐灰色
+      cardMetaLight: "text-[#8E8071]",
       cardDesc: "text-[#6E6359]",
       timelineLine: "bg-[#C5BDB5]",
       timelineDotPassive: "bg-[#A69B95]",

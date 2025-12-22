@@ -195,7 +195,7 @@ const ListSection = memo(
                         className="flex items-center flex-grow text-left min-w-0"
                       >
                         <h3
-                          className={`text-lg font-semibold flex items-center truncate ${theme.accentText}`}
+                          className={`text-lg font-bold flex items-center truncate ${theme.accentText}`}
                         >
                           {category.name} (
                           {category.items.filter((i) => i.isCompleted).length}/
@@ -287,7 +287,7 @@ const ListSection = memo(
                                   className={`form-checkbox h-5 w-5 ${theme.accentText} rounded border-gray-300 focus:ring-0`}
                                 />
                                 <span
-                                  className={`text-base truncate ${
+                                  className={`text-base font-medium truncate ${
                                     item.isCompleted
                                       ? "line-through text-gray-400"
                                       : theme.itemRowText
