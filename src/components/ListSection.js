@@ -85,6 +85,7 @@ const ListSection = memo(
           <ICON_SVG.clipboardCheck className="w-6 h-6 mr-2" /> 清單管理
         </h2>
 
+        {/* 匯入功能 */}
         {availableItineraries.length > 0 && (
           <div
             className={`mb-6 p-4 ${theme.infoBoxBg} border ${theme.infoBoxBorder} rounded-lg flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm`}
@@ -117,6 +118,7 @@ const ListSection = memo(
           </div>
         )}
 
+        {/* 新增類別 */}
         <div
           className={`mb-8 p-4 ${theme.infoBoxBg} rounded-lg border ${theme.infoBoxBorder} flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4`}
         >
@@ -125,6 +127,12 @@ const ListSection = memo(
             placeholder="輸入新類別名稱"
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addCategory();
+              }
+            }}
             className={`flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base ${theme.ringFocus} ${theme.borderFocus}`}
           />
           <button
@@ -148,55 +156,76 @@ const ListSection = memo(
                   className={`p-3 flex justify-between items-center ${theme.categoryHeaderBg}`}
                 >
                   {isEditingCat ? (
-                    <div className="flex items-center flex-grow space-x-2 mr-2">
+                    /* === 類別編輯模式：強化按鈕視覺 === */
+                    <div className="flex items-center w-full space-x-2">
                       <input
                         autoFocus
                         type="text"
                         value={tempEditText}
                         onChange={(e) => setTempEditText(e.target.value)}
-                        className={`flex-grow px-2 py-1 border border-gray-300 rounded text-base ${theme.ringFocus} ${theme.borderFocus}`}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            updateCategoryName(category.id, tempEditText);
+                            setEditingCategoryId(null);
+                          }
+                        }}
+                        className={`flex-grow min-w-0 px-2 py-2 border border-gray-300 rounded text-base ${theme.ringFocus} ${theme.borderFocus}`}
                       />
                       <button
                         onClick={() => {
                           updateCategoryName(category.id, tempEditText);
                           setEditingCategoryId(null);
                         }}
-                        className="text-green-600"
+                        className="bg-green-500 text-white shrink-0 p-2 rounded-md shadow-sm active:scale-95"
                       >
                         <ICON_SVG.check className="w-5 h-5" />
                       </button>
+                      <button
+                        onClick={() => setEditingCategoryId(null)}
+                        className="bg-gray-200 text-gray-600 shrink-0 p-2 rounded-md shadow-sm active:scale-95"
+                      >
+                        <ICON_SVG.xMark className="w-5 h-5" />
+                      </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => toggleCollapse(category.id)}
-                      className="flex items-center flex-grow text-left"
-                    >
-                      <h3
-                        className={`text-lg font-semibold flex items-center ${theme.accentText}`}
+                    /* 非編輯模式 */
+                    <>
+                      <button
+                        onClick={() => toggleCollapse(category.id)}
+                        className="flex items-center flex-grow text-left min-w-0"
                       >
-                        {category.name} (
-                        {category.items.filter((i) => i.isCompleted).length}/
-                        {category.items.length})
-                      </h3>
-                    </button>
+                        <h3
+                          className={`text-lg font-semibold flex items-center truncate ${theme.accentText}`}
+                        >
+                          {category.name} (
+                          {category.items.filter((i) => i.isCompleted).length}/
+                          {category.items.length})
+                        </h3>
+                      </button>
+                      <div className="flex shrink-0 ml-2">
+                        <button
+                          onClick={() => {
+                            setEditingCategoryId(category.id);
+                            setTempEditText(category.name);
+                          }}
+                          className="p-1 text-gray-400"
+                        >
+                          <ICON_SVG.pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteCategoryClick(
+                              category.id,
+                              category.name
+                            )
+                          }
+                          className="p-1 text-red-400 ml-1"
+                        >
+                          <ICON_SVG.trash className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </>
                   )}
-                  <button
-                    onClick={() => {
-                      setEditingCategoryId(category.id);
-                      setTempEditText(category.name);
-                    }}
-                    className="p-1"
-                  >
-                    <ICON_SVG.pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() =>
-                      handleDeleteCategoryClick(category.id, category.name)
-                    }
-                    className="p-1 text-red-400"
-                  >
-                    <ICON_SVG.trash className="w-5 h-5" />
-                  </button>
                 </div>
 
                 {!isCollapsed && (
@@ -209,7 +238,8 @@ const ListSection = memo(
                           className="p-3 flex justify-between items-center transition hover:bg-gray-50"
                         >
                           {isEditingItem ? (
-                            <div className="flex items-center flex-grow space-x-2 mr-2">
+                            /* === 項目編輯模式：強化按鈕視覺 === */
+                            <div className="flex items-center w-full space-x-2">
                               <input
                                 autoFocus
                                 type="text"
@@ -217,66 +247,84 @@ const ListSection = memo(
                                 onChange={(e) =>
                                   setTempEditText(e.target.value)
                                 }
-                                className={`flex-grow px-2 py-1 border border-gray-300 rounded text-base ${theme.ringFocus} ${theme.borderFocus}`}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    updateItemName(item.id, tempEditText);
+                                    setEditingItemId(null);
+                                  }
+                                }}
+                                className={`flex-grow min-w-0 px-2 py-2 border border-gray-300 rounded text-base ${theme.ringFocus} ${theme.borderFocus}`}
                               />
                               <button
                                 onClick={() => {
                                   updateItemName(item.id, tempEditText);
                                   setEditingItemId(null);
                                 }}
-                                className="text-green-600"
+                                className="bg-green-500 text-white shrink-0 p-2 rounded-md shadow-sm active:scale-95"
                               >
                                 <ICON_SVG.check className="w-5 h-5" />
                               </button>
+                              <button
+                                onClick={() => setEditingItemId(null)}
+                                className="bg-gray-200 text-gray-600 shrink-0 p-2 rounded-md shadow-sm active:scale-95"
+                              >
+                                <ICON_SVG.xMark className="w-5 h-5" />
+                              </button>
                             </div>
                           ) : (
-                            <label className="flex items-center space-x-3 cursor-pointer flex-grow">
-                              <input
-                                type="checkbox"
-                                checked={item.isCompleted}
-                                onChange={(e) =>
-                                  toggleItemCompletion(
-                                    item.id,
-                                    e.target.checked
-                                  )
-                                }
-                                className={`form-checkbox h-5 w-5 ${theme.accentText} rounded border-gray-300 focus:ring-0`}
-                              />
-                              <span
-                                className={`text-base ${
-                                  item.isCompleted
-                                    ? "line-through text-gray-400"
-                                    : theme.itemRowText
-                                }`}
-                              >
-                                {item.name}
-                              </span>
-                            </label>
+                            /* 非編輯模式 */
+                            <>
+                              <label className="flex items-center space-x-3 cursor-pointer flex-grow min-w-0">
+                                <input
+                                  type="checkbox"
+                                  checked={item.isCompleted}
+                                  onChange={(e) =>
+                                    toggleItemCompletion(
+                                      item.id,
+                                      e.target.checked
+                                    )
+                                  }
+                                  className={`form-checkbox h-5 w-5 ${theme.accentText} rounded border-gray-300 focus:ring-0`}
+                                />
+                                <span
+                                  className={`text-base truncate ${
+                                    item.isCompleted
+                                      ? "line-through text-gray-400"
+                                      : theme.itemRowText
+                                  }`}
+                                >
+                                  {item.name}
+                                </span>
+                              </label>
+                              <div className="flex shrink-0 ml-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingItemId(item.id);
+                                    setTempEditText(item.name);
+                                  }}
+                                  className="text-gray-400 p-1"
+                                >
+                                  <ICON_SVG.pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDeleteItemClick(
+                                      category.id,
+                                      item.id,
+                                      item.name
+                                    )
+                                  }
+                                  className="text-red-300 p-1 ml-1"
+                                >
+                                  <ICON_SVG.trash className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </>
                           )}
-                          <button
-                            onClick={() => {
-                              setEditingItemId(item.id);
-                              setTempEditText(item.name);
-                            }}
-                            className="ml-2 text-gray-400"
-                          >
-                            <ICON_SVG.pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteItemClick(
-                                category.id,
-                                item.id,
-                                item.name
-                              )
-                            }
-                            className="ml-2 text-red-300"
-                          >
-                            <ICON_SVG.trash className="w-4 h-4" />
-                          </button>
                         </li>
                       );
                     })}
+                    {/* 新增項目輸入框 */}
                     <li className={`p-3 ${theme.itemInputBg}`}>
                       <div className="flex space-x-2 items-center">
                         <input
@@ -286,11 +334,17 @@ const ListSection = memo(
                           onChange={(e) =>
                             handleNewItemChange(category.id, e.target.value)
                           }
-                          className={`flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base ${theme.ringFocus} ${theme.borderFocus}`}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddItemPress(category.id);
+                            }
+                          }}
+                          className={`flex-grow min-w-0 px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base ${theme.ringFocus} ${theme.borderFocus}`}
                         />
                         <button
                           onClick={() => handleAddItemPress(category.id)}
-                          className={`p-2 rounded-md text-white ${theme.buttonPrimary}`}
+                          className={`shrink-0 p-2.5 rounded-md text-white shadow-sm ${theme.buttonPrimary}`}
                         >
                           <ICON_SVG.plusSmall className="w-6 h-6" />
                         </button>
