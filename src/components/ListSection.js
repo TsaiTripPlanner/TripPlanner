@@ -219,7 +219,7 @@ const ListSection = memo(
                               category.name
                             )
                           }
-                          className="p-1 text-red-400 ml-1"
+                          className="p-1 text-gray-400 hover:text-red-400 ml-1 transition-colors"
                         >
                           <ICON_SVG.trash className="w-5 h-5" />
                         </button>
@@ -314,7 +314,7 @@ const ListSection = memo(
                                       item.name
                                     )
                                   }
-                                  className="text-red-300 p-1 ml-1"
+                                  className="text-gray-400 hover:text-red-400 p-1 ml-1 transition-colors"
                                 >
                                   <ICON_SVG.trash className="w-4 h-4" />
                                 </button>

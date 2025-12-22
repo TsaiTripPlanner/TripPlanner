@@ -2,7 +2,6 @@
 import React, { useState, useEffect, memo, useMemo } from "react";
 import {
   collection,
-  query,
   onSnapshot,
   addDoc,
   deleteDoc,
@@ -99,6 +98,7 @@ const BudgetSection = memo(
     };
 
     const saveEdit = async (id) => {
+      if (!editData.title.trim() || editData.amount === "") return;
       try {
         await updateDoc(
           doc(
@@ -149,6 +149,7 @@ const BudgetSection = memo(
           <ICON_SVG.wallet className="w-6 h-6 mr-2" /> 旅行費用
         </h2>
 
+        {/* 總額匯總區 */}
         <div
           className={`${theme.infoBoxBg} p-4 rounded-lg border ${theme.infoBoxBorder} mb-6`}
         >
@@ -180,73 +181,90 @@ const BudgetSection = memo(
           </div>
         </div>
 
-        {/* 新增費用區塊 */}
-        <div className={`mb-6 p-4 ${theme.itemInputBg} rounded-lg space-y-3`}>
-          <div className="flex items-center space-x-2">
-            <select
-              value={newItem.day}
-              onChange={(e) => setNewItem({ ...newItem, day: e.target.value })}
-              className={`w-24 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm bg-white`}
-            >
-              {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => (
-                <option key={d} value={d}>
-                  Day {d}
-                </option>
-              ))}
-            </select>
-            <select
-              value={newItem.category}
-              onChange={(e) =>
-                setNewItem({ ...newItem, category: e.target.value })
-              }
-              className={`flex-grow px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm`}
-            >
-              {EXPENSE_CATEGORIES.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            <select
-              value={newItem.paymentMethod}
-              onChange={(e) =>
-                setNewItem({ ...newItem, paymentMethod: e.target.value })
-              }
-              className={`w-28 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm`}
-            >
-              {PAYMENT_METHODS.map((method) => (
-                <option key={method.id} value={method.id}>
-                  {method.name}
-                </option>
-              ))}
-            </select>
+        {/* 新增費用區塊：採用全響應式堆疊佈局 */}
+        <div
+          className={`mb-6 p-4 ${theme.itemInputBg} rounded-lg space-y-3 shadow-inner`}
+        >
+          {/* 第一行：天數與類別 */}
+          <div className="flex gap-2">
+            <div className="w-1/3">
+              <label className="block text-[10px] text-gray-400 mb-1 ml-1">
+                天數
+              </label>
+              <select
+                value={newItem.day}
+                onChange={(e) =>
+                  setNewItem({ ...newItem, day: e.target.value })
+                }
+                className="w-full px-2 py-2 border border-gray-300 rounded text-sm bg-white"
+              >
+                {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>
+                    Day {d}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="w-2/3">
+              <label className="block text-[10px] text-gray-400 mb-1 ml-1">
+                類別
+              </label>
+              <select
+                value={newItem.category}
+                onChange={(e) =>
+                  setNewItem({ ...newItem, category: e.target.value })
+                }
+                className="w-full px-2 py-2 border border-gray-300 rounded bg-white text-sm"
+              >
+                {EXPENSE_CATEGORIES.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2">
+
+          {/* 第二行：項目名稱 (獨佔一行) */}
+          <div>
+            <label className="block text-[10px] text-gray-400 mb-1 ml-1">
+              項目名稱
+            </label>
             <input
               type="text"
-              placeholder="項目名稱"
+              placeholder="例如：拉麵、藥妝..."
               value={newItem.title}
               onChange={(e) =>
                 setNewItem({ ...newItem, title: e.target.value })
               }
-              className={`flex-grow px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm`}
+              onKeyDown={(e) => e.key === "Enter" && addExpense()}
+              className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
             />
+          </div>
+
+          {/* 第三行：金額、幣別、按鈕 */}
+          <div>
+            <label className="block text-[10px] text-gray-400 mb-1 ml-1">
+              金額與幣別
+            </label>
             <div className="flex gap-2">
               <input
                 type="number"
+                inputMode="decimal"
                 placeholder="金額"
                 value={newItem.amount}
                 onChange={(e) =>
                   setNewItem({ ...newItem, amount: e.target.value })
                 }
-                className={`w-24 px-3 py-2 border border-gray-300 rounded ${theme.ringFocus} text-sm`}
+                onKeyDown={(e) => e.key === "Enter" && addExpense()}
+                className="flex-grow min-w-0 px-3 py-2 border border-gray-300 rounded text-sm"
               />
               <select
                 value={newItem.currency}
                 onChange={(e) =>
                   setNewItem({ ...newItem, currency: e.target.value })
                 }
-                className={`w-20 px-1 py-2 border border-gray-300 rounded ${theme.ringFocus} bg-white text-sm`}
+                className="w-20 shrink-0 px-1 py-2 border border-gray-300 rounded bg-white text-sm text-center"
               >
                 {CURRENCIES.map((c) => (
                   <option key={c} value={c}>
@@ -256,7 +274,7 @@ const BudgetSection = memo(
               </select>
               <button
                 onClick={addExpense}
-                className={`px-4 py-2 text-white rounded text-sm font-medium ${theme.buttonPrimary} whitespace-nowrap`}
+                className={`shrink-0 px-4 py-2 text-white rounded text-sm font-bold shadow-sm ${theme.buttonPrimary}`}
               >
                 記帳
               </button>
@@ -274,18 +292,18 @@ const BudgetSection = memo(
             }, {});
             return (
               <div key={dayKey}>
-                <div className="flex items-center justify-between mb-2 pb-1 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-2 pb-1 border-b border-gray-100">
                   <h4 className={`text-md font-bold ${theme.accentText}`}>
                     Day {dayKey}{" "}
-                    <span className="text-xs ml-2 font-normal text-gray-400">
+                    <span className="text-xs ml-1 font-normal text-gray-400">
                       {getDisplayDate(dayKey)}
                     </span>
                   </h4>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap justify-end gap-1">
                     {Object.entries(dailyTotal).map(([c, t]) => (
                       <span
                         key={c}
-                        className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"
+                        className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded"
                       >
                         {c} {t.toLocaleString()}
                       </span>
@@ -296,10 +314,12 @@ const BudgetSection = memo(
                   {groupedExpenses[dayKey].map((item) => (
                     <div
                       key={item.id}
-                      className={`p-3 ${theme.itemRowBg} rounded-lg flex justify-between items-center hover:shadow-sm transition`}
+                      className={`p-3 ${theme.itemRowBg} rounded-lg hover:shadow-sm transition`}
                     >
                       {editingId === item.id ? (
-                        <div className="w-full flex flex-col gap-2">
+                        /* === 編輯模式：解決手機版寬度溢出 === */
+                        <div className="w-full flex flex-col gap-3">
+                          {/* 編輯第一行：天數與類別 */}
                           <div className="flex gap-2">
                             <select
                               value={editData.day}
@@ -309,7 +329,7 @@ const BudgetSection = memo(
                                   day: e.target.value,
                                 })
                               }
-                              className={`px-2 py-1 border border-gray-300 rounded text-sm w-20 ${theme.ringFocus}`}
+                              className="w-1/3 px-2 py-2 border border-gray-300 rounded text-sm bg-white"
                             >
                               {Array.from(
                                 { length: totalDays },
@@ -328,7 +348,7 @@ const BudgetSection = memo(
                                   category: e.target.value,
                                 })
                               }
-                              className={`px-2 py-1 border border-gray-300 rounded text-sm flex-grow ${theme.ringFocus}`}
+                              className="w-2/3 px-2 py-2 border border-gray-300 rounded text-sm bg-white"
                             >
                               {EXPENSE_CATEGORIES.map((cat) => (
                                 <option key={cat.id} value={cat.id}>
@@ -337,20 +357,29 @@ const BudgetSection = memo(
                               ))}
                             </select>
                           </div>
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={editData.title}
-                              onChange={(e) =>
-                                setEditData({
-                                  ...editData,
-                                  title: e.target.value,
-                                })
-                              }
-                              className={`flex-grow px-2 py-1 border border-gray-300 rounded text-sm ${theme.ringFocus}`}
-                            />
+
+                          {/* 編輯第二行：名稱 (獨佔一行) */}
+                          <input
+                            type="text"
+                            value={editData.title}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                title: e.target.value,
+                              })
+                            }
+                            onKeyDown={(e) =>
+                              e.key === "Enter" && saveEdit(item.id)
+                            }
+                            className="w-full px-2 py-2 border border-gray-300 rounded text-sm"
+                            placeholder="項目名稱"
+                          />
+
+                          {/* 編輯第三行：金額、幣別與功能按鈕 */}
+                          <div className="flex items-center gap-2">
                             <input
                               type="number"
+                              inputMode="decimal"
                               value={editData.amount}
                               onChange={(e) =>
                                 setEditData({
@@ -358,21 +387,52 @@ const BudgetSection = memo(
                                   amount: e.target.value,
                                 })
                               }
-                              className={`w-20 px-2 py-1 border border-gray-300 rounded text-sm ${theme.ringFocus}`}
+                              onKeyDown={(e) =>
+                                e.key === "Enter" && saveEdit(item.id)
+                              }
+                              className="flex-grow min-w-0 px-2 py-2 border border-gray-300 rounded text-sm"
+                              placeholder="金額"
                             />
-                            <button
-                              onClick={() => saveEdit(item.id)}
-                              className="text-green-600 p-1"
+                            <select
+                              value={editData.currency}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  currency: e.target.value,
+                                })
+                              }
+                              className="w-20 shrink-0 px-1 py-2 border border-gray-300 rounded text-sm bg-white text-center"
                             >
-                              <ICON_SVG.check className="w-5 h-5" />
-                            </button>
+                              {CURRENCIES.map((c) => (
+                                <option key={c} value={c}>
+                                  {c}
+                                </option>
+                              ))}
+                            </select>
+
+                            {/* 儲存與取消按鈕 */}
+                            <div className="flex gap-1 shrink-0">
+                              <button
+                                onClick={() => saveEdit(item.id)}
+                                className="bg-green-500 text-white p-2 rounded shadow-sm active:scale-95"
+                              >
+                                <ICON_SVG.check className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() => setEditingId(null)}
+                                className="bg-gray-200 text-gray-600 p-2 rounded shadow-sm active:scale-95"
+                              >
+                                <ICON_SVG.xMark className="w-5 h-5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ) : (
-                        <>
-                          <div className="flex items-center">
+                        /* 非編輯模式 */
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center min-w-0">
                             <div
-                              className={`w-9 h-9 rounded-full ${theme.infoBoxBg} flex items-center justify-center mr-3`}
+                              className={`w-9 h-9 rounded-full ${theme.infoBoxBg} flex items-center justify-center mr-3 shrink-0`}
                             >
                               {(() => {
                                 const cat = EXPENSE_CATEGORIES.find(
@@ -382,11 +442,11 @@ const BudgetSection = memo(
                                 return <Icon className="w-5 h-5" />;
                               })()}
                             </div>
-                            <span className="text-sm font-medium">
+                            <span className="text-sm font-medium truncate">
                               {item.title}
                             </span>
                           </div>
-                          <div className="flex items-center">
+                          <div className="flex items-center shrink-0 ml-2">
                             <div className="text-right mr-3">
                               <div className="font-bold text-sm">
                                 {item.currency} {item.amount.toLocaleString()}
@@ -397,18 +457,18 @@ const BudgetSection = memo(
                                 setEditingId(item.id);
                                 setEditData(item);
                               }}
-                              className="hover:text-blue-500 p-1"
+                              className="text-gray-400 hover:text-blue-500 p-1.5"
                             >
                               <ICON_SVG.pencil className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteClick(item.id)}
-                              className="hover:text-red-400 p-1"
+                              className="text-gray-400 hover:text-red-400 p-1.5"
                             >
                               <ICON_SVG.trash className="w-4 h-4" />
                             </button>
                           </div>
-                        </>
+                        </div>
                       )}
                     </div>
                   ))}
