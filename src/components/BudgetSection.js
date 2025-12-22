@@ -119,12 +119,15 @@ const BudgetSection = memo(
       }
     };
 
+    const handleDeleteClick = (id) => setDeleteConfirmId(id);
+
     const getDisplayDate = (dayNum) => {
       if (!itineraryStartDate) return "";
       const start = new Date(itineraryStartDate);
       start.setDate(start.getDate() + (dayNum - 1));
       return `(${start.getMonth() + 1}/${start.getDate()})`;
     };
+
     const { groupedExpenses, sortedDays } = useMemo(() => {
       const grouped = expenses.reduce((acc, item) => {
         const dayKey = item.day || 1;
@@ -177,6 +180,7 @@ const BudgetSection = memo(
           </div>
         </div>
 
+        {/* 新增費用區塊 */}
         <div className={`mb-6 p-4 ${theme.itemInputBg} rounded-lg space-y-3`}>
           <div className="flex items-center space-x-2">
             <select
@@ -260,6 +264,7 @@ const BudgetSection = memo(
           </div>
         </div>
 
+        {/* 費用列表 */}
         <div className="space-y-6">
           {sortedDays.map((dayKey) => {
             const dailyTotal = groupedExpenses[dayKey].reduce((acc, item) => {
@@ -304,7 +309,7 @@ const BudgetSection = memo(
                                   day: e.target.value,
                                 })
                               }
-                              className="px-2 py-1 border rounded text-sm w-20"
+                              className={`px-2 py-1 border border-gray-300 rounded text-sm w-20 ${theme.ringFocus}`}
                             >
                               {Array.from(
                                 { length: totalDays },
@@ -323,7 +328,7 @@ const BudgetSection = memo(
                                   category: e.target.value,
                                 })
                               }
-                              className="px-2 py-1 border rounded text-sm flex-grow"
+                              className={`px-2 py-1 border border-gray-300 rounded text-sm flex-grow ${theme.ringFocus}`}
                             >
                               {EXPENSE_CATEGORIES.map((cat) => (
                                 <option key={cat.id} value={cat.id}>
@@ -342,7 +347,7 @@ const BudgetSection = memo(
                                   title: e.target.value,
                                 })
                               }
-                              className="flex-grow px-2 py-1 border rounded text-sm"
+                              className={`flex-grow px-2 py-1 border border-gray-300 rounded text-sm ${theme.ringFocus}`}
                             />
                             <input
                               type="number"
@@ -353,7 +358,7 @@ const BudgetSection = memo(
                                   amount: e.target.value,
                                 })
                               }
-                              className="w-20 px-2 py-1 border rounded text-sm"
+                              className={`w-20 px-2 py-1 border border-gray-300 rounded text-sm ${theme.ringFocus}`}
                             />
                             <button
                               onClick={() => saveEdit(item.id)}
