@@ -334,7 +334,7 @@ const ListSection = memo(
                                       e.target.checked
                                     )
                                   }
-                                  className={`form-checkbox h-5 w-5 ${theme.accentText} rounded transition duration-150 ease-in-out border-gray-300 focus:ring-slate-500 flex-shrink-0`}
+                                  className={`form-checkbox h-5 w-5 ${theme.accentText} rounded transition duration-150 ease-in-out border-gray-300 focus:ring-0 flex-shrink-0`}
                                 />
                                 <span
                                   className={`text-base flex-grow min-w-0 truncate ${

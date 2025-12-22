@@ -77,8 +77,8 @@ const ActivityItem = memo(
       isEditing
         ? `shadow-md ring-2 ring-opacity-50 ${theme.accentRing} border-transparent cursor-default`
         : isDragging
-        ? `shadow-2xl ring-2 ring-${theme.accent}-300 rotate-1 border-transparent z-50`
-        : `border shadow-sm hover:border-${theme.accent}-300`
+        ? `shadow-2xl ring-2 ${theme.accentRingLight} rotate-1 border-transparent z-50`
+        : `border shadow-sm ${theme.accentBorderHover}`
     }`;
 
     const duration = calculateDuration(activity.startTime, activity.endTime);
@@ -330,7 +330,7 @@ const ActivityItem = memo(
                   <div className="flex space-x-1 justify-end">
                     <button
                       onClick={() => onStartEdit(activity)}
-                      className={`text-gray-400 hover:text-${theme.accent}-600 transition p-1`}
+                      className={`text-gray-400 ${theme.accentHoverText} transition p-1`}
                     >
                       <ICON_SVG.pencil className="w-5 h-5" />
                     </button>
