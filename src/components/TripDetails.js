@@ -39,8 +39,8 @@ const TripDetails = ({
     deleteItem,
     importFromItinerary,
   } = usePackingList(
-    userId, 
-    itinerary.id, 
+    userId,
+    itinerary.id,
     activeTab === TABS.PACKING // 只有在分頁是「清單」時，開關才會是 true
   );
 
@@ -155,6 +155,7 @@ const TripDetails = ({
             userId={userId}
             totalDays={itinerary.durationDays}
             itineraryStartDate={itinerary.startDate}
+            travelerCount={itinerary.travelerCount || 1}
           />
         )}
 
