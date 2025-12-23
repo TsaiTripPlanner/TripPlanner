@@ -19,6 +19,7 @@ const BudgetSection = memo(
   ({ itineraryId, userId, totalDays, itineraryStartDate, travelerCount }) => {
     const { theme } = useTheme();
     const [expenses, setExpenses] = useState([]);
+    const count = travelerCount || 1;
 
     const [newItem, setNewItem] = useState({
       title: "",
@@ -56,18 +57,15 @@ const BudgetSection = memo(
       return () => unsubscribe();
     }, [itineraryId, userId]);
 
-    // 計算總額摘要
     const totals = useMemo(() => {
       return expenses.reduce((acc, item) => {
         const curr = item.currency || "TWD";
         const amount = parseFloat(item.amount) || 0;
-        const finalAmount = item.isPerPerson
-          ? amount * (travelerCount || 1)
-          : amount;
+        const finalAmount = item.isPerPerson ? amount * count : amount;
         acc[curr] = (acc[curr] || 0) + finalAmount;
         return acc;
       }, {});
-    }, [expenses, travelerCount]);
+    }, [expenses, count]);
 
     const addExpense = async () => {
       if (!newItem.title.trim() || newItem.amount === "") return;
@@ -113,13 +111,11 @@ const BudgetSection = memo(
       }
     };
 
-    const handleDeleteClick = (id) => setDeleteConfirmId(id);
-
     const getDisplayDate = (dayNum) => {
       if (!itineraryStartDate) return "";
       const start = new Date(itineraryStartDate);
       start.setDate(start.getDate() + (dayNum - 1));
-      return `(${start.getMonth() + 1}/${start.getDate()})`;
+      return `${start.getMonth() + 1}/${start.getDate()}`;
     };
 
     const { groupedExpenses, sortedDays } = useMemo(() => {
@@ -143,45 +139,42 @@ const BudgetSection = memo(
           <ICON_SVG.wallet className="w-6 h-6 mr-2" /> 旅行費用
         </h2>
 
-        {/* 頂部彙總區：優雅的摘要設計 */}
+        {/* 頂部彙總：個人 vs 整團 */}
         <div
           className={`${theme.infoBoxBg} p-4 rounded-lg border ${theme.infoBoxBorder} mb-6`}
         >
-          <div className="flex flex-wrap gap-6">
+          <div className="flex flex-wrap gap-x-8 gap-y-4">
             {Object.entries(totals).length === 0 ? (
               <span className={`text-sm ${theme.itemMetaText}`}>
                 尚未有紀錄
               </span>
             ) : (
-              Object.entries(totals).map(([curr, total]) => {
-                const perPerson = total / (travelerCount || 1);
-                return (
-                  <div key={curr} className="flex flex-col">
-                    <div className="flex items-center text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">
-                      {curr} 支出
+              Object.entries(totals).map(([curr, total]) => (
+                <div key={curr} className="flex flex-col">
+                  <div className="text-[10px] font-bold text-gray-400 mb-1 uppercase">
+                    {curr} 總結
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <span className="text-[9px] text-gray-400 block">
+                        👤 每人平均
+                      </span>
+                      <span className="text-lg font-bold text-slate-700 leading-none">
+                        {Math.round(total / count).toLocaleString()}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex flex-col">
-                        <span className="text-[9px] text-gray-400">
-                          👤 平均
-                        </span>
-                        <span className="text-lg font-bold text-slate-700 leading-tight">
-                          {Math.round(perPerson).toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="h-6 w-px bg-gray-200 self-center"></div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] text-gray-400">
-                          👥 總計
-                        </span>
-                        <span className="text-sm font-medium text-gray-400">
-                          {Math.round(total).toLocaleString()}
-                        </span>
-                      </div>
+                    <div className="h-6 w-px bg-gray-200"></div>
+                    <div>
+                      <span className="text-[9px] text-gray-400 block">
+                        👥 整團總計
+                      </span>
+                      <span className="text-sm font-medium text-gray-400 leading-none">
+                        {Math.round(total).toLocaleString()}
+                      </span>
                     </div>
                   </div>
-                );
-              })
+                </div>
+              ))
             )}
           </div>
         </div>
@@ -228,7 +221,6 @@ const BudgetSection = memo(
               </select>
             </div>
           </div>
-
           <input
             type="text"
             placeholder="項目名稱"
@@ -236,7 +228,6 @@ const BudgetSection = memo(
             onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:ring-1 focus:ring-slate-400"
           />
-
           <div className="flex gap-2">
             <div className="relative flex-grow min-w-0">
               <input
@@ -249,9 +240,9 @@ const BudgetSection = memo(
                 onChange={(e) =>
                   setNewItem({ ...newItem, amount: e.target.value })
                 }
-                className="w-full pl-3 pr-14 py-2 border border-gray-300 rounded text-sm outline-none focus:ring-1 focus:ring-slate-400"
+                className="w-full pl-3 pr-14 py-2 border border-gray-300 rounded text-sm outline-none"
               />
-              {travelerCount > 1 && (
+              {count > 1 && (
                 <button
                   onClick={() =>
                     setNewItem({
@@ -259,9 +250,9 @@ const BudgetSection = memo(
                       isPerPerson: !newItem.isPerPerson,
                     })
                   }
-                  className={`absolute right-1.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] font-bold transition-all ${
+                  className={`absolute right-1.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] font-bold ${
                     newItem.isPerPerson
-                      ? "bg-slate-600 text-white shadow-sm"
+                      ? "bg-slate-600 text-white"
                       : "bg-gray-100 text-gray-400"
                   }`}
                 >
@@ -291,14 +282,14 @@ const BudgetSection = memo(
           </div>
         </div>
 
-        {/* 費用列表 */}
-        <div className="space-y-6">
+        {/* 費用清單 */}
+        <div className="space-y-8">
           {sortedDays.map((dayKey) => {
-            const dailyGroupTotal = groupedExpenses[dayKey].reduce(
+            const dailyGroupTotals = groupedExpenses[dayKey].reduce(
               (acc, item) => {
                 const curr = item.currency || "TWD";
                 const amount = item.isPerPerson
-                  ? item.amount * (travelerCount || 1)
+                  ? item.amount * count
                   : item.amount;
                 acc[curr] = (acc[curr] || 0) + amount;
                 return acc;
@@ -308,35 +299,51 @@ const BudgetSection = memo(
 
             return (
               <div key={dayKey}>
-                <div className="flex items-center justify-between mb-2 pb-1 border-b border-gray-100">
-                  <h4 className={`text-sm font-bold ${theme.accentText}`}>
-                    Day {dayKey}{" "}
-                    <span className="text-[10px] ml-1 font-normal text-gray-400">
+                {/* 每日標題：優化為更有意義的小結 */}
+                <div className="flex items-end justify-between mb-3 pb-1 border-b border-gray-100">
+                  <div className="flex items-baseline gap-2">
+                    <span className={`text-base font-bold ${theme.accentText}`}>
+                      Day {dayKey}
+                    </span>
+                    <span className="text-[11px] text-gray-400">
                       {getDisplayDate(dayKey)}
                     </span>
-                  </h4>
-                  <div className="flex flex-wrap justify-end gap-1">
-                    {Object.entries(dailyGroupTotal).map(([c, t]) => (
-                      <span
+                  </div>
+                  {/* 每日合計區：顯示人均 | 整團 */}
+                  <div className="flex flex-col items-end gap-0.5">
+                    {Object.entries(dailyGroupTotals).map(([c, t]) => (
+                      <div
                         key={c}
-                        className="text-[9px] bg-gray-50 text-gray-400 px-1.5 py-0.5 rounded border border-gray-100"
+                        className="flex items-center gap-2 text-gray-500"
                       >
-                        {c} {Math.round(t).toLocaleString()}
-                      </span>
+                        <div className="flex items-center text-[10px] font-medium">
+                          <span className="mr-0.5 opacity-70">👤</span>
+                          <span className="text-slate-600 font-bold">
+                            {Math.round(t / count).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="w-px h-2.5 bg-gray-200"></div>
+                        <div className="flex items-center text-[9px] opacity-60">
+                          <span className="mr-0.5">👥</span>
+                          <span>{Math.round(t).toLocaleString()}</span>
+                          <span className="ml-0.5">{c}</span>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
+
                 <div className="space-y-2">
                   {groupedExpenses[dayKey].map((item) => {
                     const isEditing = editingId === item.id;
                     const secondaryAmount = item.isPerPerson
-                      ? item.amount * (travelerCount || 1)
-                      : item.amount / (travelerCount || 1);
+                      ? item.amount * count
+                      : item.amount / count;
 
                     return (
                       <div
                         key={item.id}
-                        className={`p-3 ${theme.itemRowBg} rounded-lg hover:shadow-sm transition`}
+                        className={`p-3 ${theme.itemRowBg} rounded-lg border border-transparent hover:border-gray-100 transition`}
                       >
                         {isEditing ? (
                           <div className="w-full flex flex-col gap-3">
@@ -380,23 +387,7 @@ const BudgetSection = memo(
                                   {editData.isPerPerson ? "👤 單人" : "👥 總額"}
                                 </button>
                               </div>
-                              <select
-                                value={editData.currency}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    currency: e.target.value,
-                                  })
-                                }
-                                className="w-16 shrink-0 px-1 py-2 border border-gray-300 rounded text-sm bg-white"
-                              >
-                                {CURRENCIES.map((c) => (
-                                  <option key={c} value={c}>
-                                    {c}
-                                  </option>
-                                ))}
-                              </select>
-                              <div className="flex gap-1 shrink-0">
+                              <div className="flex gap-1">
                                 <button
                                   onClick={() => saveEdit(item.id)}
                                   className="bg-green-500 text-white p-2 rounded shadow-sm"
@@ -427,10 +418,10 @@ const BudgetSection = memo(
                                 })()}
                               </div>
                               <div className="flex flex-col min-w-0">
-                                <span className="text-sm font-medium truncate">
+                                <span className="text-sm font-medium truncate text-slate-700">
                                   {item.title}
                                 </span>
-                                {travelerCount > 1 && (
+                                {count > 1 && (
                                   <span className="text-[10px] text-gray-400">
                                     {item.isPerPerson
                                       ? `整團總額: ${Math.round(
@@ -446,8 +437,8 @@ const BudgetSection = memo(
                             <div className="flex items-center shrink-0 ml-2 text-right">
                               <div className="mr-3">
                                 <div className="font-bold text-sm text-slate-700 flex items-center justify-end">
-                                  {travelerCount > 1 && (
-                                    <span className="text-[11px] mr-1 opacity-70">
+                                  {count > 1 && (
+                                    <span className="text-[10px] mr-1 opacity-50">
                                       {item.isPerPerson ? "👤" : "👥"}
                                     </span>
                                   )}
@@ -463,13 +454,13 @@ const BudgetSection = memo(
                                     setEditingId(item.id);
                                     setEditData(item);
                                   }}
-                                  className="text-gray-300 hover:text-blue-500 p-1.5"
+                                  className="text-gray-300 hover:text-slate-500 p-1.5 transition-colors"
                                 >
                                   <ICON_SVG.pencil className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteClick(item.id)}
-                                  className="text-gray-300 hover:text-red-400 p-1.5"
+                                  className="text-gray-300 hover:text-red-400 p-1.5 transition-colors"
                                 >
                                   <ICON_SVG.trash className="w-4 h-4" />
                                 </button>
