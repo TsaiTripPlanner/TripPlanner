@@ -76,6 +76,11 @@ export const useActivities = (userId, itineraryId, activeDay) => {
   const deleteActivity = useCallback(
     async (activityId) => {
       if (!itineraryId) return;
+      // --- 樂觀更新開始 ---
+      const previousActivities = [...activities];
+      // 立即在畫面上移除該活動
+      setActivities((prev) => prev.filter((act) => act.id !== activityId));
+      // --- 樂觀更新結束 ---
       try {
         await deleteDoc(
           doc(
@@ -84,10 +89,12 @@ export const useActivities = (userId, itineraryId, activeDay) => {
           )
         );
       } catch (err) {
-        console.error("刪除失敗", err);
+        console.error("刪除失敗，恢復列表", err);
+        setActivities(previousActivities); // 失敗則恢復
+        alert("刪除失敗，請檢查網路連線");
       }
     },
-    [itineraryId, userId]
+    [itineraryId, userId, activities]
   );
 
   // 4. 更新活動內容

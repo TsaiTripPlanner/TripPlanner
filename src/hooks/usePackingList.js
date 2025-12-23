@@ -174,6 +174,17 @@ export const usePackingList = (userId, itineraryId, isEnabled) => {
   const toggleItemCompletion = useCallback(
     async (itemId, isCompleted) => {
       if (!itineraryId) return;
+      // --- 樂觀更新開始 ---
+      // 先記錄舊的資料，以防萬一要回滾
+      const previousItems = [...allItems];
+
+      // 立即更新本地狀態（使用者會看到立刻打勾/取消）
+      setAllItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === itemId ? { ...item, isCompleted } : item
+        )
+      );
+      // --- 樂觀更新結束 ---
       try {
         await updateDoc(
           doc(
@@ -184,14 +195,23 @@ export const usePackingList = (userId, itineraryId, isEnabled) => {
         );
       } catch (error) {
         console.error("更新狀態失敗", error);
+        // 如果失敗，把資料換回原本的樣子
+        setAllItems(previousItems);
+        alert("網路連線不穩定，請重試");
       }
     },
-    [itineraryId, userId]
+    [itineraryId, userId, allItems]
   );
 
   const deleteItem = useCallback(
     async (itemId) => {
       if (!itineraryId) return;
+      // --- 樂觀更新開始 ---
+      const previousItems = [...allItems];
+      setAllItems((prevItems) =>
+        prevItems.filter((item) => item.id !== itemId)
+      );
+      // --- 樂觀更新結束 ---
       try {
         await deleteDoc(
           doc(
@@ -201,9 +221,10 @@ export const usePackingList = (userId, itineraryId, isEnabled) => {
         );
       } catch (error) {
         console.error("刪除項目失敗", error);
+        setAllItems(previousItems); // 失敗則回滾
       }
     },
-    [itineraryId, userId]
+    [itineraryId, userId, allItems]
   );
 
   // ★★★ 修改後的：從其他行程匯入清單 (保證順序版)

@@ -9,7 +9,7 @@ import { ICON_SVG } from "./utils/icons";
 // 組件
 import Modal from "./components/Modal";
 import ItineraryList from "./components/ItineraryList";
-import ConfirmModal from "./components/ConfirmModal"; // 引入
+import ConfirmModal from "./components/ConfirmModal";
 const TripDetails = React.lazy(() => import("./components/TripDetails"));
 
 // Hooks
@@ -47,6 +47,7 @@ const App = () => {
     title: "",
     days: 5,
     startDate: new Date().toISOString().split("T")[0],
+    travelerCount: 1,
   });
 
   const [isEditItineraryModalOpen, setIsEditItineraryModalOpen] =
@@ -56,13 +57,11 @@ const App = () => {
     title: "",
     days: 1,
     startDate: "",
+    travelerCount: 1,
   });
 
-  // 刪除確認相關狀態
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
-
-  // === 處理函式 ===
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -86,12 +85,14 @@ const App = () => {
         title: newItineraryData.title.trim(),
         days: newItineraryData.days,
         startDate: newItineraryData.startDate,
+        travelerCount: newItineraryData.travelerCount,
       });
       setIsCreatingItinerary(false);
       setNewItineraryData({
         title: "",
         days: 5,
         startDate: new Date().toISOString().split("T")[0],
+        travelerCount: 1,
       });
     } catch (e) {
       alert("建立失敗：" + e.message);
@@ -104,6 +105,7 @@ const App = () => {
       title: itinerary.title,
       days: itinerary.durationDays,
       startDate: itinerary.startDate || "",
+      travelerCount: itinerary.travelerCount || 1,
     });
     setIsEditItineraryModalOpen(true);
   };
@@ -115,6 +117,7 @@ const App = () => {
         title: editingItineraryData.title.trim(),
         durationDays: Number(editingItineraryData.days),
         startDate: editingItineraryData.startDate,
+        travelerCount: editingItineraryData.travelerCount,
       });
       setIsEditItineraryModalOpen(false);
     } catch (error) {
@@ -132,13 +135,11 @@ const App = () => {
     }
   };
 
-  // 點擊刪除 (開啟確認視窗)
   const handleDeleteClick = (id) => {
     setItemToDelete(id);
     setIsDeleteConfirmOpen(true);
   };
 
-  // 確認刪除 (實際執行)
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
     try {
@@ -177,13 +178,27 @@ const App = () => {
       className={`min-h-screen ${theme.background} ${theme.textMain} ${theme.font} p-4 sm:p-8 pb-28 relative transition-colors duration-500`}
     >
       <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap');
-      
-      .font-serif-tc { font-family: 'Yuji Syuku', serif; letter-spacing: 0.05em; }
-      .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
-      .font-sans-tc { font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.02em; }
-      .font-zen-kaku { font-family: 'Zen Kaku Gothic New', 'Noto Sans TC', sans-serif; letter-spacing: 0.05em; }
-    `}</style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap');
+        
+        .font-serif-tc { font-family: 'Yuji Syuku', serif; letter-spacing: 0.05em; }
+        .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
+        .font-sans-tc { font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.02em; }
+        .font-zen-kaku { font-family: 'Zen Kaku Gothic New', 'Noto Sans TC', sans-serif; letter-spacing: 0.05em; }
+
+        /* 全局強制修正輸入框寬度 */
+        input, select, textarea {
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+
+        /* 針對 iOS Date Input 的特殊處理 */
+        input[type="date"] {
+          min-width: 0 !important;
+          -webkit-appearance: none;
+          display: flex;
+          align-items: center;
+        }
+      `}</style>
 
       {/* 主題切換按鈕 */}
       <div className="flex justify-between items-center mb-4 z-20 relative">
@@ -207,7 +222,6 @@ const App = () => {
           })}
         </div>
 
-        {/* 登入區塊 */}
         <div>
           {isAnonymous ? (
             <button
@@ -243,7 +257,7 @@ const App = () => {
         <ItineraryList
           allItineraries={allItineraries}
           onSelect={(id) => setItineraryId(id)}
-          onDelete={handleDeleteClick} // 修改：傳入開啟 Modal 的函式
+          onDelete={handleDeleteClick}
           onEdit={openEditItineraryModal}
           onOpenCreateModal={() => setIsCreatingItinerary(true)}
         />
@@ -285,22 +299,48 @@ const App = () => {
               className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm ${theme.ringFocus} ${theme.borderFocus}`}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              出發日期
-            </label>
-            <input
-              type="date"
-              value={newItineraryData.startDate}
-              onChange={(e) =>
-                setNewItineraryData({
-                  ...newItineraryData,
-                  startDate: e.target.value,
-                })
-              }
-              className={`block w-full max-w-full bg-white appearance-none box-border px-3 py-2 border border-gray-300 rounded-md shadow-sm ${theme.ringFocus} ${theme.borderFocus}`}
-            />
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 min-w-0">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                出發日期
+              </label>
+              <input
+                type="date"
+                value={newItineraryData.startDate}
+                onChange={(e) =>
+                  setNewItineraryData({
+                    ...newItineraryData,
+                    startDate: e.target.value,
+                  })
+                }
+                /* 加入 style 防止爆出 */
+                style={{ width: "100%" }}
+                className={`block px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm ${theme.ringFocus} ${theme.borderFocus}`}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                旅伴人數
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="number"
+                  min="1"
+                  value={newItineraryData.travelerCount}
+                  onChange={(e) =>
+                    setNewItineraryData({
+                      ...newItineraryData,
+                      travelerCount: parseInt(e.target.value) || 1,
+                    })
+                  }
+                  className={`flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm ${theme.ringFocus} ${theme.borderFocus}`}
+                />
+                <span className="ml-2 text-sm text-gray-500 shrink-0">人</span>
+              </div>
+            </div>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               預計天數
@@ -327,33 +367,7 @@ const App = () => {
             disabled={!newItineraryData.title.trim() || isSubmitting}
             className={`w-full py-2 px-4 rounded-md text-white ${theme.buttonPrimary} disabled:opacity-50 mt-4 flex justify-center items-center`}
           >
-            {isSubmitting ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                建立中...
-              </>
-            ) : (
-              "開始規劃"
-            )}
+            {isSubmitting ? "建立中..." : "開始規劃"}
           </button>
         </div>
       </Modal>
@@ -381,22 +395,47 @@ const App = () => {
               className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm ${theme.ringFocus} ${theme.borderFocus}`}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              出發日期
-            </label>
-            <input
-              type="date"
-              value={editingItineraryData.startDate}
-              onChange={(e) =>
-                setEditingItineraryData({
-                  ...editingItineraryData,
-                  startDate: e.target.value,
-                })
-              }
-              className={`block w-full max-w-full bg-white appearance-none box-border px-3 py-2 border border-gray-300 rounded-md shadow-sm ${theme.ringFocus} ${theme.borderFocus}`}
-            />
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 min-w-0">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                出發日期
+              </label>
+              <input
+                type="date"
+                value={editingItineraryData.startDate}
+                onChange={(e) =>
+                  setEditingItineraryData({
+                    ...editingItineraryData,
+                    startDate: e.target.value,
+                  })
+                }
+                style={{ width: "100%" }}
+                className={`block px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm ${theme.ringFocus} ${theme.borderFocus}`}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                旅伴人數
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="number"
+                  min="1"
+                  value={editingItineraryData.travelerCount}
+                  onChange={(e) =>
+                    setEditingItineraryData({
+                      ...editingItineraryData,
+                      travelerCount: parseInt(e.target.value) || 1,
+                    })
+                  }
+                  className={`flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm ${theme.ringFocus} ${theme.borderFocus}`}
+                />
+                <span className="ml-2 text-sm text-gray-500 shrink-0">人</span>
+              </div>
+            </div>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               預計天數
@@ -428,7 +467,6 @@ const App = () => {
         </div>
       </Modal>
 
-      {/* 通行碼登入 Modal */}
       <Modal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
@@ -479,7 +517,6 @@ const App = () => {
         </form>
       </Modal>
 
-      {/* 刪除確認 Modal */}
       <ConfirmModal
         isOpen={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
