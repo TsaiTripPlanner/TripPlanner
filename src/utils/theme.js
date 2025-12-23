@@ -70,19 +70,19 @@ export const THEMES = {
       textMain: "text-[#5E544A]",
       cardBg: "bg-[#FAF9F6]",
       cardBorder: "border-[#C5BDB5]",
-      cardTitle: "text-[#594A3C]",
-      cardMeta: "text-[#7A6E64]", // 從淺褐灰色變為深褐灰色
-      cardMetaLight: "text-[#8E8071]",
+      cardTitle: "text-[#40362D]", // 標題也稍微加深
+      cardMeta: "text-[#6B5F52]", // 從 #7A6E64 調深，增加閱讀性
+      cardMetaLight: "text-[#8E8071]", // 調深
       cardDesc: "text-[#6E6359]",
       timelineLine: "bg-[#C5BDB5]",
       timelineDotPassive: "bg-[#A69B95]",
       infoBoxBg: "bg-[#F5F3EF]",
       infoBoxBorder: "border-[#D6CEC5]",
-      infoBoxText: "text-[#5E544A]",
+      infoBoxText: "text-[#4A423B]", // 從 #5E544A 調深
       categoryHeaderBg: "bg-[#F5F3EF]",
       itemRowBg: "bg-white",
       itemRowText: "text-[#594A3C]",
-      itemMetaText: "text-[#9E948B]",
+      itemMetaText: "text-[#7A6E64]", // 從 #9E948B (太淡) 調深
       itemInputBg: "bg-[#F5F3EF]",
     },
   },

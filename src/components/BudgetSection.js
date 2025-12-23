@@ -346,7 +346,47 @@ const BudgetSection = memo(
                         className={`p-3 ${theme.itemRowBg} rounded-lg border border-transparent hover:border-gray-100 transition`}
                       >
                         {isEditing ? (
-                          <div className="w-full flex flex-col gap-3">
+                          <div className="w-full flex flex-col gap-3 bg-white p-3 rounded-lg border-2 border-slate-200">
+                            <div className="flex gap-2">
+                              {/* 編輯：天數 */}
+                              <select
+                                value={editData.day}
+                                onChange={(e) =>
+                                  setEditData({
+                                    ...editData,
+                                    day: Number(e.target.value),
+                                  })
+                                }
+                                className="w-1/3 px-2 py-2 border border-gray-300 rounded text-sm bg-white"
+                              >
+                                {Array.from(
+                                  { length: totalDays },
+                                  (_, i) => i + 1
+                                ).map((d) => (
+                                  <option key={d} value={d}>
+                                    Day {d}
+                                  </option>
+                                ))}
+                              </select>
+                              {/* 編輯：類別 */}
+                              <select
+                                value={editData.category}
+                                onChange={(e) =>
+                                  setEditData({
+                                    ...editData,
+                                    category: e.target.value,
+                                  })
+                                }
+                                className="w-2/3 px-2 py-2 border border-gray-300 rounded bg-white text-sm"
+                              >
+                                {EXPENSE_CATEGORIES.map((cat) => (
+                                  <option key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
                             <input
                               type="text"
                               value={editData.title}
@@ -357,7 +397,9 @@ const BudgetSection = memo(
                                 })
                               }
                               className="w-full px-2 py-2 border border-gray-300 rounded text-sm"
+                              placeholder="項目名稱"
                             />
+
                             <div className="flex items-center gap-2">
                               <div className="relative flex-grow">
                                 <input
@@ -378,10 +420,10 @@ const BudgetSection = memo(
                                       isPerPerson: !editData.isPerPerson,
                                     })
                                   }
-                                  className={`absolute right-1 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] ${
+                                  className={`absolute right-1 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] font-bold ${
                                     editData.isPerPerson
                                       ? "bg-slate-600 text-white"
-                                      : "bg-gray-100 text-gray-400"
+                                      : "bg-gray-100 text-gray-500"
                                   }`}
                                 >
                                   {editData.isPerPerson ? "👤 單人" : "👥 總額"}
@@ -390,13 +432,13 @@ const BudgetSection = memo(
                               <div className="flex gap-1">
                                 <button
                                   onClick={() => saveEdit(item.id)}
-                                  className="bg-green-500 text-white p-2 rounded shadow-sm"
+                                  className="bg-green-500 text-white p-2 rounded shadow-sm active:scale-95"
                                 >
                                   <ICON_SVG.check className="w-5 h-5" />
                                 </button>
                                 <button
                                   onClick={() => setEditingId(null)}
-                                  className="bg-gray-200 text-gray-600 p-2 rounded shadow-sm"
+                                  className="bg-gray-200 text-gray-600 p-2 rounded shadow-sm active:scale-95"
                                 >
                                   <ICON_SVG.xMark className="w-5 h-5" />
                                 </button>
@@ -422,7 +464,9 @@ const BudgetSection = memo(
                                   {item.title}
                                 </span>
                                 {count > 1 && (
-                                  <span className="text-[10px] text-gray-400">
+                                  <span
+                                    className={`text-[10px] ${theme.itemMetaText} font-medium`}
+                                  >
                                     {item.isPerPerson
                                       ? `整團總額: ${Math.round(
                                           secondaryAmount
@@ -438,7 +482,10 @@ const BudgetSection = memo(
                               <div className="mr-3">
                                 <div className="font-bold text-sm text-slate-700 flex items-center justify-end">
                                   {count > 1 && (
-                                    <span className="text-[10px] mr-1 opacity-50">
+                                    /* 加上反引號 */
+                                    <span
+                                      className={`text-[10px] mr-1 ${theme.itemMetaText}`}
+                                    >
                                       {item.isPerPerson ? "👤" : "👥"}
                                     </span>
                                   )}
@@ -459,7 +506,8 @@ const BudgetSection = memo(
                                   <ICON_SVG.pencil className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteClick(item.id)}
+                                  /* 改為 setDeleteConfirmId */
+                                  onClick={() => setDeleteConfirmId(item.id)}
                                   className="text-gray-300 hover:text-red-400 p-1.5 transition-colors"
                                 >
                                   <ICON_SVG.trash className="w-4 h-4" />
