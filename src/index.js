@@ -22,10 +22,23 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("/service-worker.js")
       .then((registration) => {
-        console.log("ServiceWorker 註冊成功，範圍在: ", registration.scope);
+        // 監聽是否有新的 Service Worker 正在等待激活
+        registration.onupdatefound = () => {
+          const installingWorker = registration.installing;
+          installingWorker.onstatechange = () => {
+            if (installingWorker.state === "installed") {
+              if (navigator.serviceWorker.controller) {
+                // 發現新版本！
+                console.log("發現新版本，準備更新...");
+                // 這裡可以選擇自動重整：
+                window.location.reload();
+              }
+            }
+          };
+        };
       })
       .catch((error) => {
-        console.log("ServiceWorker 註冊失敗: ", error);
+        console.error("SW 註冊失敗:", error);
       });
   });
 }
