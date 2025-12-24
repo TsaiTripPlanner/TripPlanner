@@ -21,6 +21,8 @@ const BudgetSection = memo(
     const [expenses, setExpenses] = useState([]);
     const count = travelerCount || 1;
 
+    const [expandedId, setExpandedId] = useState(null);
+
     const [newItem, setNewItem] = useState({
       title: "",
       amount: "",
@@ -28,6 +30,7 @@ const BudgetSection = memo(
       category: "food",
       isPerPerson: false,
       day: 1,
+      description: "",
     });
 
     const [editingId, setEditingId] = useState(null);
@@ -78,12 +81,13 @@ const BudgetSection = memo(
           {
             ...newItem,
             title: newItem.title.trim(),
+            description: newItem.description.trim(),
             amount: parseFloat(newItem.amount),
             day: Number(newItem.day),
             createdAt: serverTimestamp(),
           }
         );
-        setNewItem({ ...newItem, title: "", amount: "" });
+        setNewItem({ ...newItem, title: "", amount: "", description: "" });
       } catch (e) {
         alert("新增失敗");
       }
@@ -100,6 +104,7 @@ const BudgetSection = memo(
           {
             ...editData,
             title: editData.title.trim(),
+            description: (editData.description || "").trim(),
             amount: parseFloat(editData.amount),
             day: Number(editData.day),
             updatedAt: serverTimestamp(),
@@ -139,7 +144,7 @@ const BudgetSection = memo(
           <ICON_SVG.wallet className="w-6 h-6 mr-2" /> 旅行費用
         </h2>
 
-        {/* 頂部彙總：個人 vs 整團 */}
+        {/* 頂部匯總 */}
         <div
           className={`${theme.infoBoxBg} p-4 rounded-lg border ${theme.infoBoxBorder} mb-6`}
         >
@@ -223,10 +228,19 @@ const BudgetSection = memo(
           </div>
           <input
             type="text"
-            placeholder="項目名稱"
+            placeholder="項目名稱 (例如：晚餐)"
             value={newItem.title}
             onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:ring-1 focus:ring-slate-400"
+          />
+          <textarea
+            placeholder="細項備註 (選填，例如：拉麵 200, 煎餃 100...)"
+            value={newItem.description}
+            onChange={(e) =>
+              setNewItem({ ...newItem, description: e.target.value })
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded text-xs outline-none focus:ring-1 focus:ring-slate-400"
+            rows="2"
           />
           <div className="flex gap-2">
             <div className="relative flex-grow min-w-0">
@@ -283,169 +297,150 @@ const BudgetSection = memo(
         </div>
 
         {/* 費用清單 */}
-        <div className="space-y-8">
-          {sortedDays.map((dayKey) => {
-            const dailyGroupTotals = groupedExpenses[dayKey].reduce(
-              (acc, item) => {
-                const curr = item.currency || "TWD";
-                const amount = item.isPerPerson
-                  ? item.amount * count
-                  : item.amount;
-                acc[curr] = (acc[curr] || 0) + amount;
-                return acc;
-              },
-              {}
-            );
-
-            return (
-              <div key={dayKey}>
-                {/* 每日標題：優化為更有意義的小結 */}
-                <div className="flex items-end justify-between mb-3 pb-1 border-b border-gray-100">
-                  <div className="flex items-baseline gap-2">
-                    <span className={`text-base font-bold ${theme.accentText}`}>
-                      Day {dayKey}
-                    </span>
-                    <span className="text-[11px] text-gray-400">
-                      {getDisplayDate(dayKey)}
-                    </span>
-                  </div>
-                  {/* 每日合計區：顯示人均 | 整團 */}
-                  <div className="flex flex-col items-end gap-0.5">
-                    {Object.entries(dailyGroupTotals).map(([c, t]) => (
-                      <div
-                        key={c}
-                        className="flex items-center gap-2 text-gray-500"
-                      >
-                        <div className="flex items-center text-[10px] font-medium">
-                          <span className="mr-0.5 opacity-70">👤</span>
-                          <span className="text-slate-600 font-bold">
-                            {Math.round(t / count).toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="w-px h-2.5 bg-gray-200"></div>
-                        <div className="flex items-center text-[9px] opacity-60">
-                          <span className="mr-0.5">👥</span>
-                          <span>{Math.round(t).toLocaleString()}</span>
-                          <span className="ml-0.5">{c}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+        <div className="space-y-6">
+          {sortedDays.map((dayKey) => (
+            <div key={dayKey}>
+              <div className="flex items-end justify-between mb-3 pb-1 border-b border-gray-100">
+                <div className="flex items-baseline gap-2">
+                  <span className={`text-base font-bold ${theme.accentText}`}>
+                    Day {dayKey}
+                  </span>
+                  <span className="text-[11px] text-gray-400">
+                    {getDisplayDate(dayKey)}
+                  </span>
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  {groupedExpenses[dayKey].map((item) => {
-                    const isEditing = editingId === item.id;
-                    const secondaryAmount = item.isPerPerson
-                      ? item.amount * count
-                      : item.amount / count;
+              <div className="space-y-2">
+                {groupedExpenses[dayKey].map((item) => {
+                  const isEditing = editingId === item.id;
+                  const isExpanded = expandedId === item.id;
 
-                    return (
-                      <div
-                        key={item.id}
-                        className={`p-3 ${theme.itemRowBg} rounded-lg border border-transparent hover:border-gray-100 transition`}
-                      >
-                        {isEditing ? (
-                          <div className="w-full flex flex-col gap-3 bg-white p-3 rounded-lg border-2 border-slate-200">
-                            <div className="flex gap-2">
-                              {/* 編輯：天數 */}
-                              <select
-                                value={editData.day}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    day: Number(e.target.value),
-                                  })
-                                }
-                                className="w-1/3 px-2 py-2 border border-gray-300 rounded text-sm bg-white"
-                              >
-                                {Array.from(
-                                  { length: totalDays },
-                                  (_, i) => i + 1
-                                ).map((d) => (
-                                  <option key={d} value={d}>
-                                    Day {d}
-                                  </option>
-                                ))}
-                              </select>
-                              {/* 編輯：類別 */}
-                              <select
-                                value={editData.category}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    category: e.target.value,
-                                  })
-                                }
-                                className="w-2/3 px-2 py-2 border border-gray-300 rounded bg-white text-sm"
-                              >
-                                {EXPENSE_CATEGORIES.map((cat) => (
-                                  <option key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-
-                            <input
-                              type="text"
-                              value={editData.title}
+                  return (
+                    <div key={item.id}>
+                      {isEditing ? (
+                        /* === 編輯模式 === */
+                        <div className="w-full flex flex-col gap-3 bg-white p-3 rounded-lg border-2 border-slate-200">
+                          <div className="flex gap-2">
+                            <select
+                              value={editData.day}
                               onChange={(e) =>
                                 setEditData({
                                   ...editData,
-                                  title: e.target.value,
+                                  day: Number(e.target.value),
                                 })
                               }
-                              className="w-full px-2 py-2 border border-gray-300 rounded text-sm"
-                              placeholder="項目名稱"
-                            />
-
-                            <div className="flex items-center gap-2">
-                              <div className="relative flex-grow">
-                                <input
-                                  type="number"
-                                  value={editData.amount}
-                                  onChange={(e) =>
-                                    setEditData({
-                                      ...editData,
-                                      amount: e.target.value,
-                                    })
-                                  }
-                                  className="w-full pl-2 pr-14 py-2 border border-gray-300 rounded text-sm"
-                                />
-                                <button
-                                  onClick={() =>
-                                    setEditData({
-                                      ...editData,
-                                      isPerPerson: !editData.isPerPerson,
-                                    })
-                                  }
-                                  className={`absolute right-1 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                    editData.isPerPerson
-                                      ? "bg-slate-600 text-white"
-                                      : "bg-gray-100 text-gray-500"
-                                  }`}
-                                >
-                                  {editData.isPerPerson ? "👤 單人" : "👥 總額"}
-                                </button>
-                              </div>
-                              <div className="flex gap-1">
-                                <button
-                                  onClick={() => saveEdit(item.id)}
-                                  className="bg-green-500 text-white p-2 rounded shadow-sm active:scale-95"
-                                >
-                                  <ICON_SVG.check className="w-5 h-5" />
-                                </button>
-                                <button
-                                  onClick={() => setEditingId(null)}
-                                  className="bg-gray-200 text-gray-600 p-2 rounded shadow-sm active:scale-95"
-                                >
-                                  <ICON_SVG.xMark className="w-5 h-5" />
-                                </button>
-                              </div>
+                              className="w-1/3 px-2 py-2 border border-gray-300 rounded text-sm bg-white"
+                            >
+                              {Array.from(
+                                { length: totalDays },
+                                (_, i) => i + 1
+                              ).map((d) => (
+                                <option key={d} value={d}>
+                                  Day {d}
+                                </option>
+                              ))}
+                            </select>
+                            <select
+                              value={editData.category}
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  category: e.target.value,
+                                })
+                              }
+                              className="w-2/3 px-2 py-2 border border-gray-300 rounded bg-white text-sm"
+                            >
+                              {EXPENSE_CATEGORIES.map((cat) => (
+                                <option key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <input
+                            type="text"
+                            value={editData.title}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                title: e.target.value,
+                              })
+                            }
+                            className="w-full px-2 py-2 border border-gray-300 rounded text-sm"
+                          />
+                          <textarea
+                            value={editData.description || ""}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                description: e.target.value,
+                              })
+                            }
+                            className="w-full px-2 py-2 border border-gray-300 rounded text-xs outline-none"
+                            placeholder="細項備註"
+                            rows="2"
+                          />
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-grow">
+                              <input
+                                type="number"
+                                value={editData.amount}
+                                onChange={(e) =>
+                                  setEditData({
+                                    ...editData,
+                                    amount: e.target.value,
+                                  })
+                                }
+                                className="w-full pl-2 pr-14 py-2 border border-gray-300 rounded text-sm"
+                              />
+                              <button
+                                onClick={() =>
+                                  setEditData({
+                                    ...editData,
+                                    isPerPerson: !editData.isPerPerson,
+                                  })
+                                }
+                                className={`absolute right-1 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                  editData.isPerPerson
+                                    ? "bg-slate-600 text-white"
+                                    : "bg-gray-100 text-gray-500"
+                                }`}
+                              >
+                                {editData.isPerPerson ? "👤 單人" : "👥 總額"}
+                              </button>
+                            </div>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => saveEdit(item.id)}
+                                className="bg-green-500 text-white p-2 rounded shadow-sm"
+                              >
+                                <ICON_SVG.check className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() => setEditingId(null)}
+                                className="bg-gray-200 text-gray-600 p-2 rounded shadow-sm"
+                              >
+                                <ICON_SVG.xMark className="w-5 h-5" />
+                              </button>
                             </div>
                           </div>
-                        ) : (
+                        </div>
+                      ) : (
+                        /* === 顯示模式 === */
+                        <div
+                          onClick={() => {
+                            if (item.description)
+                              setExpandedId(isExpanded ? null : item.id);
+                          }}
+                          className={`p-3 ${
+                            theme.itemRowBg
+                          } rounded-lg border border-transparent transition ${
+                            item.description
+                              ? "cursor-pointer hover:bg-gray-100/50"
+                              : "cursor-default"
+                          }`}
+                        >
                           <div className="flex justify-between items-center">
                             <div className="flex items-center min-w-0">
                               <div
@@ -463,26 +458,13 @@ const BudgetSection = memo(
                                 <span className="text-sm font-medium truncate text-slate-700">
                                   {item.title}
                                 </span>
-                                {count > 1 && (
-                                  <span
-                                    className={`text-[10px] ${theme.itemMetaText} font-medium`}
-                                  >
-                                    {item.isPerPerson
-                                      ? `整團總額: ${Math.round(
-                                          secondaryAmount
-                                        ).toLocaleString()}`
-                                      : `每人負擔: ${Math.round(
-                                          secondaryAmount
-                                        ).toLocaleString()}`}
-                                  </span>
-                                )}
                               </div>
                             </div>
+
                             <div className="flex items-center shrink-0 ml-2 text-right">
                               <div className="mr-3">
                                 <div className="font-bold text-sm text-slate-700 flex items-center justify-end">
                                   {count > 1 && (
-                                    /* 加上反引號 */
                                     <span
                                       className={`text-[10px] mr-1 ${theme.itemMetaText}`}
                                     >
@@ -495,35 +477,43 @@ const BudgetSection = memo(
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex">
+                              <div
+                                className="flex"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 <button
                                   onClick={() => {
                                     setEditingId(item.id);
                                     setEditData(item);
                                   }}
-                                  className="text-gray-300 hover:text-slate-500 p-1.5 transition-colors"
+                                  className="text-gray-300 hover:text-slate-500 p-1.5"
                                 >
                                   <ICON_SVG.pencil className="w-4 h-4" />
                                 </button>
                                 <button
-                                  /* 改為 setDeleteConfirmId */
                                   onClick={() => setDeleteConfirmId(item.id)}
-                                  className="text-gray-300 hover:text-red-400 p-1.5 transition-colors"
+                                  className="text-gray-300 hover:text-red-400 p-1.5"
                                 >
                                   <ICON_SVG.trash className="w-4 h-4" />
                                 </button>
                               </div>
                             </div>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                          {isExpanded && item.description && (
+                            <div className="mt-2 pt-2 border-t border-dashed border-gray-200 text-xs text-gray-400 whitespace-pre-wrap leading-relaxed animate-fade-in">
+                              {item.description}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
+
         <ConfirmModal
           isOpen={!!deleteConfirmId}
           onClose={() => setDeleteConfirmId(null)}
