@@ -4,23 +4,6 @@ import React, { memo } from "react";
 import { useTheme } from "../utils/theme";
 import { getDayInfo } from "../utils/dateUtils";
 
-// 輔助函式：計算第 N 天是幾月幾號以及星期幾
-const getDayInfo = (startDate, dayIndex) => {
-  if (!startDate) return { dateStr: "", weekStr: "" };
-
-  const date = new Date(startDate);
-  date.setDate(date.getDate() + (dayIndex - 1));
-
-  // 取得日期字串 (例如 12/20)
-  const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-
-  // 取得星期字串 (例如 "五")
-  const weekDays = ["日", "一", "二", "三", "四", "五", "六"];
-  const weekStr = weekDays[date.getDay()];
-
-  return { dateStr, weekStr };
-};
-
 const DayTabs = memo(({ totalDays, activeDay, setActiveDay, startDate }) => {
   // ★ 取得主題
   const { theme } = useTheme();

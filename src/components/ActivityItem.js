@@ -44,6 +44,7 @@ const ActivityItem = memo(
   }) => {
     const { theme } = useTheme();
     const [isExpanded, setIsExpanded] = useState(false);
+    const duration = calculateDuration(activity.startTime, activity.endTime);
 
     // ★ 修改重點 1：提前找到類型資料，用來決定背景
     const typeData =

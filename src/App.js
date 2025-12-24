@@ -5,6 +5,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { DEFAULT_DAYS_OPTIONS } from "./utils/constants";
 import { useTheme } from "./utils/theme";
 import { ICON_SVG } from "./utils/icons";
+import { getTodayStr } from "./utils/dateUtils";
 
 // 組件
 import Modal from "./components/Modal";
@@ -46,7 +47,7 @@ const App = () => {
   const [newItineraryData, setNewItineraryData] = useState({
     title: "",
     days: 5,
-    startDate: new Date().toISOString().split("T")[0],
+    startDate: getTodayStr(),
     travelerCount: 1,
   });
 
