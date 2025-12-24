@@ -1,10 +1,11 @@
-// src/hooks/useReferences.js
+// src/hooks/useReferences.js (完整替換)
 import { useState, useEffect, useCallback } from "react";
 import {
   collection,
   onSnapshot,
   addDoc,
   deleteDoc,
+  updateDoc, // 新增
   doc,
   serverTimestamp,
   query,
@@ -23,6 +24,7 @@ export const useReferences = (userId, itineraryId, isEnabled) => {
     const q = query(refCol);
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      // 依建立時間排序
       data.sort(
         (a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
       );
@@ -42,6 +44,18 @@ export const useReferences = (userId, itineraryId, isEnabled) => {
     [itineraryId, userId]
   );
 
+  // 新增：更新功能
+  const updateReference = useCallback(
+    async (id, data) => {
+      const refRef = doc(
+        db,
+        `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/references/${id}`
+      );
+      await updateDoc(refRef, { ...data, updatedAt: serverTimestamp() });
+    },
+    [itineraryId, userId]
+  );
+
   const deleteReference = useCallback(
     async (id) => {
       await deleteDoc(
@@ -54,5 +68,5 @@ export const useReferences = (userId, itineraryId, isEnabled) => {
     [itineraryId, userId]
   );
 
-  return { references, addReference, deleteReference };
+  return { references, addReference, updateReference, deleteReference };
 };

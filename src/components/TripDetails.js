@@ -163,6 +163,7 @@ const TripDetails = ({
           <ReferenceSection
             references={references}
             onAdd={addReference}
+            onUpdate={updateReference}
             onDelete={deleteReference}
           />
         )}
