@@ -44,16 +44,15 @@ const ActivityItem = memo(
   }) => {
     const { theme } = useTheme();
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // 計算持續時間
     const duration = calculateDuration(activity.startTime, activity.endTime);
 
-    // ★ 修改重點 1：提前找到類型資料，用來決定背景
     const typeData =
       ACTIVITY_TYPES.find((t) => t.id === (activity.type || "other")) ||
       ACTIVITY_TYPES.find((t) => t.id === "other");
     const isSightseeing = activity.type === "sightseeing";
 
-    // ★ 修改重點 2：動態決定卡片背景色
-    // 如果是景點，我們給它一個淺藍色背景 (bg-sky-50/80) 搭配稍微明顯的藍色邊框
     const customCardBg = isSightseeing
       ? "bg-sky-50/80 border-sky-200/70"
       : `${theme.cardBg} ${theme.cardBorder}`;
@@ -98,7 +97,6 @@ const ActivityItem = memo(
           </div>
           {duration && (
             <div
-              /* 移除 opacity-80，並加上 font-medium 讓它更紮實 */
               className={`text-[9px] sm:text-xs ${theme.cardMeta} mt-0.5 font-medium whitespace-nowrap`}
             >
               ({duration})
@@ -106,7 +104,6 @@ const ActivityItem = memo(
           )}
         </div>
 
-        {/* 中間線條與圓點 */}
         <div className="relative flex flex-col items-center flex-shrink-0 mr-2 sm:mr-0 w-4">
           <div
             className={`absolute w-px ${
@@ -116,7 +113,6 @@ const ActivityItem = memo(
             }`}
           ></div>
           <div
-            /* ★ 這裡如果也是景點，圓點可以稍微亮一點點 */
             className={`relative z-10 w-3 h-3 rounded-full ${
               activity.isCompleted
                 ? theme.selectedDayButton
@@ -127,7 +123,6 @@ const ActivityItem = memo(
           ></div>
         </div>
 
-        {/* 右側卡片本體 */}
         <div
           className={`flex-grow min-w-0 pb-8 ${
             !isEditing ? "sm:ml-4" : "sm:ml-0"
@@ -138,20 +133,16 @@ const ActivityItem = memo(
             onClick={() => !isEditing && setIsExpanded(!isExpanded)}
           >
             {isEditing ? (
-              // === 編輯模式 ===
               <div onClick={(e) => e.stopPropagation()}>
                 <h4 className={`text-lg font-bold mb-3 ${theme.accentText}`}>
                   編輯活動
                 </h4>
+                {/* 類別選擇 */}
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-gray-500 mb-2">
-                    活動類別
-                  </label>
                   <div className="flex flex-wrap gap-2">
                     {ACTIVITY_TYPES.map((type) => {
                       const Icon = ICON_SVG[type.icon];
-                      const currentType = editData.type || "other";
-                      const isSelected = currentType === type.id;
+                      const isSelected = (editData.type || "other") === type.id;
                       return (
                         <button
                           key={type.id}
@@ -164,50 +155,16 @@ const ActivityItem = memo(
                           className={`flex items-center px-2 py-1 rounded-md border text-xs transition-all ${
                             isSelected
                               ? `${type.bg} ${type.color} ${type.border} font-bold`
-                              : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                              : "bg-white border-gray-200 text-gray-500"
                           }`}
                         >
-                          <Icon className="w-3 h-3 mr-1" />
-                          {type.name}
+                          <Icon className="w-3 h-3 mr-1" /> {type.name}
                         </button>
                       );
                     })}
                   </div>
                 </div>
-                {totalDays > 1 && (
-                  <div className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                      移動至其他天 (Day)
-                    </label>
-                    <div className="relative">
-                      <select
-                        name="day"
-                        value={editData.day || activity.day}
-                        onChange={(e) =>
-                          onEditChange({
-                            target: {
-                              name: "day",
-                              value: parseInt(e.target.value),
-                            },
-                          })
-                        }
-                        className="block w-full py-2 px-3 border border-slate-300 bg-white text-slate-700 rounded-md text-sm appearance-none focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-colors cursor-pointer"
-                      >
-                        {Array.from({ length: totalDays }, (_, i) => i + 1).map(
-                          (d) => (
-                            <option key={d} value={d}>
-                              Day {d} {d === activity.day ? "(目前所在)" : ""}
-                            </option>
-                          )
-                        )}
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
-                        <ICON_SVG.chevronDown className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
+                {/* 輸入框群組 */}
                 {inputField("title", "標題")}
                 {inputField("location", "地點")}
                 <div className="grid grid-cols-2 gap-3 mb-3">
@@ -215,98 +172,63 @@ const ActivityItem = memo(
                   {inputField("endTime", "結束時間", "time")}
                 </div>
                 <div className="mb-3">
-                  <label
-                    htmlFor={`edit-description-${activity.id}`}
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    詳細說明
-                  </label>
                   <textarea
-                    id={`edit-description-${activity.id}`}
                     name="description"
                     value={editData.description || ""}
                     onChange={onEditChange}
-                    rows="4"
-                    className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm ${theme.ringFocus} ${theme.borderFocus}`}
+                    rows="3"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm"
+                    placeholder="詳細說明"
                   ></textarea>
                 </div>
                 <div className="flex justify-end space-x-2 mt-4">
                   <button
                     onClick={onCancelEdit}
                     type="button"
-                    className="text-gray-600 bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-md text-sm font-medium flex items-center transition"
+                    className="text-gray-600 bg-gray-200 px-3 py-1 rounded-md text-sm"
                   >
-                    <ICON_SVG.xMark className="w-4 h-4 mr-1" /> 取消
+                    取消
                   </button>
                   <button
                     onClick={() => onSaveEdit(activity.id)}
                     type="button"
-                    className="text-white bg-slate-600 hover:bg-slate-700 px-3 py-1 rounded-md text-sm font-medium flex items-center transition"
+                    className="text-white bg-slate-600 px-3 py-1 rounded-md text-sm"
                   >
-                    <ICON_SVG.check className="w-4 h-4 mr-1" /> 儲存
+                    儲存
                   </button>
                 </div>
               </div>
             ) : (
-              // === 顯示模式 ===
               <div className="flex justify-between items-start">
                 <div className="flex-grow min-w-0">
-                  {(() => {
-                    const Icon = ICON_SVG[typeData.icon];
-                    return (
-                      <div
-                        className={`flex items-center text-[10px] font-bold mb-0.5 ${typeData.color}`}
-                      >
-                        <Icon className="w-3 h-3 mr-1" />
-                        <span>{typeData.name}</span>
-                      </div>
-                    );
-                  })()}
-
+                  <div
+                    className={`flex items-center text-[10px] font-bold mb-0.5 ${typeData.color}`}
+                  >
+                    {(() => {
+                      const Icon = ICON_SVG[typeData.icon];
+                      return <Icon className="w-3 h-3 mr-1" />;
+                    })()}
+                    <span>{typeData.name}</span>
+                  </div>
                   <h3
                     className={`text-base font-bold ${theme.cardTitle} truncate leading-snug mb-1`}
                   >
                     {activity.title}
                   </h3>
-
-                  {(activity.startTime || activity.endTime) && (
-                    // 把 cardMetaLight 改為 cardMeta，顏色會更深一點
-                    <h4 className={`text-sm font-bold ${theme.cardMeta} mb-1`}>
-                      {activity.startTime || "?"} ~ {activity.endTime || "?"}
-                    </h4>
-                  )}
-
                   {activity.location && (
                     <p
                       className={`flex items-center text-xs ${theme.cardMeta} mt-0.5`}
                     >
-                      <ICON_SVG.mapPin
-                        className={`w-3 h-3 mr-1 ${theme.accentText} flex-shrink-0`}
-                      />
+                      <ICON_SVG.mapPin className="w-3 h-3 mr-1 text-slate-400" />
                       <span className="truncate">{activity.location}</span>
                     </p>
                   )}
-
                   {isExpanded && activity.description && (
-                    <div
-                      className={`mt-3 pt-2 border-t border-gray-100 text-sm ${theme.cardDesc} whitespace-pre-wrap animate-fade-in`}
-                    >
+                    <div className="mt-3 pt-2 border-t border-gray-100 text-sm whitespace-pre-wrap">
                       {renderDescriptionWithLinks(activity.description)}
                     </div>
                   )}
-
-                  {!isExpanded && activity.description && (
-                    <div className="mt-1 text-center">
-                      <ICON_SVG.chevronDown className="w-4 h-4 text-gray-300 mx-auto" />
-                    </div>
-                  )}
-                  {isExpanded && activity.description && (
-                    <div className="mt-1 text-center">
-                      <ICON_SVG.chevronUp className="w-4 h-4 text-gray-300 mx-auto" />
-                    </div>
-                  )}
                 </div>
-
                 <div
                   className="flex flex-col space-y-2 flex-shrink-0 ml-2 pt-1"
                   onClick={(e) => e.stopPropagation()}
@@ -314,20 +236,20 @@ const ActivityItem = memo(
                   <div className="flex space-x-1 justify-end">
                     <button
                       onClick={() => onStartEdit(activity)}
-                      className={`text-gray-400 ${theme.accentHoverText} transition p-1`}
+                      className="text-gray-400 hover:text-slate-600"
                     >
                       <ICON_SVG.pencil className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => onDelete(activity.id)}
-                      className="text-gray-400 hover:text-red-500 transition p-1"
+                      className="text-gray-400 hover:text-red-500"
                     >
                       <ICON_SVG.trash className="w-5 h-5" />
                     </button>
                   </div>
                   <div
                     {...dragHandleProps}
-                    className="flex items-center justify-center p-2 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing hover:bg-gray-100 rounded transition"
+                    className="flex items-center justify-center p-2 text-gray-300 hover:text-gray-500 cursor-grab"
                   >
                     <ICON_SVG.menu className="w-6 h-6" />
                   </div>
