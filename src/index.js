@@ -16,3 +16,16 @@ root.render(
     </ThemeProvider>
   </StrictMode>
 );
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    // 路徑是指向 public/service-worker.js
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then((registration) => {
+        console.log("ServiceWorker 註冊成功，範圍在: ", registration.scope);
+      })
+      .catch((error) => {
+        console.log("ServiceWorker 註冊失敗: ", error);
+      });
+  });
+}
