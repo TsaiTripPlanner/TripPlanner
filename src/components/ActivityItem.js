@@ -4,7 +4,7 @@ import { ICON_SVG } from "../utils/icons";
 import { ACTIVITY_TYPES } from "../utils/constants";
 import { useTheme } from "../utils/theme";
 import { calculateDuration } from "../utils/dateUtils";
-import ImageUpload from "./ImageUpload"; // 確保引入圖片上傳組件
+import ImageUpload from "./ImageUpload";
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/g;
 const renderDescriptionWithLinks = (text) => {
@@ -63,24 +63,11 @@ const ActivityItem = memo(
         : `border shadow-sm ${theme.accentBorderHover}`
     }`;
 
-    const inputField = (name, label, type = "text") => (
-      <div className="mb-2">
-        <label className="block text-xs font-medium text-gray-500">
-          {label}
-        </label>
-        <input
-          type={type}
-          name={name}
-          value={editData[name] || ""}
-          onChange={onEditChange}
-          className={`mt-1 h-9 block w-full bg-white px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm ${theme.ringFocus} ${theme.borderFocus}`}
-        />
-      </div>
-    );
+    const inputClasses = `mt-1 h-9 block w-full bg-white px-3 py-1 border border-gray-300 rounded-md shadow-sm text-sm ${theme.ringFocus} ${theme.borderFocus}`;
 
     return (
       <div className="flex relative h-full">
-        {/* 左側時間軸保持不變 */}
+        {/* 左側時間軸 - 維持顯示 "未定" */}
         <div className="w-14 sm:w-20 text-right flex-shrink-0 pr-1 sm:pr-4 pt-0.5 block pb-8">
           <div
             className={`text-sm sm:text-lg font-bold ${theme.accentText} leading-snug`}
@@ -96,7 +83,7 @@ const ActivityItem = memo(
           )}
         </div>
 
-        {/* 中間線條保持不變 */}
+        {/* 中間線條 */}
         <div className="relative flex flex-col items-center flex-shrink-0 mr-2 sm:mr-0 w-4">
           <div
             className={`absolute w-px ${
@@ -113,11 +100,7 @@ const ActivityItem = memo(
         </div>
 
         {/* 右側卡片 */}
-        <div
-          className={`flex-grow min-w-0 pb-8 ${
-            !isEditing ? "sm:ml-4" : "sm:ml-0"
-          }`}
-        >
+        <div className={`flex-grow min-w-0 pb-8 sm:ml-4`}>
           <div
             className={cardClasses}
             onClick={() => !isEditing && setIsExpanded(!isExpanded)}
@@ -128,13 +111,48 @@ const ActivityItem = memo(
                 <h4 className={`text-lg font-bold mb-3 ${theme.accentText}`}>
                   編輯活動
                 </h4>
-                {inputField("title", "標題")}
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  {inputField("startTime", "開始時間", "time")}
-                  {inputField("endTime", "結束時間", "time")}
+
+                <div className="mb-3">
+                  <label className="block text-xs font-medium text-gray-500">
+                    標題
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={editData.title || ""}
+                    onChange={onEditChange}
+                    className={inputClasses}
+                  />
                 </div>
 
-                {/* 補上圖片編輯功能 */}
+                {/* 修正手機版欄位重疊問題 */}
+                <div className="flex gap-2 w-full mb-3">
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-xs font-medium text-gray-500 truncate">
+                      開始時間
+                    </label>
+                    <input
+                      type="time"
+                      name="startTime"
+                      value={editData.startTime || ""}
+                      onChange={onEditChange}
+                      className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm text-center`}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-xs font-medium text-gray-500 truncate">
+                      結束時間
+                    </label>
+                    <input
+                      type="time"
+                      name="endTime"
+                      value={editData.endTime || ""}
+                      onChange={onEditChange}
+                      className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm text-center`}
+                    />
+                  </div>
+                </div>
+
                 <div className="mb-3">
                   <label className="block text-xs font-bold text-gray-500 mb-1">
                     修改照片/憑證 (選填)
@@ -148,6 +166,9 @@ const ActivityItem = memo(
                 </div>
 
                 <div className="mb-3">
+                  <label className="block text-xs font-medium text-gray-500">
+                    詳細說明
+                  </label>
                   <textarea
                     name="description"
                     value={editData.description || ""}
@@ -177,7 +198,7 @@ const ActivityItem = memo(
               <div className="flex justify-between items-start">
                 <div className="flex-grow min-w-0">
                   <div
-                    className={`flex items-center text-[10px] font-bold mb-0.5 ${typeData.color}`}
+                    className={`flex items-center text-[10px] font-bold mb-1 ${typeData.color}`}
                   >
                     {(() => {
                       const Icon = ICON_SVG[typeData.icon];
@@ -185,13 +206,20 @@ const ActivityItem = memo(
                     })()}
                     <span>{typeData.name}</span>
                   </div>
+
                   <h3
-                    className={`text-base font-bold ${theme.cardTitle} truncate leading-snug mb-1`}
+                    className={`text-base font-bold ${theme.cardTitle} truncate leading-snug`}
                   >
                     {activity.title}
                   </h3>
 
-                  {/* 展開後顯示圖片與說明 */}
+                  {/* 時間區間：直接顯示時間，不顯示中文 */}
+                  <div
+                    className={`text-[11px] font-medium ${theme.cardMeta} mt-0.5 mb-1`}
+                  >
+                    {activity.startTime || "?"} - {activity.endTime || "?"}
+                  </div>
+
                   {isExpanded && (
                     <div className="mt-3 pt-2 border-t border-gray-100 animate-fade-in">
                       {activity.imageUrl && (
@@ -217,7 +245,6 @@ const ActivityItem = memo(
                     </div>
                   )}
 
-                  {/* 提示箭頭 (只有在有內容時顯示) */}
                   {(activity.description || activity.imageUrl) && (
                     <div className="mt-1 text-center">
                       {isExpanded ? (
@@ -229,7 +256,7 @@ const ActivityItem = memo(
                   )}
                 </div>
 
-                {/* 編輯/刪除按鈕 */}
+                {/* 按鈕區 */}
                 <div
                   className="flex flex-col space-y-2 flex-shrink-0 ml-2 pt-1"
                   onClick={(e) => e.stopPropagation()}
@@ -237,13 +264,13 @@ const ActivityItem = memo(
                   <div className="flex space-x-1 justify-end">
                     <button
                       onClick={() => onStartEdit(activity)}
-                      className="text-gray-400 hover:text-slate-600 p-1"
+                      className="text-gray-300 hover:text-slate-600 p-1"
                     >
                       <ICON_SVG.pencil className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => onDelete(activity.id)}
-                      className="text-gray-400 hover:text-red-500 p-1"
+                      className="text-gray-300 hover:text-red-500 p-1"
                     >
                       <ICON_SVG.trash className="w-5 h-5" />
                     </button>
