@@ -1,5 +1,6 @@
 // src/components/ActivityForm.js
 import React, { useState } from "react";
+import ImageUpload from "./ImageUpload";
 import { ICON_SVG } from "../utils/icons";
 import { ACTIVITY_TYPES } from "../utils/constants";
 import { useTheme } from "../utils/theme";
@@ -13,6 +14,7 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
     endTime: "",
     description: "",
     type: "other",
+    imageUrl: "",
   });
   const [error, setError] = useState("");
 
@@ -35,6 +37,7 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
       endTime: "",
       description: "",
       type: "other",
+      imageUrl: "",
     });
   };
 
@@ -104,6 +107,15 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
             className={`h-10 block w-full bg-white appearance-none px-1 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none ${theme.ringFocus} ${theme.borderFocus} text-sm text-center`}
           />
         </div>
+      </div>
+      <div className="space-y-1">
+        <label className="block text-xs font-bold text-gray-500 ml-1 uppercase">
+          景點/商品照片 (選填)
+        </label>
+        <ImageUpload
+          currentImage={formData.imageUrl}
+          onUploadSuccess={(url) => setFormData({ ...formData, imageUrl: url })}
+        />
       </div>
       <textarea
         name="description"
