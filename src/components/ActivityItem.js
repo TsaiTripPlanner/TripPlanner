@@ -3,6 +3,7 @@ import React, { memo, useState } from "react";
 import { ICON_SVG } from "../utils/icons";
 import { ACTIVITY_TYPES } from "../utils/constants";
 import { useTheme } from "../utils/theme";
+import { calculateDuration } from "../utils/dateUtils";
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/g;
 const renderDescriptionWithLinks = (text) => {
@@ -24,23 +25,6 @@ const renderDescriptionWithLinks = (text) => {
       );
     else return <React.Fragment key={index}>{part}</React.Fragment>;
   });
-};
-
-const calculateDuration = (start, end) => {
-  if (!start || !end) return "";
-  const [startHour, startMinute] = start.split(":").map(Number);
-  const [endHour, endMinute] = end.split(":").map(Number);
-  const totalStartMinutes = startHour * 60 + startMinute;
-  let totalEndMinutes = endHour * 60 + endMinute;
-  let durationMinutes = totalEndMinutes - totalStartMinutes;
-  if (durationMinutes < 0) durationMinutes += 24 * 60;
-  const hours = Math.floor(durationMinutes / 60);
-  const minutes = durationMinutes % 60;
-
-  let durationString = "";
-  if (hours > 0) durationString += `${hours}h`;
-  if (minutes > 0) durationString += ` ${minutes}m`;
-  return durationString.trim();
 };
 
 const ActivityItem = memo(
@@ -81,7 +65,6 @@ const ActivityItem = memo(
         : `border shadow-sm ${theme.accentBorderHover}`
     }`;
 
-    const duration = calculateDuration(activity.startTime, activity.endTime);
     const timeDisplay = activity.startTime ? activity.startTime : "未定";
 
     const inputField = (name, label, type = "text") => (
