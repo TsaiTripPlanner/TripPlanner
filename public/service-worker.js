@@ -1,4 +1,4 @@
-const CACHE_NAME = "trip-planner-v" + new Date().getTime(); // 每次 build 使用不同版本號
+const CACHE_NAME = "trip-planner-v1.0.1";
 const urlsToCache = ["/"]; // 只需要快取根路徑，其餘動態抓取
 
 // 安裝並強制立即接管

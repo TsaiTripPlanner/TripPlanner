@@ -22,6 +22,7 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("/service-worker.js")
       .then((registration) => {
+        let refreshing = false; // 新增旗標防止重複重整
         // 監聽是否有新的 Service Worker 正在等待激活
         registration.onupdatefound = () => {
           const installingWorker = registration.installing;
