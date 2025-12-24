@@ -1,0 +1,31 @@
+{
+    "short_name": "旅遊助手",
+    "name": "TripPlanner 旅遊規劃助手",
+    "description": "與旅伴共同規劃行程、管理預算與清單的即時同步工具。",
+    "icons": [
+      {
+        "src": "favicon.ico",
+        "sizes": "64x64 32x32 24x24 16x16",
+        "type": "image/x-icon"
+      },
+      {
+        "src": "logo192.png",
+        "type": "image/png",
+        "sizes": "192x192",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "logo512.png",
+        "type": "image/png",
+        "sizes": "512x512",
+        "purpose": "any maskable"
+      }
+    ],
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#475569",
+    "background_color": "#f8fafc",
+    "orientation": "portrait",
+    "scope": "/",
+    "categories": ["travel", "productivity"]
+  }
