@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 
 // 常數與設定
 import { DEFAULT_DAYS_OPTIONS } from "./utils/constants";
@@ -62,6 +62,13 @@ const App = () => {
 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+
+  useEffect(() => {
+    // 當 isAnonymous 變成 false，代表登入成功
+    if (isAnonymous === false) {
+      setIsLoginModalOpen(false);
+    }
+  }, [isAnonymous]);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
