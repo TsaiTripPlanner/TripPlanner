@@ -65,6 +65,7 @@ const ActivityItem = memo(
         : `border shadow-sm ${theme.accentBorderHover}`
     }`;
 
+    // 左側顯示：沒時間顯示「未定」
     const timeDisplay = activity.startTime ? activity.startTime : "未定";
 
     const inputField = (name, label, type = "text") => (
@@ -89,6 +90,7 @@ const ActivityItem = memo(
 
     return (
       <div className="flex relative h-full">
+        {/* 左側時間軸 */}
         <div className="w-14 sm:w-20 text-right flex-shrink-0 pr-1 sm:pr-4 pt-0.5 block pb-8">
           <div
             className={`text-sm sm:text-lg font-bold ${theme.accentText} leading-snug`}
@@ -104,6 +106,7 @@ const ActivityItem = memo(
           )}
         </div>
 
+        {/* 中間圓點與線條 */}
         <div className="relative flex flex-col items-center flex-shrink-0 mr-2 sm:mr-0 w-4">
           <div
             className={`absolute w-px ${
@@ -123,6 +126,7 @@ const ActivityItem = memo(
           ></div>
         </div>
 
+        {/* 右側卡片本體 */}
         <div
           className={`flex-grow min-w-0 pb-8 ${
             !isEditing ? "sm:ml-4" : "sm:ml-0"
@@ -133,16 +137,17 @@ const ActivityItem = memo(
             onClick={() => !isEditing && setIsExpanded(!isExpanded)}
           >
             {isEditing ? (
+              // === 編輯模式 ===
               <div onClick={(e) => e.stopPropagation()}>
                 <h4 className={`text-lg font-bold mb-3 ${theme.accentText}`}>
                   編輯活動
                 </h4>
-                {/* 類別選擇 */}
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-2">
                     {ACTIVITY_TYPES.map((type) => {
                       const Icon = ICON_SVG[type.icon];
-                      const isSelected = (editData.type || "other") === type.id;
+                      const currentType = editData.type || "other";
+                      const isSelected = currentType === type.id;
                       return (
                         <button
                           key={type.id}
@@ -155,7 +160,7 @@ const ActivityItem = memo(
                           className={`flex items-center px-2 py-1 rounded-md border text-xs transition-all ${
                             isSelected
                               ? `${type.bg} ${type.color} ${type.border} font-bold`
-                              : "bg-white border-gray-200 text-gray-500"
+                              : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
                           }`}
                         >
                           <Icon className="w-3 h-3 mr-1" /> {type.name}
@@ -164,7 +169,6 @@ const ActivityItem = memo(
                     })}
                   </div>
                 </div>
-                {/* 輸入框群組 */}
                 {inputField("title", "標題")}
                 {inputField("location", "地點")}
                 <div className="grid grid-cols-2 gap-3 mb-3">
@@ -177,7 +181,7 @@ const ActivityItem = memo(
                     value={editData.description || ""}
                     onChange={onEditChange}
                     rows="3"
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm"
+                    className={`mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-1 focus:ring-slate-400`}
                     placeholder="詳細說明"
                   ></textarea>
                 </div>
@@ -185,20 +189,21 @@ const ActivityItem = memo(
                   <button
                     onClick={onCancelEdit}
                     type="button"
-                    className="text-gray-600 bg-gray-200 px-3 py-1 rounded-md text-sm"
+                    className="text-gray-600 bg-gray-200 px-3 py-1 rounded-md text-sm font-medium"
                   >
                     取消
                   </button>
                   <button
                     onClick={() => onSaveEdit(activity.id)}
                     type="button"
-                    className="text-white bg-slate-600 px-3 py-1 rounded-md text-sm"
+                    className="text-white bg-slate-600 px-3 py-1 rounded-md text-sm font-medium"
                   >
                     儲存
                   </button>
                 </div>
               </div>
             ) : (
+              // === 顯示模式 ===
               <div className="flex justify-between items-start">
                 <div className="flex-grow min-w-0">
                   <div
@@ -210,25 +215,54 @@ const ActivityItem = memo(
                     })()}
                     <span>{typeData.name}</span>
                   </div>
+
                   <h3
                     className={`text-base font-bold ${theme.cardTitle} truncate leading-snug mb-1`}
                   >
                     {activity.title}
                   </h3>
+
+                  {(activity.startTime || activity.endTime) && (
+                    <div
+                      className={`text-xs font-bold ${theme.cardMeta} mb-1 opacity-80`}
+                    >
+                      {activity.startTime || "?"} ~ {activity.endTime || "?"}
+                    </div>
+                  )}
+
                   {activity.location && (
                     <p
                       className={`flex items-center text-xs ${theme.cardMeta} mt-0.5`}
                     >
-                      <ICON_SVG.mapPin className="w-3 h-3 mr-1 text-slate-400" />
+                      <ICON_SVG.mapPin
+                        className={`w-3 h-3 mr-1 ${theme.accentText} flex-shrink-0`}
+                      />
                       <span className="truncate">{activity.location}</span>
                     </p>
                   )}
+
+                  {/* 展開後的說明文字內容 */}
                   {isExpanded && activity.description && (
-                    <div className="mt-3 pt-2 border-t border-gray-100 text-sm whitespace-pre-wrap">
+                    <div
+                      className={`mt-3 pt-2 border-t border-gray-100 text-sm ${theme.cardDesc} whitespace-pre-wrap animate-fade-in`}
+                    >
                       {renderDescriptionWithLinks(activity.description)}
                     </div>
                   )}
+
+                  {/* ✅ 新增：補回向下/向上箭頭提示 */}
+                  {!isExpanded && activity.description && (
+                    <div className="mt-1 text-center">
+                      <ICON_SVG.chevronDown className="w-4 h-4 text-gray-300 mx-auto" />
+                    </div>
+                  )}
+                  {isExpanded && activity.description && (
+                    <div className="mt-1 text-center">
+                      <ICON_SVG.chevronUp className="w-4 h-4 text-gray-300 mx-auto" />
+                    </div>
+                  )}
                 </div>
+
                 <div
                   className="flex flex-col space-y-2 flex-shrink-0 ml-2 pt-1"
                   onClick={(e) => e.stopPropagation()}
@@ -236,20 +270,20 @@ const ActivityItem = memo(
                   <div className="flex space-x-1 justify-end">
                     <button
                       onClick={() => onStartEdit(activity)}
-                      className="text-gray-400 hover:text-slate-600"
+                      className="text-gray-400 hover:text-slate-600 transition p-1"
                     >
                       <ICON_SVG.pencil className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => onDelete(activity.id)}
-                      className="text-gray-400 hover:text-red-500"
+                      className="text-gray-400 hover:text-red-500 transition p-1"
                     >
                       <ICON_SVG.trash className="w-5 h-5" />
                     </button>
                   </div>
                   <div
                     {...dragHandleProps}
-                    className="flex items-center justify-center p-2 text-gray-300 hover:text-gray-500 cursor-grab"
+                    className="flex items-center justify-center p-2 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing hover:bg-gray-100 rounded transition"
                   >
                     <ICON_SVG.menu className="w-6 h-6" />
                   </div>
