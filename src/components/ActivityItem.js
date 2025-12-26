@@ -112,6 +112,32 @@ const ActivityItem = memo(
                   編輯活動
                 </h4>
 
+                {/* 新增：類型選擇列 */}
+              <div className="mb-4">
+               <label className="block text-xs font-medium text-gray-500 mb-2">活動類型</label>
+               <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+                 {ACTIVITY_TYPES.map((type) => {
+                  const Icon = ICON_SVG[type.icon];
+                  const isSelected = editData.type === type.id;
+                  return (
+                   <button
+                   key={type.id}
+                   type="button"
+                   onClick={() => onEditChange({ target: { name: "type", value: type.id } })}
+                   className={`flex items-center flex-shrink-0 px-3 py-1.5 rounded-full border text-xs transition-all ${
+                    isSelected
+                     ? `${type.bg} ${type.color} ${type.border} font-bold`
+                     : "bg-white border-gray-200 text-gray-500"
+                   }`}
+                   >
+                    <Icon className="w-3.5 h-3.5 mr-1" /> {type.name}
+                   </button>
+                  );
+                })}
+               </div>
+              </div>
+
+
                 <div className="mb-3">
                   <label className="block text-xs font-medium text-gray-500">
                     標題
