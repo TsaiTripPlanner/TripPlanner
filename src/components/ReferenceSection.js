@@ -123,7 +123,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete }) => {
             </span>
           </div>
           {activeTab === "link" && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <input
                 type="text"
                 placeholder="輸入網址..."
@@ -131,11 +131,13 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete }) => {
                 onChange={(e) =>
                   setNewData({ ...newData, url: e.target.value })
                 }
-                className="flex-grow px-3 py-2 border rounded-md text-sm"
+                // 關鍵修復：加入 flex-1 和 min-w-0
+                className="flex-1 min-w-0 px-3 py-2 border rounded-md text-sm"
               />
               <button
                 onClick={() => fetchMetadata(newData.url)}
-                className="px-3 py-2 bg-white border rounded text-xs"
+                // 關鍵修復：加入 whitespace-nowrap 和 shrink-0
+               className="shrink-0 whitespace-nowrap px-3 py-2 bg-white border rounded text-xs font-bold shadow-sm active:bg-gray-100"
               >
                 {isFetching ? "..." : "抓取"}
               </button>
@@ -200,14 +202,14 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete }) => {
                       onChange={(e) =>
                         setEditData({ ...editData, url: e.target.value })
                       }
-                      className="flex-grow px-3 py-2 border rounded text-sm"
+                      className="flex-1 min-w-0 px-3 py-2 border rounded text-sm"
                       placeholder="網址 (選填)"
                     />
                     <button
                       onClick={() => fetchMetadata(editData.url)}
-                      className="px-2 py-1 bg-white border rounded text-xs"
+                      className="shrink-0 whitespace-nowrap px-2 py-2 bg-white border rounded text-xs font-bold shadow-sm active:bg-gray-100"
                     >
-                      重新抓取
+                      {isFetching ? "..." : "重新抓取"}
                     </button>
                   </div>
                   <ImageUpload
