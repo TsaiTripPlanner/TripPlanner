@@ -34,11 +34,19 @@ export const useActivities = (userId, itineraryId, activeDay) => {
       (snapshot) => {
         let data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         // 依照 order 排序
-        data.sort(
-          (a, b) =>
-            (a.order !== undefined ? a.order : 9999) -
-            (b.order !== undefined ? b.order : 9999)
-        );
+        data.sort((a, b) => {
+         // 1. 處理時間排序 (格式如 "09:00")
+         // 如果沒有時間，將其視為一個很大的字串，讓它排在最後面
+         const timeA = a.startTime || "99:99";
+         const timeB = b.startTime || "99:99";
+
+    if (timeA !== timeB) {
+      return timeA.localeCompare(timeB);
+    }
+
+    // 2. 如果時間相同，則依照手動拖拽的 order 排序
+    return (a.order || 0) - (b.order || 0);
+  });
         setActivities(data);
       },
       (err) => {
