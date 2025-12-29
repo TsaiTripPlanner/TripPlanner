@@ -3,6 +3,7 @@ import {
   collection,
   query,
   where,
+  orderBy,
   onSnapshot,
   addDoc,
   deleteDoc,
@@ -18,7 +19,7 @@ export const useActivities = (userId, itineraryId, activeDay) => {
   const [activities, setActivities] = useState([]);
   const [error, setError] = useState(null);
 
-  // 1. 讀取活動列表 (監聽資料庫)
+  // 讀取活動列表 (監聽資料庫)
   useEffect(() => {
     // 如果資料不齊全，就不動作
     if (!itineraryId || !db) return;
@@ -27,37 +28,35 @@ export const useActivities = (userId, itineraryId, activeDay) => {
       `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/activities`
     );
 
-    // 只抓取「目前這一天」的活動
-    const q = query(activitiesColRef, where("day", "==", activeDay));
+    // 修改查詢：加入排序條件
+    // 我們希望先按「開始時間」排，時間一樣時再按「手動順序」排
+    const q = query(
+      activitiesColRef,
+      where("day", "==", activeDay),
+      orderBy("startTime", "asc"), 
+      orderBy("order", "asc")
+    );
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
+        // 這裡變得很乾淨，因為 Firebase 回傳時就排好序了
         let data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        // 依照 order 排序
-        data.sort((a, b) => {
-         // 1. 處理時間排序 (格式如 "09:00")
-         // 如果沒有時間，將其視為一個很大的字串，讓它排在最後面
-         const timeA = a.startTime || "99:99";
-         const timeB = b.startTime || "99:99";
-
-    if (timeA !== timeB) {
-      return timeA.localeCompare(timeB);
-    }
-
-    // 2. 如果時間相同，則依照手動拖拽的 order 排序
-    return (a.order || 0) - (b.order || 0);
-  });
         setActivities(data);
       },
       (err) => {
         console.error("讀取活動失敗", err);
         setError(err.message);
+
+        // 重要提示：如果你在控制台看到一個連結，請點擊它來建立「索引」
+        if (err.message.includes("index")) {
+          console.warn("請點擊上方的連結以建立 Firestore 複合索引，否則排序功能無法運作。");
+        }
       }
     );
     return () => unsubscribe();
   }, [itineraryId, activeDay, userId]);
 
-  // 2. 新增活動
+  // 新增活動
   const addActivity = useCallback(
     async (newActivityData) => {
       if (!itineraryId) return;

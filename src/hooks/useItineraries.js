@@ -10,6 +10,8 @@ import {
   query,
   getDocs,
   writeBatch,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 import { db, appId } from "../config/firebase";
 
@@ -26,7 +28,12 @@ export const useItineraries = (userId) => {
       db,
       `artifacts/${appId}/users/${userId}/itineraries`
     );
-    const q = query(itinerariesColRef);
+    // 修改查詢：排序並限制只顯示最近的 20 個行程
+    const q = query(
+      itinerariesColRef,
+      orderBy("startDate", "desc"), 
+      limit(20)
+    );
 
     const unsubscribe = onSnapshot(
       q,
@@ -36,21 +43,7 @@ export const useItineraries = (userId) => {
           ...doc.data(),
         }));
 
-        // 排序：先比 startDate，沒有的話比 createdAt
-        trips.sort((a, b) => {
-          const dateA =
-            a.startDate ||
-            (a.createdAt
-              ? new Date(a.createdAt.seconds * 1000).toISOString().split("T")[0]
-              : "0000-00-00");
-          const dateB =
-            b.startDate ||
-            (b.createdAt
-              ? new Date(b.createdAt.seconds * 1000).toISOString().split("T")[0]
-              : "0000-00-00");
-          return dateB.localeCompare(dateA);
-        });
-
+        // 因為 Firebase 已經幫我們排好序了，這裡不需要再寫 .sort()
         setAllItineraries(trips);
         setIsLoading(false);
       },

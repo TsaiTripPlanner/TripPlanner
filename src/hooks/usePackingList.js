@@ -51,10 +51,24 @@ export const usePackingList = (userId, itineraryId, isEnabled) => {
     };
   }, [itineraryId, userId, isEnabled]);
 
-  // 2. 組裝資料
+  // 修改後的組裝邏輯
   const listCategories = useMemo(() => {
+    // 先建立一個物件來存放「分類後的物品」
+    const itemsGroupedByCat = {};
+    
+    // 只跑一次迴圈，將所有物品按 categoryId 歸類
+    allItems.forEach(item => {
+      if (!itemsGroupedByCat[item.categoryId]) {
+        itemsGroupedByCat[item.categoryId] = [];
+      }
+      itemsGroupedByCat[item.categoryId].push(item);
+    });
+
+    // 根據類別清單來組裝
     return categories.map((cat) => {
-      const myItems = allItems.filter((item) => item.categoryId === cat.id);
+      // 直接從物件拿，速度極快
+      const myItems = itemsGroupedByCat[cat.id] || [];
+      // 依時間排序
       myItems.sort(
         (a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
       );
