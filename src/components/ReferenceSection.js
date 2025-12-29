@@ -174,7 +174,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete }) => {
                   </div>
                   <div 
                     onClick={() => toggleExpand(ref.id)}
-                    className={`text-sm text-gray-500 cursor-pointer ${expandedIds.has(ref.id) ? "" : "line-clamp-3"}`}
+                    className={`text-sm text-gray-500 cursor-pointer whitespace-pre-wrap ${expandedIds.has(ref.id) ? "" : "line-clamp-3"}`}
                   >
                     {ref.description || "暫無內容..."}
                   </div>
