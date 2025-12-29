@@ -5,10 +5,15 @@ import ImageUpload from "./ImageUpload";
 
 const ReferenceSection = ({ references, onAdd, onUpdate, onDelete }) => {
   const { theme } = useTheme();
+  
   const [activeTab, setActiveTab] = useState("spot");
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
+  
+  // 用於控制「景點介紹」的展開/收合
+  const [expandedIds, setExpandedIds] = useState(new Set());
+
   const [newData, setNewData] = useState({
     title: "",
     url: "",
@@ -20,6 +25,13 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete }) => {
   const filteredRefs = references.filter(
     (ref) => (ref.type || "link") === activeTab
   );
+
+  const toggleExpand = (id) => {
+    const newIds = new Set(expandedIds);
+    if (newIds.has(id)) newIds.delete(id);
+    else newIds.add(id);
+    setExpandedIds(newIds);
+  };
 
   const fetchMetadata = async (targetUrl) => {
     if (!targetUrl.trim()) return;
@@ -58,12 +70,6 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete }) => {
     setShowAddForm(false);
   };
 
-  // 輔助函式：開啟地圖
-  const openGoogleMaps = (e, title) => {
-    e.stopPropagation();
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(title)}`, "_blank");
-  };
-
   return (
     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
       <div className="flex justify-between items-center mb-6">
@@ -72,200 +78,142 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete }) => {
         </h2>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className={`flex items-center px-4 py-2 rounded-full text-white shadow-md ${theme.buttonPrimary} transition-all active:scale-95`}
+          className={`p-2 rounded-full text-white shadow-md ${theme.buttonPrimary}`}
         >
-          {showAddForm ? <ICON_SVG.xMark className="w-5 h-5 mr-1" /> : <ICON_SVG.plusSmall className="w-5 h-5 mr-1" />}
-          <span className="text-sm font-bold">{showAddForm ? "取消" : "新增資料"}</span>
+          {showAddForm ? <ICON_SVG.xMark className="w-6 h-6" /> : <ICON_SVG.plusSmall className="w-6 h-6" />}
         </button>
       </div>
 
       {/* --- 子分頁切換 --- */}
-      <div className="flex space-x-2 mb-6 bg-gray-100 p-1 rounded-xl">
+      <div className="flex space-x-2 mb-6 border-b border-gray-100">
         {[
-          { id: "spot", name: "景點清單", icon: "camera" },
+          { id: "spot", name: "景點介紹", icon: "camera" },
           { id: "link", name: "交通/攻略", icon: "link" },
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => {
-              setActiveTab(tab.id);
-              setEditingId(null);
-              setShowAddForm(false);
-            }}
-            className={`flex-1 flex items-center justify-center py-2 rounded-lg text-sm font-bold transition-all ${
+            onClick={() => { setActiveTab(tab.id); setEditingId(null); setShowAddForm(false); }}
+            className={`flex items-center px-4 py-2 text-sm font-bold transition ${
               activeTab === tab.id
-                ? `bg-white ${theme.accentText} shadow-sm`
-                : "text-gray-400 hover:text-gray-600"
+                ? `${theme.accentText} border-b-2 ${theme.accentBorder}`
+                : "text-gray-400"
             }`}
           >
-            {(() => {
-              const Icon = ICON_SVG[tab.icon];
-              return <Icon className="w-4 h-4 mr-1.5" />;
-            })()}
+            {(() => { const Icon = ICON_SVG[tab.icon]; return <Icon className="w-4 h-4 mr-1.5" />; })()}
             {tab.name}
           </button>
         ))}
       </div>
 
-      {/* --- 新增表單 (優化過的樣式) --- */}
+      {/* --- 新增表單 --- */}
       {showAddForm && (
-        <div className="mb-8 p-5 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 space-y-4 animate-fade-in">
-          <div className="flex items-center text-gray-500 font-bold text-sm border-b pb-2 mb-2">
-            正在新增 {activeTab === "spot" ? "私藏景點" : "實用攻略"}
-          </div>
+        <div className="mb-8 p-4 bg-gray-50 rounded-lg border space-y-4 animate-fade-in">
           {activeTab === "link" && (
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="貼上網址自動抓取資料..."
+                placeholder="貼上攻略網址..."
                 value={newData.url}
                 onChange={(e) => setNewData({ ...newData, url: e.target.value })}
-                className="flex-1 px-3 py-2 border rounded-lg text-sm bg-white"
+                className="flex-1 px-3 py-2 border rounded-md text-sm"
               />
-              <button
-                onClick={() => fetchMetadata(newData.url)}
-                className="shrink-0 px-4 py-2 bg-slate-600 text-white rounded-lg text-xs font-bold shadow-sm active:bg-slate-700"
-              >
-                {isFetching ? "抓取中..." : "自動填寫"}
+              <button onClick={() => fetchMetadata(newData.url)} className="shrink-0 px-3 py-2 bg-white border rounded text-xs font-bold shadow-sm">
+                {isFetching ? "..." : "自動填寫"}
               </button>
             </div>
           )}
           <input
             type="text"
-            placeholder="標題 (必填)"
+            placeholder="標題 *"
             value={newData.title}
             onChange={(e) => setNewData({ ...newData, title: e.target.value })}
-            className="w-full px-3 py-2 border rounded-lg text-sm"
+            className="w-full px-3 py-2 border rounded-md text-sm"
           />
-          <ImageUpload
-            currentImage={newData.imageUrl}
-            onUploadSuccess={(url) => setNewData({ ...newData, imageUrl: url })}
-          />
+          <ImageUpload currentImage={newData.imageUrl} onUploadSuccess={(url) => setNewData({ ...newData, imageUrl: url })} />
           <textarea
-            placeholder="這地方有什麼吸引你的？或是這篇攻略的重點..."
+            placeholder="描述..."
             value={newData.description}
             onChange={(e) => setNewData({ ...newData, description: e.target.value })}
             rows="3"
-            className="w-full px-3 py-2 border rounded-lg text-sm"
+            className="w-full px-3 py-2 border rounded-md text-sm"
           />
-          <button
-            onClick={handleAddNew}
-            className={`w-full py-3 rounded-lg text-white font-bold shadow-md ${theme.buttonPrimary} active:scale-[0.98] transition-all`}
-          >
-            完成並儲存
-          </button>
+          <button onClick={handleAddNew} className={`w-full py-2 rounded-md text-white font-bold ${theme.buttonPrimary}`}>確認新增</button>
         </div>
       )}
 
-      {/* --- 列表區：採用 Grid 網格佈局 --- */}
-      <div className={`grid gap-4 ${activeTab === "spot" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
-        {filteredRefs.length === 0 ? (
-          <div className="col-span-full text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-             <ICON_SVG.paperClip className="w-12 h-12 text-gray-200 mx-auto mb-2" />
-             <p className="text-gray-400 text-sm">點擊右上角 + 開始收集資料</p>
-          </div>
-        ) : (
-          filteredRefs.map((ref) => (
-            <div
-              key={ref.id}
-              className={`group relative bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${
-                editingId === ref.id ? "ring-2 ring-slate-400 border-transparent" : ""
-              }`}
-            >
-              {editingId === ref.id ? (
-                /* === 編輯模式 (維持原邏輯，優化 UI) === */
-                <div className="p-4 space-y-3 bg-slate-50">
-                  <input
-                    type="text"
-                    value={editData.title}
-                    onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg text-sm"
-                  />
-                  <ImageUpload
-                    currentImage={editData.imageUrl}
-                    onUploadSuccess={(url) => setEditData({ ...editData, imageUrl: url })}
-                  />
-                  <textarea
-                    value={editData.description}
-                    onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                    rows="4"
-                    className="w-full px-3 py-2 border rounded-lg text-sm"
-                  />
-                  <div className="flex justify-end gap-2">
-                    <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-gray-200 rounded-lg text-xs">取消</button>
-                    <button onClick={() => handleSave(ref.id)} className={`px-4 py-2 text-white rounded-lg text-xs ${theme.buttonPrimary}`}>儲存修改</button>
-                  </div>
+      {/* --- 列表區 --- */}
+      <div className={activeTab === "spot" ? "grid grid-cols-1 sm:grid-cols-2 gap-6" : "space-y-4"}>
+        {filteredRefs.map((ref) => (
+          <div key={ref.id} className="relative bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
+            {editingId === ref.id ? (
+              /* === 編輯模式 === */
+              <div className="p-4 space-y-3 bg-slate-50">
+                <input type="text" value={editData.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} className="w-full px-3 py-2 border rounded text-sm" />
+                <ImageUpload currentImage={editData.imageUrl} onUploadSuccess={(url) => setEditData({ ...editData, imageUrl: url })} />
+                <textarea value={editData.description} onChange={(e) => setEditData({ ...editData, description: e.target.value })} rows="4" className="w-full px-3 py-2 border rounded text-sm" />
+                <div className="flex justify-end gap-2">
+                  <button onClick={() => setEditingId(null)} className="px-3 py-1 bg-gray-200 rounded text-xs">取消</button>
+                  <button onClick={() => handleSave(ref.id)} className={`px-3 py-1 text-white rounded text-xs ${theme.buttonPrimary}`}>儲存</button>
                 </div>
-              ) : (
-                /* === 顯示模式 (雜誌風格) === */
-                <div className="flex flex-col h-full">
-                  {/* 圖片區域 */}
-                  <div className="relative aspect-[16/9] overflow-hidden">
-                    {ref.imageUrl ? (
-                      <img
-                        src={ref.imageUrl}
-                        alt=""
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300">
-                        <ICON_SVG.camera className="w-8 h-8" />
-                      </div>
-                    )}
-                    
-                    {/* 圖片上方的快速按鈕 (毛玻璃質感) */}
-                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => { setEditingId(ref.id); setEditData(ref); }}
-                        className="p-1.5 bg-white/80 backdrop-blur rounded-full text-gray-600 hover:text-blue-500 shadow-sm"
-                      >
-                        <ICON_SVG.pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => onDelete(ref.id)}
-                        className="p-1.5 bg-white/80 backdrop-blur rounded-full text-gray-600 hover:text-red-500 shadow-sm"
-                      >
-                        <ICON_SVG.trash className="w-4 h-4" />
-                      </button>
+              </div>
+            ) : activeTab === "spot" ? (
+              /* === 景點佈局 (網格) === */
+              <div className="flex flex-col h-full">
+                <div className="aspect-video w-full overflow-hidden bg-gray-100">
+                  {ref.imageUrl && (
+                    <img src={ref.imageUrl} alt="" className="w-full h-full object-cover" onClick={() => window.open(ref.imageUrl)} />
+                  )}
+                </div>
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-lg leading-tight">{ref.title}</h3>
+                    <div className="flex gap-2">
+                      <button onClick={() => { setEditingId(ref.id); setEditData(ref); }} className="text-gray-300 hover:text-slate-500"><ICON_SVG.pencil className="w-4 h-4" /></button>
+                      <button onClick={() => onDelete(ref.id)} className="text-gray-300 hover:text-red-400"><ICON_SVG.trash className="w-4 h-4" /></button>
                     </div>
-
-                    {/* 地點標籤 (如果是景點且有地點) */}
-                    {activeTab === "spot" && (
-                      <button
-                        onClick={(e) => openGoogleMaps(e, ref.title)}
-                        className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 bg-black/50 backdrop-blur text-white text-[10px] rounded-md hover:bg-black/70 transition"
-                      >
-                        <ICON_SVG.mapPin className="w-3 h-3" />
-                        Google Maps
-                      </button>
-                    )}
                   </div>
-
-                  {/* 內容文字區 */}
-                  <div className="p-4 flex-grow flex flex-col">
-                    <h3 className="font-bold text-gray-800 text-lg mb-2 line-clamp-1">{ref.title}</h3>
-                    <p className={`text-sm text-gray-500 leading-relaxed whitespace-pre-wrap ${activeTab === "spot" ? "line-clamp-3" : "line-clamp-2"}`}>
-                      {ref.description || "尚未填寫詳細內容..."}
-                    </p>
-                    
-                    {/* 攻略分頁顯示連結按鈕 */}
-                    {activeTab === "link" && ref.url && (
-                      <div className="mt-auto pt-4">
-                        <a
-                          href={ref.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center w-full py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
-                        >
-                          <ICON_SVG.link className="w-3.5 h-3.5 mr-1.5 text-blue-500" /> 閱讀完整攻略
-                        </a>
-                      </div>
-                    )}
+                  <div 
+                    onClick={() => toggleExpand(ref.id)}
+                    className={`text-sm text-gray-500 cursor-pointer ${expandedIds.has(ref.id) ? "" : "line-clamp-3"}`}
+                  >
+                    {ref.description || "暫無內容..."}
                   </div>
+                  {ref.description && ref.description.length > 60 && (
+                    <button onClick={() => toggleExpand(ref.id)} className="text-[10px] text-blue-500 mt-1 font-bold">
+                      {expandedIds.has(ref.id) ? "收合內容 ▲" : "展開全文 ▼"}
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
-          ))
+              </div>
+            ) : (
+              /* === 攻略佈局 (橫式書籤) === */
+              <div className="flex p-3 gap-3">
+                {ref.imageUrl && (
+                  <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-gray-100">
+                    <img src={ref.imageUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex-grow min-w-0 flex flex-col justify-center">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-base truncate pr-2">{ref.title}</h3>
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => { setEditingId(ref.id); setEditData(ref); }} className="text-gray-300"><ICON_SVG.pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => onDelete(ref.id)} className="text-gray-300"><ICON_SVG.trash className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 line-clamp-2 mt-1">{ref.description}</p>
+                  {ref.url && (
+                    <a href={ref.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-500 mt-1 flex items-center hover:underline">
+                      <ICON_SVG.link className="w-3 h-3 mr-1" /> 開啟攻略連結
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+        {filteredRefs.length === 0 && (
+          <div className="col-span-full text-center py-10 text-gray-400 text-sm">此分類目前沒有資料</div>
         )}
       </div>
     </div>
