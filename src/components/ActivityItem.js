@@ -112,7 +112,7 @@ const ActivityItem = memo(
                   編輯活動
                 </h4>
 
-                {/* 新增：類型選擇列 */}
+                {/* 類型選擇列 */}
               <div className="mb-4">
                <label className="block text-xs font-medium text-gray-500 mb-2">活動類型</label>
                <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -137,7 +137,7 @@ const ActivityItem = memo(
                </div>
               </div>
 
-
+                {/* 標題欄位 */}
                 <div className="mb-3">
                   <label className="block text-xs font-medium text-gray-500">
                     標題
@@ -151,7 +151,22 @@ const ActivityItem = memo(
                   />
                 </div>
 
-                {/* 修正手機版欄位重疊問題 */}
+                {/* 地點欄位 ★ */}
+                <div className="mb-3">
+                  <label className="block text-xs font-medium text-gray-500">
+                    地點 (選填)
+                  </label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={editData.location || ""}
+                    onChange={onEditChange}
+                    placeholder="例如：東京車站"
+                    className={inputClasses}
+                  />
+                </div>
+
+                {/* 時間欄位 */}
                 <div className="flex gap-2 w-full mb-3">
                   <div className="flex-1 min-w-0">
                     <label className="block text-xs font-medium text-gray-500 truncate">
@@ -179,6 +194,7 @@ const ActivityItem = memo(
                   </div>
                 </div>
 
+                {/* 圖片上傳 */}
                 <div className="mb-3">
                   <label className="block text-xs font-bold text-gray-500 mb-1">
                     修改照片/憑證 (選填)
@@ -191,6 +207,7 @@ const ActivityItem = memo(
                   />
                 </div>
 
+                {/* 詳細說明 */}
                 <div className="mb-3">
                   <label className="block text-xs font-medium text-gray-500">
                     詳細說明
@@ -204,6 +221,8 @@ const ActivityItem = memo(
                     placeholder="詳細說明或網址"
                   ></textarea>
                 </div>
+
+                {/* 按鈕區 */}
                 <div className="flex justify-end space-x-2 mt-4">
                   <button
                     onClick={onCancelEdit}
