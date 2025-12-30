@@ -24,14 +24,22 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
 
   // 過濾出當前分頁的資料
   const filteredRefs = references.filter((ref) => {
-    const itemType = ref.type || "guide"; // 如果沒標籤，預設歸類到攻略
-    if (activeTab === "guide") {
-     // 攻略分頁：顯示標籤為 guide 或 link (舊標籤) 的資料
-     return itemType === "guide" || itemType === "link";
+    // 如果資料完全沒有 type，舊景點通常沒 type 或 type 是 spot
+    // 舊攻略 type 是 link
+    const itemType = ref.type;
+    
+    if (activeTab === "transport") {
+      return itemType === "transport";
     }
-  
-     // 其他分頁 (transport, spot)：直接比對 ID
-     return itemType === activeTab;
+    if (activeTab === "spot") {
+      // 如果 type 是 spot，或者是舊資料（可能沒 type），我們讓它出現在景點
+      return itemType === "spot";
+    }
+    if (activeTab === "guide") {
+      // 攻略分頁：顯示 guide、link 或是完全沒設定 type 的資料
+      return itemType === "guide" || itemType === "link" || !itemType;
+    }
+    return false;
   });
 
   const toggleExpand = (id) => {
