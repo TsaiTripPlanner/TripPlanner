@@ -320,112 +320,137 @@ const BudgetSection = memo(
                     <div key={item.id}>
                       {isEditing ? (
                         /* === 編輯模式 === */
-                        <div className="w-full flex flex-col gap-3 bg-white p-3 rounded-lg border-2 border-slate-200">
-                          <div className="flex gap-2">
-                            <select
-                              value={editData.day}
-                              onChange={(e) =>
-                                setEditData({
-                                  ...editData,
-                                  day: Number(e.target.value),
-                                })
-                              }
-                              className="w-1/3 px-2 py-2 border border-gray-300 rounded text-sm bg-white"
-                            >
-                              {Array.from(
-                                { length: totalDays },
-                                (_, i) => i + 1
-                              ).map((d) => (
-                                <option key={d} value={d}>
-                                  Day {d}
-                                </option>
-                              ))}
-                            </select>
-                            <select
-                              value={editData.category}
-                              onChange={(e) =>
-                                setEditData({
-                                  ...editData,
-                                  category: e.target.value,
-                                })
-                              }
-                              className="w-2/3 px-2 py-2 border border-gray-300 rounded bg-white text-sm"
-                            >
-                              {EXPENSE_CATEGORIES.map((cat) => (
-                                <option key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </option>
-                              ))}
-                            </select>
+                       <div className="w-full flex flex-col gap-3 bg-white p-3 rounded-lg border-2 border-slate-400 shadow-sm animate-fade-in">
+                         {/* 天數與類別 */}
+                         <div className="flex gap-2">
+                           <div className="w-1/3">
+                             <label className="block text-[10px] text-gray-400 mb-1 ml-1 font-bold">天數</label>
+                             <select
+                               value={editData.day}
+                               onChange={(e) =>
+                                 setEditData({
+                                   ...editData,
+                                   day: Number(e.target.value),
+                                 })
+                               }
+                               className="w-full px-2 py-2 border border-gray-300 rounded text-sm bg-white"
+                             >
+                               {Array.from(
+                                 { length: totalDays },
+                                 (_, i) => i + 1
+                               ).map((d) => (
+                                 <option key={d} value={d}>
+                                   Day {d}
+                                 </option>
+                               ))}
+                             </select>
+                           </div>
+                           <div className="w-2/3">
+                             <label className="block text-[10px] text-gray-400 mb-1 ml-1 font-bold">類別</label>
+                             <select
+                               value={editData.category}
+                               onChange={(e) =>
+                                 setEditData({
+                                   ...editData,
+                                   category: e.target.value,
+                                 })
+                               }
+                               className="w-full px-2 py-2 border border-gray-300 rounded bg-white text-sm"
+                             >
+                               {EXPENSE_CATEGORIES.map((cat) => (
+                                 <option key={cat.id} value={cat.id}>
+                                   {cat.name}
+                                 </option>
+                               ))}
+                             </select>
+                           </div>
+                         </div>
+
+                         {/* 項目名稱 */}
+                         <div>
+                           <label className="block text-[10px] text-gray-400 mb-1 ml-1 font-bold">項目名稱</label>
+                           <input
+                             type="text"
+                             value={editData.title}
+                             onChange={(e) =>
+                               setEditData({
+                                 ...editData,
+                                 title: e.target.value,
+                               })
+                             }
+                             className="w-full px-2 py-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-400 outline-none"
+                           />
                           </div>
-                          <input
-                            type="text"
-                            value={editData.title}
-                            onChange={(e) =>
-                              setEditData({
-                                ...editData,
-                                title: e.target.value,
-                              })
-                            }
-                            className="w-full px-2 py-2 border border-gray-300 rounded text-sm"
-                          />
-                          <textarea
-                            value={editData.description || ""}
-                            onChange={(e) =>
-                              setEditData({
-                                ...editData,
-                                description: e.target.value,
-                              })
-                            }
-                            className="w-full px-2 py-2 border border-gray-300 rounded text-xs outline-none"
-                            placeholder="細項備註"
-                            rows="2"
-                          />
-                          <div className="flex items-center gap-2">
-                            <div className="relative flex-grow">
-                              <input
-                                type="number"
-                                value={editData.amount}
-                                onChange={(e) =>
-                                  setEditData({
-                                    ...editData,
-                                    amount: e.target.value,
-                                  })
-                                }
-                                className="w-full pl-2 pr-14 py-2 border border-gray-300 rounded text-sm"
-                              />
-                              <button
-                                onClick={() =>
-                                  setEditData({
-                                    ...editData,
-                                    isPerPerson: !editData.isPerPerson,
-                                  })
-                                }
-                                className={`absolute right-1 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                  editData.isPerPerson
-                                    ? "bg-slate-600 text-white"
-                                    : "bg-gray-100 text-gray-500"
-                                }`}
-                              >
-                                {editData.isPerPerson ? "👤 單人" : "👥 總額"}
-                              </button>
-                            </div>
-                            <div className="flex gap-1">
-                              <button
-                                onClick={() => saveEdit(item.id)}
-                                className="bg-green-500 text-white p-2 rounded shadow-sm"
-                              >
-                                <ICON_SVG.check className="w-5 h-5" />
-                              </button>
-                              <button
-                                onClick={() => setEditingId(null)}
-                                className="bg-gray-200 text-gray-600 p-2 rounded shadow-sm"
-                              >
-                                <ICON_SVG.xMark className="w-5 h-5" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+
+                         {/* 細項備註 */}
+                         <div>
+                           <label className="block text-[10px] text-gray-400 mb-1 ml-1 font-bold">細項備註 (選填)</label>
+                           <textarea
+                             value={editData.description || ""}
+                             onChange={(e) =>
+                               setEditData({
+                                 ...editData,
+                                 description: e.target.value,
+                               })
+                             }
+                             className="w-full px-2 py-2 border border-gray-300 rounded text-xs outline-none focus:ring-1 focus:ring-slate-400"
+                             placeholder="細項備註"
+                             rows="2"
+                           />
+                         </div>
+
+                         {/* 金額與操作按鈕 */}
+                         <div>
+                           <label className="block text-[10px] text-gray-400 mb-1 ml-1 font-bold">金額</label>
+                           <div className="flex items-center gap-2">
+                             <div className="relative flex-grow">
+                               <input
+                                 type="number"
+                                 inputMode="decimal"
+                                 value={editData.amount}
+                                 onChange={(e) =>
+                                   setEditData({
+                                     ...editData,
+                                     amount: e.target.value,
+                                   })
+                                 }
+                                 className="w-full pl-2 pr-14 py-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-400 outline-none"
+                               />
+                               {count > 1 && (
+                                 <button
+                                   onClick={() =>
+                                     setEditData({
+                                       ...editData,
+                                       isPerPerson: !editData.isPerPerson,
+                                     })
+                                   }
+                                   className={`absolute right-1 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                     editData.isPerPerson
+                                       ? "bg-slate-600 text-white"
+                                       : "bg-gray-100 text-gray-500"
+                                    }`}
+                                 >
+                                   {editData.isPerPerson ? "👤 單人" : "👥 總額"}
+                                 </button>
+                               )}
+                             </div>
+                             <div className="flex gap-1 shrink-0">
+                               <button
+                                 onClick={() => saveEdit(item.id)}
+                                 className="bg-green-500 text-white p-2 rounded shadow-sm active:scale-95 transition"
+                               >
+                                 <ICON_SVG.check className="w-5 h-5" />
+                               </button>
+                               <button
+                                 onClick={() => setEditingId(null)}
+                                 className="bg-gray-200 text-gray-600 p-2 rounded shadow-sm active:scale-95 transition"
+                               >
+                                 <ICON_SVG.xMark className="w-5 h-5" />
+                               </button>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
                       ) : (
                         /* === 顯示模式 === */
                         <div
