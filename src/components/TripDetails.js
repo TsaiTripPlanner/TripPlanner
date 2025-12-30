@@ -166,6 +166,7 @@ const TripDetails = ({
             onAdd={addReference}
             onUpdate={updateReference}
             onDelete={deleteReference}
+            onReorder={reorderReferences}
           />
         )}
       </div>

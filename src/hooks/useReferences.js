@@ -1,14 +1,16 @@
-// src/hooks/useReferences.js (完整替換)
+// src/hooks/useReferences.js
 import { useState, useEffect, useCallback } from "react";
 import {
   collection,
   onSnapshot,
   addDoc,
   deleteDoc,
-  updateDoc, // 新增
+  updateDoc,
   doc,
   serverTimestamp,
   query,
+  orderBy,
+  writeBatch
 } from "firebase/firestore";
 import { db, appId } from "../config/firebase";
 
@@ -21,13 +23,11 @@ export const useReferences = (userId, itineraryId, isEnabled) => {
       db,
       `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/references`
     );
-    const q = query(refCol);
+    // 改為依照 order 排序
+    const q = query(refCol, orderBy("order", "asc"));
+    
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      // 依建立時間排序
-      data.sort(
-        (a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
-      );
       setReferences(data);
     });
     return () => unsubscribe();
@@ -39,18 +39,21 @@ export const useReferences = (userId, itineraryId, isEnabled) => {
         db,
         `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/references`
       );
-      await addDoc(refCol, { ...data, createdAt: serverTimestamp() });
+      // 計算新的 order (放在目前列表最後面)
+      const newOrder = references.length;
+        
+      await addDoc(refCol, { 
+        ...data, 
+        order: newOrder,
+        createdAt: serverTimestamp() 
+      });
     },
-    [itineraryId, userId]
+    [itineraryId, userId, references]
   );
 
-  // 新增：更新功能
   const updateReference = useCallback(
     async (id, data) => {
-      const refRef = doc(
-        db,
-        `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/references/${id}`
-      );
+      const refRef = doc(db, `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/references/${id}`);
       await updateDoc(refRef, { ...data, updatedAt: serverTimestamp() });
     },
     [itineraryId, userId]
@@ -58,15 +61,25 @@ export const useReferences = (userId, itineraryId, isEnabled) => {
 
   const deleteReference = useCallback(
     async (id) => {
-      await deleteDoc(
-        doc(
-          db,
-          `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/references/${id}`
-        )
-      );
+      await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/references/${id}`));
     },
     [itineraryId, userId]
   );
 
-  return { references, addReference, updateReference, deleteReference };
+  const reorderReferences = useCallback(
+    async (newList) => {
+      // 樂觀更新前端畫面
+      setReferences(newList);
+      
+      const batch = writeBatch(db);
+      newList.forEach((item, index) => {
+        const ref = doc(db, `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/references/${item.id}`);
+        batch.update(ref, { order: index });
+      });
+      await batch.commit();
+    },
+    [itineraryId, userId]
+  );
+
+  return { references, addReference, updateReference, deleteReference, reorderReferences };
 };
