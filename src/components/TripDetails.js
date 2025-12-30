@@ -44,7 +44,7 @@ const TripDetails = ({
     activeTab === TABS.PACKING // 只有在分頁是「清單」時，開關才會是 true
   );
 
-  const { references, addReference, updateReference, deleteReference } =
+  const { references, addReference, updateReference, deleteReference, reorderReferences } =
     useReferences(
       userId,
       itinerary.id,

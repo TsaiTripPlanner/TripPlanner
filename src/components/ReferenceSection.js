@@ -23,9 +23,12 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
   const [isFetching, setIsFetching] = useState(false);
 
   // 過濾出當前分頁的資料
-  const filteredRefs = references.filter(
-    (ref) => (ref.type || "transport") === activeTab
-  );
+  const filteredRefs = references.filter((ref) => {
+    if (activeTab === "transport") return ref.type === "transport";
+    if (activeTab === "spot") return ref.type === "spot";
+    if (activeTab === "guide") return ref.type === "guide" || ref.type === "link" || !ref.type; // 讓舊資料出現在攻略
+    return false;
+});
 
   const toggleExpand = (id) => {
     const newIds = new Set(expandedIds);
@@ -42,8 +45,9 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
     const [reorderedItem] = currentTabItems.splice(result.source.index, 1);
     currentTabItems.splice(result.destination.index, 0, reorderedItem);
 
-    // 將更新後的當前 Tab 項目與其他 Tab 的項目合併，保持全局順序
-    const otherTabItems = references.filter(ref => (ref.type || "transport") !== activeTab);
+    // 取得不屬於當前分頁的所有其他項目
+    const otherTabItems = references.filter(ref => !filteredRefs.some(r => r.id === ref.id));
+  
     onReorder([...currentTabItems, ...otherTabItems]);
   };
 
