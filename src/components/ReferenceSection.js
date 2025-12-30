@@ -24,11 +24,15 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
 
   // 過濾出當前分頁的資料
   const filteredRefs = references.filter((ref) => {
-    if (activeTab === "transport") return ref.type === "transport";
-    if (activeTab === "spot") return ref.type === "spot";
-    if (activeTab === "guide") return ref.type === "guide" || ref.type === "link" || !ref.type; // 讓舊資料出現在攻略
-    return false;
-});
+    const itemType = ref.type || "guide"; // 如果沒標籤，預設歸類到攻略
+    if (activeTab === "guide") {
+     // 攻略分頁：顯示標籤為 guide 或 link (舊標籤) 的資料
+     return itemType === "guide" || itemType === "link";
+    }
+  
+     // 其他分頁 (transport, spot)：直接比對 ID
+     return itemType === activeTab;
+  });
 
   const toggleExpand = (id) => {
     const newIds = new Set(expandedIds);
@@ -38,18 +42,22 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
   };
 
   const handleDragEnd = (result) => {
-    if (!result.destination) return;
+     if (!result.destination) return;
 
-    // 取得當前 Tab 的排序
-    const currentTabItems = Array.from(filteredRefs);
-    const [reorderedItem] = currentTabItems.splice(result.source.index, 1);
-    currentTabItems.splice(result.destination.index, 0, reorderedItem);
+     // 1. 取得當前畫面上看到的項目
+     const currentTabItems = Array.from(filteredRefs);
+     const [reorderedItem] = currentTabItems.splice(result.source.index, 1);
+     currentTabItems.splice(result.destination.index, 0, reorderedItem);
 
-    // 取得不屬於當前分頁的所有其他項目
-    const otherTabItems = references.filter(ref => !filteredRefs.some(r => r.id === ref.id));
-  
-    onReorder([...currentTabItems, ...otherTabItems]);
-  };
+     // 2. 找出「不屬於」當前分頁的所有其他項目（避免把它們刪掉）
+     // 透過 ID 排除掉目前正在顯示的這些項目即可
+     const otherTabItems = references.filter(
+       (ref) => !filteredRefs.some((visibleItem) => visibleItem.id === ref.id)
+     );
+
+     // 3. 合併回傳，交給 hook 更新資料庫順序
+     onReorder([...currentTabItems, ...otherTabItems]);
+   };
 
   const fetchMetadata = async (targetUrl) => {
     if (!targetUrl.trim()) return;
