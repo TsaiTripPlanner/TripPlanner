@@ -258,6 +258,14 @@ const ActivityItem = memo(
                     {activity.title}
                   </h3>
 
+                  {/* ★在標題下方顯示地點 */}
+                  {activity.location && (
+                   <div className={`flex items-center text-[11px] ${theme.cardMeta} mt-0.5 mb-1 opacity-90`}>
+                     <ICON_SVG.mapPin className="w-3 h-3 mr-1 shrink-0" />
+                     <span className="truncate">{activity.location}</span>
+                   </div>
+                   )}
+
                   {/* 時間區間：直接顯示時間，不顯示中文 */}
                   <div
                     className={`text-[11px] font-medium ${theme.cardMeta} mt-0.5 mb-1`}
