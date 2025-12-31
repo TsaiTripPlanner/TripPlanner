@@ -6,6 +6,7 @@
   "main": "src/index.tsx",
   "dependencies": {
     "@hello-pangea/dnd": "18.0.1",
+    "browser-image-compression": "^2.0.2",
     "dayjs": "^1.11.19",
     "firebase": "12.6.0",
     "react": "^19.0.0",
