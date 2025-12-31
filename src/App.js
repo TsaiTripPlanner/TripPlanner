@@ -206,6 +206,12 @@ const App = () => {
           display: flex;
           align-items: center;
         }
+        
+        /* 確保所有 input 不會撐破容器 */
+        input[type="text"], input[type="number"], input[type="url"] {
+          min-width: 0 !important;
+        }
+
       `}</style>
 
       {/* 主題切換按鈕 */}

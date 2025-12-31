@@ -146,17 +146,19 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
       {/* --- 新增表單 --- */}
       {showAddForm && (
         <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 space-y-4 animate-fade-in">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center"> {/* 確保垂直置中 */}
             <input
               type="text"
               placeholder={activeTab === "transport" ? "貼上時刻表或路線網址 (選填)..." : "貼上網址 (選填)..."}
               value={newData.url}
               onChange={(e) => setNewData({ ...newData, url: e.target.value })}
-              className="flex-1 px-3 py-2 border rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-400"
+              // 加入 min-w-0 確保它在窄螢幕下可以縮得比預設寬度小
+              className={`flex-1 min-w-0 px-3 py-2 border rounded-md text-sm outline-none focus:ring-1 ${theme.ringFocus} ${theme.borderFocus}`}
             />
             <button 
               onClick={() => fetchMetadata(newData.url)} 
               disabled={isFetching}
+              // 確保按鈕不縮減，並縮小手機版的左右內距 (px-2)
               className="shrink-0 px-3 py-2 bg-white border rounded text-xs font-bold shadow-sm active:scale-95 disabled:opacity-50"
             >
               {isFetching ? "..." : "抓取"}
