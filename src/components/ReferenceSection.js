@@ -16,26 +16,30 @@ const SPOT_SUB_TABS = [
 
 const parseSpotContent = (text) => {
   const sections = { info: '', food: '', shop: '', nearby: '', note: '' };
-  if (!text) return sections;
+  if (!text || typeof text !== 'string') return sections;
+  
   const parts = text.split(/\[(美食|特色店家|附近景點|注意事項)\]/);
-  sections.info = parts[0].trim();
+  // 第一部分永遠是介紹
+  sections.info = (parts[0] || '').trim();
+  
   for (let i = 1; i < parts.length; i += 2) {
     const key = parts[i];
-    const content = parts[i + 1]?.trim() || '';
+    const content = (parts[i + 1] || '').trim();
     if (key === '美食') sections.food = content;
-    if (key === '特色店家') sections.shop = content;
-    if (key === '附近景點') sections.nearby = content;
-    if (key === '注意事項') sections.note = content;
+    else if (key === '特色店家') sections.shop = content;
+    else if (key === '附近景點') sections.nearby = content;
+    else if (key === '注意事項') sections.note = content;
   }
   return sections;
 };
 
 const renderRichText = (text, theme) => {
-  if (!text || typeof text !== 'string') return null;
+  if (!text) return null;
+  const stringText = String(text); // 強制轉字串防止報錯
 
-  // 使用 lineIdx 作為 map 的索引變數
-  return text.split('\n').map((line, lineIdx) => {
-    // 處理標題
+  return stringText.split('\n').map((line, lineIdx) => {
+    if (!line && line !== "") return null;
+    
     if (line.startsWith('# ')) {
       return (
         <h3 key={`h3-${lineIdx}`} className={`text-lg font-bold mt-4 mb-2 pb-1 border-b ${theme?.accentBorder || 'border-gray-200'} ${theme?.accentText || 'text-slate-600'}`}>
@@ -43,17 +47,11 @@ const renderRichText = (text, theme) => {
         </h3>
       );
     }
-    if (line.startsWith('## ')) {
-      return <h4 key={`h4-${lineIdx}`} className="text-base font-bold mt-3 mb-1 text-slate-700">{line.replace('## ', '')}</h4>;
-    }
-    if (line.trim() === '---') {
-      return <hr key={`hr-${lineIdx}`} className="my-4 border-gray-200" />;
-    }
     
-    // 安全版處理粗體：將 parts 拆解並加上正確索引
+    // 處理粗體
     const parts = line.split(/(\*\*.*?\*\*)/g);
     const boldProcessed = parts.map((part, pIdx) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
+      if (part && part.startsWith('**') && part.endsWith('**')) {
         return (
           <strong key={`bold-${lineIdx}-${pIdx}`} className="font-bold text-slate-900 mx-0.5">
             {part.slice(2, -2)}
@@ -64,7 +62,7 @@ const renderRichText = (text, theme) => {
     });
 
     return (
-      <p key={`p-${lineIdx}`} className="text-sm leading-7 mb-1 text-slate-600 min-h-[1.5rem] break-words">
+      <p key={`p-${lineIdx}`} className="text-sm leading-7 mb-1 text-slate-600 min-h-[1.2rem] break-all">
         {boldProcessed}
       </p>
     );
@@ -418,90 +416,95 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
         </div>
       )}
       {/* --- 景點詳情全螢幕彈窗 --- */}
-      {viewingDetail && (
+{viewingDetail && (
   <Modal 
     isOpen={!!viewingDetail} 
     onClose={() => { setViewingDetail(null); setActiveSpotTab('info'); }} 
-    title={viewingDetail?.title || "景點詳情"}
+    title={viewingDetail?.title || "景點資訊"}
   >
-    <div className="flex flex-col max-h-[75vh] overflow-hidden bg-white">
-      {/* 頂部圖片區 */}
+    {/* 增加 min-h 確保 Modal 不會因為 flex 塌陷而高度為 0 */}
+    <div className="flex flex-col min-h-[400px] max-h-[75vh] bg-white">
+      
+      {/* 1. 圖片區 */}
       {viewingDetail.imageUrl && (
-        <div className="shrink-0 h-44 sm:h-52 overflow-hidden rounded-xl shadow-sm mb-4">
+        <div className="shrink-0 h-48 w-full overflow-hidden rounded-xl mb-4 bg-gray-100">
           <img 
             src={viewingDetail.imageUrl} 
             className="w-full h-full object-cover" 
-            alt="景點大圖" 
+            alt="景點圖" 
             onClick={() => window.open(viewingDetail.imageUrl)}
+            onError={(e) => { e.target.style.display = 'none'; }} // 圖片壞掉就隱藏
           />
         </div>
       )}
 
-      {/* 子分頁導覽列 */}
-      <div className="flex space-x-1 py-2 overflow-x-auto scrollbar-hide border-b border-gray-100 bg-white sticky top-0 z-20 shrink-0">
-        {SPOT_SUB_TABS.map(tab => {
-          const Icon = ICON_SVG[tab.icon] || ICON_SVG.dots;
-          const isSelected = activeSpotTab === tab.id;
-          
-          // 檢查該分頁是否有內容，若無內容則文字變淡
-          const sections = parseSpotContent(viewingDetail.description || "");
-          const hasContent = sections[tab.id] && sections[tab.id].trim().length > 0;
-
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveSpotTab(tab.id)}
-              className={`flex items-center px-4 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${
-                isSelected 
-                  ? `${theme.buttonPrimary} text-white shadow-md transform scale-105` 
-                  : `bg-gray-50 ${hasContent ? 'text-gray-600' : 'text-gray-300'} hover:bg-gray-100`
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5 mr-1.5" />
-              {tab.name}
-              {hasContent && !isSelected && <div className="ml-1 w-1 h-1 bg-red-400 rounded-full"></div>}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 內容區域 */}
-      <div className="flex-grow overflow-y-auto mt-2 pt-2 pb-12 px-1 custom-scrollbar">
-        {(() => {
-          // 安全讀取描述，若為 undefined 則給空字串
-          const description = viewingDetail?.description || "";
-          const sections = parseSpotContent(description);
-          const text = sections[activeSpotTab];
-          
-          // 如果該分頁真的沒內容
-          if (!text || text.trim() === "") {
-            return (
-              <div className="flex flex-col items-center justify-center py-20 text-gray-300">
-                <ICON_SVG.noteText className="w-10 h-10 mb-2 opacity-20" />
-                <p className="text-sm italic font-medium">這個分頁目前沒有資料</p>
-                <p className="text-[10px] mt-1">您可以點擊上方其他按鈕切換內容</p>
-              </div>
-            );
-          }
-          
-          return (
-            <div className="animate-fade-in">
-              {renderRichText(text, theme)}
-            </div>
-          );
-        })()}
+      {/* 2. 解析資料與自動跳轉邏輯 */}
+      {(() => {
+        const sections = parseSpotContent(viewingDetail.description || "");
         
-        {activeSpotTab === 'info' && viewingDetail.url && (
-          <a 
-            href={viewingDetail.url} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="mt-6 flex items-center justify-center w-full py-3 bg-slate-800 text-white rounded-xl text-sm font-bold shadow-lg"
-          >
-            <ICON_SVG.link className="w-4 h-4 mr-2" /> 查看官方網站 / 更多資訊
-          </a>
-        )}
-      </div>
+        // 如果目前分頁是空的，嘗試找一個有內容的分頁
+        const currentContent = sections[activeSpotTab];
+        if ((!currentContent || currentContent.trim() === "") && activeSpotTab === 'info') {
+          const firstFilledTab = SPOT_SUB_TABS.find(tab => sections[tab.id] && sections[tab.id].trim() !== "");
+          if (firstFilledTab && firstFilledTab.id !== activeSpotTab) {
+            // 注意：這裡直接 setState 可能會導致渲染警告，但在 Modal 打開瞬間是安全的
+            setTimeout(() => setActiveSpotTab(firstFilledTab.id), 0);
+          }
+        }
+
+        return (
+          <>
+            {/* 子分頁導覽 */}
+            <div className="flex space-x-1 py-2 overflow-x-auto scrollbar-hide border-b border-gray-100 sticky top-0 bg-white z-10 shrink-0">
+              {SPOT_SUB_TABS.map(tab => {
+                const Icon = ICON_SVG[tab.icon] || ICON_SVG.dots;
+                const isSelected = activeSpotTab === tab.id;
+                const hasData = sections[tab.id] && sections[tab.id].trim().length > 0;
+
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveSpotTab(tab.id)}
+                    className={`flex items-center px-4 py-2 rounded-full text-[11px] font-bold transition-all ${
+                      isSelected 
+                        ? `${theme.buttonPrimary} text-white shadow-md` 
+                        : `${hasData ? 'text-gray-600' : 'text-gray-300'} bg-gray-50`
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5 mr-1.5" />
+                    {tab.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 內容顯示區 */}
+            <div className="flex-grow overflow-y-auto mt-4 px-1 pb-10">
+              {currentContent && currentContent.trim() !== "" ? (
+                <div className="animate-fade-in">
+                  {renderRichText(currentContent, theme)}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-300">
+                  <ICON_SVG.noteText className="w-10 h-10 mb-2 opacity-20" />
+                  <p className="text-sm">此分頁尚無資料</p>
+                </div>
+              )}
+
+              {activeSpotTab === 'info' && viewingDetail.url && (
+                <a 
+                  href={viewingDetail.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="mt-8 flex items-center justify-center w-full py-3 bg-slate-800 text-white rounded-xl text-sm font-bold shadow-lg"
+                >
+                  <ICON_SVG.link className="w-4 h-4 mr-2" /> 前往官方網站 / 更多資訊
+                </a>
+              )}
+            </div>
+          </>
+        );
+      })()}
     </div>
   </Modal>
 )}
