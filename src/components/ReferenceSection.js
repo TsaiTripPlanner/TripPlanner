@@ -5,10 +5,54 @@ import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";
 import ImageUpload from "./ImageUpload";
 
+// --- 分頁定義與解析工具 ---
+const SPOT_SUB_TABS = [
+  { id: 'info', name: '介紹', icon: 'info' },
+  { id: 'food', name: '美食', icon: 'food' },
+  { id: 'shop', name: '特色店家', icon: 'shopping' },
+  { id: 'nearby', name: '附近景點', icon: 'mapPin' },
+  { id: 'note', name: '注意事項', icon: 'noteText' },
+];
+
+const parseSpotContent = (text) => {
+  const sections = { info: '', food: '', shop: '', nearby: '', note: '' };
+  if (!text) return sections;
+  const parts = text.split(/\[(美食|特色店家|附近景點|注意事項)\]/);
+  sections.info = parts[0].trim();
+  for (let i = 1; i < parts.length; i += 2) {
+    const key = parts[i];
+    const content = parts[i + 1]?.trim() || '';
+    if (key === '美食') sections.food = content;
+    if (key === '特色店家') sections.shop = content;
+    if (key === '附近景點') sections.nearby = content;
+    if (key === '注意事項') sections.note = content;
+  }
+  return sections;
+};
+
+const renderRichText = (text, theme) => {
+  if (!text) return null;
+  return text.split('\n').map((line, index) => {
+    if (line.startsWith('# ')) return <h3 key={index} className={`text-lg font-bold mt-4 mb-2 pb-1 border-b ${theme.accentBorder} ${theme.accentText}`}>{line.replace('# ', '')}</h3>;
+    if (line.startsWith('## ')) return <h4 key={index} className="text-base font-bold mt-3 mb-1 text-slate-700">{line.replace('## ', '')}</h4>;
+    if (line.trim() === '---') return <hr key={index} className="my-4 border-gray-200" />;
+    
+    let segments = [line];
+    segments = segments.flatMap(seg => {
+      if (typeof seg !== 'string') return seg;
+      const parts = seg.split(/(\*\*.*?\*\*)/g);
+      return parts.map(p => p.startsWith('**') && p.endsWith('**') ? <strong key={p} className="font-bold text-slate-800">{p.slice(2, -2)}</strong> : p);
+    });
+    return <p key={index} className="text-sm leading-7 mb-1 text-slate-600 min-h-[1.5rem]">{segments}</p>;
+  });
+};
+
 const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) => {
   const { theme } = useTheme();
   
   const [activeTab, setActiveTab] = useState("transport"); // 預設為交通
+  const [viewingDetail, setViewingDetail] = useState(null);
+  const [activeSpotTab, setActiveSpotTab] = useState('info');
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
@@ -244,7 +288,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                               {ref.description}
                             </div>
                           )}
-                          
+
                           {ref.imageUrl && (
                             <div className="mb-3 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
                               <img 
@@ -272,10 +316,10 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                         <div className="flex flex-col h-full pl-2">
                           <div className="aspect-video w-full overflow-hidden bg-gray-100">
                             {ref.imageUrl && (
-                              <img src={ref.imageUrl} alt="" className="w-full h-full object-cover" onClick={() => window.open(ref.imageUrl)} />
+                              <img src={ref.imageUrl} alt="" className="w-full h-full object-cover cursor-pointer" onClick={() => setViewingDetail(ref)} />
                             )}
                           </div>
-                          <div className="p-4">
+                          <div className="p-4 flex flex-col flex-grow">
                             <div className="flex justify-between items-start mb-2">
                               <h3 className="font-bold text-lg leading-tight pr-2">{ref.title}</h3>
                               <div className="flex gap-2 shrink-0">
@@ -283,17 +327,16 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                                 <button onClick={() => onDelete(ref.id)} className="text-gray-300 hover:text-red-400"><ICON_SVG.trash className="w-4 h-4" /></button>
                               </div>
                             </div>
-                            <div 
-                              onClick={() => toggleExpand(ref.id)}
-                              className={`text-sm text-gray-500 cursor-pointer whitespace-pre-wrap ${expandedIds.has(ref.id) ? "" : "line-clamp-3"}`}
-                            >
-                              {ref.description || "暫無內容..."}
+                            {/* 只顯示介紹分頁的前兩行 */}
+                            <div className="text-sm text-gray-500 line-clamp-2 mb-4">
+                              {parseSpotContent(ref.description).info || "暫無介紹..."}
                             </div>
-                            {ref.description && ref.description.length > 60 && (
-                              <button onClick={() => toggleExpand(ref.id)} className="text-[10px] text-blue-500 mt-1 font-bold">
-                                {expandedIds.has(ref.id) ? "收合內容 ▲" : "展開全文 ▼"}
-                              </button>
-                            )}
+                            <button 
+                              onClick={() => setViewingDetail(ref)}
+                              className={`mt-auto w-full py-2 rounded-lg text-xs font-bold border transition ${theme.accentText} ${theme.accentBorder} hover:bg-slate-50`}
+                            >
+                              查看完整攻略 (美食/店家/注意)
+                            </button>
                           </div>
                         </div>
                       ) : (
@@ -339,6 +382,54 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
             點此新增第一筆
           </button>
         </div>
+      )}
+      {/* --- 這裡新增：景點詳情全螢幕彈窗 --- */}
+      {viewingDetail && (
+        <Modal 
+          isOpen={!!viewingDetail} 
+          onClose={() => { setViewingDetail(null); setActiveSpotTab('info'); }} 
+          title={viewingDetail.title}
+        >
+          <div className="flex flex-col h-[70vh] -m-4">
+            {/* 頂部大圖 */}
+            {viewingDetail.imageUrl && (
+              <div className="shrink-0 h-44 overflow-hidden shadow-md">
+                <img src={viewingDetail.imageUrl} className="w-full h-full object-cover" alt="" />
+              </div>
+            )}
+
+            {/* 子分頁導覽按鈕 */}
+            <div className="flex space-x-1 p-3 overflow-x-auto scrollbar-hide border-b border-gray-100 bg-white sticky top-0 z-10">
+              {SPOT_SUB_TABS.map(tab => {
+                const Icon = ICON_SVG[tab.icon] || ICON_SVG.dots;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveSpotTab(tab.id)}
+                    className={`flex items-center px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                      activeSpotTab === tab.id 
+                        ? `${theme.buttonPrimary} text-white shadow-md` 
+                        : "bg-gray-100 text-gray-400"
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5 mr-1.5" />
+                    {tab.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 內容區域 */}
+            <div className="flex-grow overflow-y-auto p-5 pb-10">
+              {(() => {
+                const sections = parseSpotContent(viewingDetail.description);
+                const text = sections[activeSpotTab];
+                if (!text) return <div className="text-gray-300 text-center py-10 text-sm italic">此分頁尚無資料</div>;
+                return <div className="animate-fade-in">{renderRichText(text, theme)}</div>;
+              })()}
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );
