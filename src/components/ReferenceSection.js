@@ -1,9 +1,10 @@
 // src/components/ReferenceSection.js
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";
 import ImageUpload from "./ImageUpload";
+import Modal from "./Modal";
 
 // --- 分頁定義與解析工具 ---
 const SPOT_SUB_TABS = [
@@ -19,7 +20,6 @@ const parseSpotContent = (text) => {
   if (!text || typeof text !== 'string') return sections;
   
   const parts = text.split(/\[(美食|特色店家|附近景點|注意事項)\]/);
-  // 第一部分永遠是介紹
   sections.info = (parts[0] || '').trim();
   
   for (let i = 1; i < parts.length; i += 2) {
@@ -87,6 +87,11 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
     description: "",
   });
   const [isFetching, setIsFetching] = useState(false);
+
+  const spotSections = useMemo(() => {
+    if (!viewingDetail) return null;
+    return parseSpotContent(viewingDetail.description || "");
+  }, [viewingDetail]);
 
   // 過濾出當前分頁的資料
   const filteredRefs = references.filter((ref) => {
@@ -416,98 +421,73 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
         </div>
       )}
       {/* --- 景點詳情全螢幕彈窗 --- */}
-{viewingDetail && (
-  <Modal 
-    isOpen={!!viewingDetail} 
-    onClose={() => { setViewingDetail(null); setActiveSpotTab('info'); }} 
-    title={viewingDetail?.title || "景點資訊"}
-  >
-    {/* 增加 min-h 確保 Modal 不會因為 flex 塌陷而高度為 0 */}
-    <div className="flex flex-col min-h-[400px] max-h-[75vh] bg-white">
-      
-      {/* 1. 圖片區 */}
-      {viewingDetail.imageUrl && (
-        <div className="shrink-0 h-48 w-full overflow-hidden rounded-xl mb-4 bg-gray-100">
-          <img 
-            src={viewingDetail.imageUrl} 
-            className="w-full h-full object-cover" 
-            alt="景點圖" 
-            onClick={() => window.open(viewingDetail.imageUrl)}
-            onError={(e) => { e.target.style.display = 'none'; }} // 圖片壞掉就隱藏
-          />
-        </div>
-      )}
+      {viewingDetail && spotSections && (
+        <Modal 
+          isOpen={!!viewingDetail} 
+          onClose={() => { setViewingDetail(null); setActiveSpotTab('info'); }} 
+          title={viewingDetail.title || "景點詳情"}
+        >
+          {/* 加入 min-h-[400px] 確保容器高度 */}
+          <div className="flex flex-col min-h-[400px] max-h-[75vh] overflow-hidden bg-white">
+            {viewingDetail.imageUrl && (
+              <div className="shrink-0 h-44 sm:h-52 overflow-hidden rounded-xl shadow-sm mb-4">
+                <img 
+                  src={viewingDetail.imageUrl} 
+                  className="w-full h-full object-cover" 
+                  alt="景點大圖" 
+                />
+              </div>
+            )}
 
-      {/* 2. 解析資料與自動跳轉邏輯 */}
-      {(() => {
-        const sections = parseSpotContent(viewingDetail.description || "");
-        
-        // 如果目前分頁是空的，嘗試找一個有內容的分頁
-        const currentContent = sections[activeSpotTab];
-        if ((!currentContent || currentContent.trim() === "") && activeSpotTab === 'info') {
-          const firstFilledTab = SPOT_SUB_TABS.find(tab => sections[tab.id] && sections[tab.id].trim() !== "");
-          if (firstFilledTab && firstFilledTab.id !== activeSpotTab) {
-            // 注意：這裡直接 setState 可能會導致渲染警告，但在 Modal 打開瞬間是安全的
-            setTimeout(() => setActiveSpotTab(firstFilledTab.id), 0);
-          }
-        }
-
-        return (
-          <>
-            {/* 子分頁導覽 */}
-            <div className="flex space-x-1 py-2 overflow-x-auto scrollbar-hide border-b border-gray-100 sticky top-0 bg-white z-10 shrink-0">
+            {/* 子分頁導覽列 (簡化版，移除 Icon 以確保穩定) */}
+            <div className="flex space-x-1 py-2 overflow-x-auto scrollbar-hide border-b border-gray-100 bg-white sticky top-0 z-20 shrink-0">
               {SPOT_SUB_TABS.map(tab => {
-                const Icon = ICON_SVG[tab.icon] || ICON_SVG.dots;
                 const isSelected = activeSpotTab === tab.id;
-                const hasData = sections[tab.id] && sections[tab.id].trim().length > 0;
-
+                // 檢查該分頁是否有內容
+                const hasContent = spotSections[tab.id] && spotSections[tab.id].trim().length > 0;
+                
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveSpotTab(tab.id)}
-                    className={`flex items-center px-4 py-2 rounded-full text-[11px] font-bold transition-all ${
+                    className={`flex items-center px-4 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${
                       isSelected 
                         ? `${theme.buttonPrimary} text-white shadow-md` 
-                        : `${hasData ? 'text-gray-600' : 'text-gray-300'} bg-gray-50`
+                        : `${hasContent ? 'text-gray-600' : 'text-gray-300'} bg-gray-50`
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5 mr-1.5" />
                     {tab.name}
                   </button>
                 );
               })}
             </div>
 
-            {/* 內容顯示區 */}
-            <div className="flex-grow overflow-y-auto mt-4 px-1 pb-10">
-              {currentContent && currentContent.trim() !== "" ? (
+            {/* 內容區域 */}
+            <div className="flex-grow overflow-y-auto mt-2 pt-2 pb-12 px-1">
+              {spotSections[activeSpotTab] ? (
                 <div className="animate-fade-in">
-                  {renderRichText(currentContent, theme)}
+                  {renderRichText(spotSections[activeSpotTab], theme)}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-20 text-gray-300">
-                  <ICON_SVG.noteText className="w-10 h-10 mb-2 opacity-20" />
-                  <p className="text-sm">此分頁尚無資料</p>
+                  <p className="text-xs italic font-medium">這個分頁目前沒有資料喔</p>
                 </div>
               )}
-
+              
               {activeSpotTab === 'info' && viewingDetail.url && (
                 <a 
                   href={viewingDetail.url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="mt-8 flex items-center justify-center w-full py-3 bg-slate-800 text-white rounded-xl text-sm font-bold shadow-lg"
+                  className="mt-6 flex items-center justify-center w-full py-3 bg-slate-800 text-white rounded-xl text-sm font-bold shadow-lg"
                 >
-                  <ICON_SVG.link className="w-4 h-4 mr-2" /> 前往官方網站 / 更多資訊
+                  前往官方網站 / 更多資訊
                 </a>
               )}
             </div>
-          </>
-        );
-      })()}
-    </div>
-  </Modal>
-)}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
