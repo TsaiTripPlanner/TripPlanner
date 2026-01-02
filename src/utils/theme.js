@@ -66,7 +66,7 @@ export const THEMES = {
       floatingPassiveText: "text-[#9E948B] hover:text-[#5E544A]",
       loginModalBg: "bg-[#F2EFE9]",
       loginText: "text-[#5E544A]",
-      font: "font-zen-kaku font-light",
+      font: "font-muji-style",
       textMain: "text-[#5E544A]",
       cardBg: "bg-[#FAF9F6]",
       cardBorder: "border-[#C5BDB5]",

@@ -188,10 +188,10 @@ const App = () => {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap');
         
-        .font-serif-tc { font-family: 'Yuji Syuku', serif; letter-spacing: 0.05em; }
         .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
         .font-sans-tc { font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.02em; }
         .font-zen-kaku { font-family: 'Zen Kaku Gothic New', 'Noto Sans TC', sans-serif; letter-spacing: 0.05em; }
+        .font-muji-style { font-family: 'Noto Serif TC', serif; letter-spacing: 0.08em; font-weight: 500; }
 
         /* 全局強制修正輸入框寬度 */
         input, select, textarea {
