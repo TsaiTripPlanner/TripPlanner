@@ -2,6 +2,7 @@
 import React from "react";
 import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";
+import { useTheme } from "../utils/theme";
 import ItineraryCard from "./ItineraryCard";
 
 const ItineraryList = ({
@@ -11,14 +12,13 @@ const ItineraryList = ({
   onEdit,
   onOpenCreateModal,
 }) => {
-  const { theme } = useTheme();
+  const { theme, currentThemeId } = useTheme();
 
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
-        {/* ★ 修改重點：拿掉了 text-gray-800 和 font-cute */}
         {/* 現在它會自動繼承外層的顏色 (theme.textMain) 和字體 (theme.font) */}
-        <h1 className="text-4xl font-medium flex items-center">
+        <h1 className={`text-4xl flex items-center ${currentThemeId === 'muji' ? 'muji-title-bold' : 'font-medium'}`}>
           <img
             src="/world_761505.jpg"
             alt="Logo"
