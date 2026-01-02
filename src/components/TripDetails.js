@@ -21,7 +21,7 @@ const TripDetails = ({
   onUpdateTitle,
   allItineraries,
 }) => {
-  const { theme } = useTheme();
+  const { theme, currentThemeId } = useTheme();
 
   const [activeTab, setActiveTab] = useState(TABS.ITINERARY);
   const [isEditingTitle, setIsEditingTitle] = useState(false);

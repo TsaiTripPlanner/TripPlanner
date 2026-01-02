@@ -1,8 +1,10 @@
 // src/components/ItineraryCard.js
 import React from "react";
 import { ICON_SVG } from "../utils/icons";
+import { useTheme } from "../utils/theme";
 
 const ItineraryCard = ({ data, onSelect, onDelete, onEdit }) => {
+  const { currentThemeId } = useTheme();
   let displayDate = "";
   if (data.startDate) {
     displayDate = data.startDate.replace(/-/g, "/");

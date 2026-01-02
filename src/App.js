@@ -191,7 +191,7 @@ const App = () => {
         .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
         .font-sans-tc { font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.02em; }
         .font-zen-kaku { font-family: 'Zen Kaku Gothic New', 'Noto Sans TC', sans-serif; letter-spacing: 0.05em; }
-        .font-muji-style { font-family: 'Noto Serif TC', serif; letter-spacing: 0.08em; font-weight: 500; }
+        .font-muji-style { font-family: 'Noto Serif TC', serif; letter-spacing: 0.08em; }
         .muji-title-bold { font-family: 'Noto Serif TC', serif; font-weight: 900 !important; letter-spacing: 0.04em; line-height: 1.3; }
 
         /* 全局強制修正輸入框寬度 */
