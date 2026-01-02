@@ -38,12 +38,17 @@ const renderRichText = (text, theme) => {
     if (line.trim() === '---') return <hr key={index} className="my-4 border-gray-200" />;
     
     let segments = [line];
-    segments = segments.flatMap(seg => {
-      if (typeof seg !== 'string') return seg;
+    let boldProcessed = [];
+    segments.forEach(seg => {
+      if (typeof seg !== 'string') { boldProcessed.push(seg); return; }
       const parts = seg.split(/(\*\*.*?\*\*)/g);
-      return parts.map(p => p.startsWith('**') && p.endsWith('**') ? <strong key={p} className="font-bold text-slate-800">{p.slice(2, -2)}</strong> : p);
+      parts.forEach(p => {
+        if (p.startsWith('**') && p.endsWith('**')) {
+          boldProcessed.push(<strong key={p + index} className="font-bold text-slate-800">{p.slice(2, -2)}</strong>);
+        } else { boldProcessed.push(p); }
+      });
     });
-    return <p key={index} className="text-sm leading-7 mb-1 text-slate-600 min-h-[1.5rem]">{segments}</p>;
+    return <p key={index} className="text-sm leading-7 mb-1 text-slate-600 min-h-[1.5rem]">{boldProcessed}</p>;
   });
 };
 
@@ -221,6 +226,11 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
             </label>
             <ImageUpload currentImage={newData.imageUrl} onUploadSuccess={(url) => setNewData({ ...newData, imageUrl: url })} />
           </div>
+          <div className="flex flex-wrap gap-2 mb-1">
+           <button type="button" onClick={() => setNewData({...newData, description: newData.description + "\n# "})} className="px-2 py-0.5 bg-gray-100 text-[10px] rounded">標題</button>
+           <button type="button" onClick={() => setNewData({...newData, description: newData.description + "\n[美食]\n"})} className="px-2 py-0.5 bg-orange-50 text-orange-600 text-[10px] rounded border border-orange-100">分頁:美食</button>
+           <button type="button" onClick={() => setNewData({...newData, description: newData.description + "\n[注意事項]\n"})} className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] rounded border border-red-100">分頁:注意</button>
+         </div>
           <textarea
             placeholder={activeTab === "transport" ? "詳細路線指引，如：北口出來左轉，看到超商後..." : "詳細描述..."}
             value={newData.description}
@@ -266,6 +276,11 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                         <div className="p-4 space-y-3 bg-slate-50">
                           <input type="text" value={editData.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} className="w-full px-3 py-2 border rounded text-sm" />
                           <ImageUpload currentImage={editData.imageUrl} onUploadSuccess={(url) => setEditData({ ...editData, imageUrl: url })} />
+                          <div className="flex flex-wrap gap-2 mb-1">
+                           <button type="button" onClick={() => setEditData({...editData, description: editData.description + "\n# "})} className="px-2 py-0.5 bg-gray-200 text-[10px] rounded">標題</button>
+                           <button type="button" onClick={() => setEditData({...editData, description: editData.description + "\n[美食]\n"})} className="px-2 py-0.5 bg-orange-100 text-orange-800 text-[10px] rounded">美食</button>
+                           <button type="button" onClick={() => setEditData({...editData, description: editData.description + "\n[注意事項]\n"})} className="px-2 py-0.5 bg-red-100 text-red-800 text-[10px] rounded">注意</button>
+                         </div>
                           <textarea value={editData.description} onChange={(e) => setEditData({ ...editData, description: e.target.value })} rows="4" className="w-full px-3 py-2 border rounded text-sm" />
                           <div className="flex justify-end gap-2">
                             <button onClick={() => setEditingId(null)} className="px-3 py-1 bg-gray-200 rounded text-xs">取消</button>
@@ -335,7 +350,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                               onClick={() => setViewingDetail(ref)}
                               className={`mt-auto w-full py-2 rounded-lg text-xs font-bold border transition ${theme.accentText} ${theme.accentBorder} hover:bg-slate-50`}
                             >
-                              查看完整攻略 (美食/店家/注意)
+                              查看完整內容
                             </button>
                           </div>
                         </div>
@@ -383,49 +398,41 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
           </button>
         </div>
       )}
-      {/* --- 這裡新增：景點詳情全螢幕彈窗 --- */}
+      {/* --- 景點詳情全螢幕彈窗 --- */}
       {viewingDetail && (
         <Modal 
           isOpen={!!viewingDetail} 
           onClose={() => { setViewingDetail(null); setActiveSpotTab('info'); }} 
           title={viewingDetail.title}
         >
-          <div className="flex flex-col h-[70vh] -m-4">
-            {/* 頂部大圖 */}
+          <div className="flex flex-col h-[70vh] overflow-hidden">
             {viewingDetail.imageUrl && (
-              <div className="shrink-0 h-44 overflow-hidden shadow-md">
+              <div className="shrink-0 h-40 overflow-hidden rounded-xl shadow-sm mb-4">
                 <img src={viewingDetail.imageUrl} className="w-full h-full object-cover" alt="" />
               </div>
             )}
-
-            {/* 子分頁導覽按鈕 */}
-            <div className="flex space-x-1 p-3 overflow-x-auto scrollbar-hide border-b border-gray-100 bg-white sticky top-0 z-10">
+            <div className="flex space-x-1 py-2 overflow-x-auto scrollbar-hide border-b border-gray-100 bg-white shrink-0">
               {SPOT_SUB_TABS.map(tab => {
                 const Icon = ICON_SVG[tab.icon] || ICON_SVG.dots;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveSpotTab(tab.id)}
-                    className={`flex items-center px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                      activeSpotTab === tab.id 
-                        ? `${theme.buttonPrimary} text-white shadow-md` 
-                        : "bg-gray-100 text-gray-400"
+                    className={`flex items-center px-4 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all ${
+                      activeSpotTab === tab.id ? `${theme.buttonPrimary} text-white shadow-md` : "bg-gray-100 text-gray-400"
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5 mr-1.5" />
-                    {tab.name}
+                    <Icon className="w-3.5 h-3.5 mr-1.5" /> {tab.name}
                   </button>
                 );
               })}
             </div>
-
-            {/* 內容區域 */}
-            <div className="flex-grow overflow-y-auto p-5 pb-10">
+            <div className="flex-grow overflow-y-auto pt-4 pb-10">
               {(() => {
                 const sections = parseSpotContent(viewingDetail.description);
                 const text = sections[activeSpotTab];
-                if (!text) return <div className="text-gray-300 text-center py-10 text-sm italic">此分頁尚無資料</div>;
-                return <div className="animate-fade-in">{renderRichText(text, theme)}</div>;
+                if (!text || text.trim() === "") return <div className="text-gray-300 text-center py-12 text-xs italic">此分頁尚無資料</div>;
+                return <div className="animate-fade-in px-1">{renderRichText(text, theme)}</div>;
               })()}
             </div>
           </div>
