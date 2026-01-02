@@ -17,7 +17,7 @@ const ItineraryCard = ({ data, onSelect, onDelete, onEdit }) => {
     >
       <div className="flex-grow pr-4">
         {/* ★ 修改重點：拿掉了 text-gray-800 和 font-cute */}
-        <h3 className="text-xl mb-2 group-hover:opacity-75 transition break-words leading-relaxed font-bold">
+        <h3 className={`text-xl mb-2 group-hover:opacity-75 transition break-words leading-relaxed ${currentThemeId === 'muji' ? 'muji-title-bold' : 'font-bold'}`}>
           {data.title}
         </h3>
         <p className="text-sm text-gray-500 flex items-center">

@@ -105,7 +105,7 @@ const TripDetails = ({
               </div>
             ) : (
               <div className="flex items-center space-x-2 group">
-                <h1 className="text-3xl sm:text-4xl font-normal tracking-tight break-words leading-tight max-w-xs sm:max-w-xl">
+                <h1 className={`text-3xl sm:text-4xl break-words leading-tight max-w-xs sm:max-w-xl ${currentThemeId === 'muji' ? 'muji-title-bold' : 'font-bold'}`}>
                   {itinerary.title}
                 </h1>
                 <button
