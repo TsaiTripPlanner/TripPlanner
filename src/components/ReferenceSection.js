@@ -33,6 +33,7 @@ const parseSpotContent = (text) => {
 const renderRichText = (text, theme) => {
   if (!text || typeof text !== 'string') return null;
 
+  // 使用 lineIdx 作為 map 的索引變數
   return text.split('\n').map((line, lineIdx) => {
     // 處理標題
     if (line.startsWith('# ')) {
@@ -49,17 +50,17 @@ const renderRichText = (text, theme) => {
       return <hr key={`hr-${lineIdx}`} className="my-4 border-gray-200" />;
     }
     
-    // 處理粗體：確保 Key 唯一
+    // 安全版處理粗體：將 parts 拆解並加上正確索引
     const parts = line.split(/(\*\*.*?\*\*)/g);
-    const boldProcessed = parts.map((p, pIdx) => {
-      if (p.startsWith('**') && p.endsWith('**')) {
+    const boldProcessed = parts.map((part, pIdx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
         return (
           <strong key={`bold-${lineIdx}-${pIdx}`} className="font-bold text-slate-900 mx-0.5">
-            {p.slice(2, -2)}
+            {part.slice(2, -2)}
           </strong>
         );
       }
-      return p; // 純文字不需要 key
+      return part;
     });
 
     return (
@@ -423,8 +424,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
           onClose={() => { setViewingDetail(null); setActiveSpotTab('info'); }} 
           title={viewingDetail.title}
         >
-          {/* 修正：移除負邊距，設定明確高度與 flex 排版 */}
-          <div className="flex flex-col h-[70vh] overflow-hidden bg-white">
+          <div className="flex flex-col max-h-[75vh] overflow-hidden bg-white">
             {/* 頂部圖片區 */}
             {viewingDetail.imageUrl && (
               <div className="shrink-0 h-44 sm:h-52 overflow-hidden rounded-xl shadow-sm mb-4">
@@ -437,7 +437,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
               </div>
             )}
 
-            {/* 子分頁導覽列：確保在彈窗內置頂 */}
+            {/* 子分頁導覽列 */}
             <div className="flex space-x-1 py-2 overflow-x-auto scrollbar-hide border-b border-gray-100 bg-white sticky top-0 z-20 shrink-0">
               {SPOT_SUB_TABS.map(tab => {
                 const Icon = ICON_SVG[tab.icon] || ICON_SVG.dots;
@@ -459,13 +459,14 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
               })}
             </div>
 
-            {/* 內容區域：增加內距與流暢滾動 */}
-            <div className="flex-grow overflow-y-auto mt-2 pt-2 pb-12 px-1">
+            {/* 內容區域 */}
+            <div className="flex-grow overflow-y-auto mt-2 pt-2 pb-12 px-1 custom-scrollbar">
               {(() => {
                 const sections = parseSpotContent(viewingDetail.description);
                 const text = sections[activeSpotTab];
                 
-                if (!text || text.trim() === "") {
+                // 這裡一定要檢查 text 是否存在，避免 trim() 出錯
+                if (!text || (typeof text === 'string' && text.trim() === "")) {
                   return (
                     <div className="flex flex-col items-center justify-center py-20 text-gray-300">
                       <ICON_SVG.paperClip className="w-8 h-8 mb-2 opacity-20" />
@@ -481,7 +482,6 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                 );
               })()}
               
-              {/* 如果有原始網址，顯示按鈕 */}
               {activeSpotTab === 'info' && viewingDetail.url && (
                 <a 
                   href={viewingDetail.url} 
