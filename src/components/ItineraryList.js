@@ -2,7 +2,6 @@
 import React from "react";
 import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";
-import { useTheme } from "../utils/theme";
 import ItineraryCard from "./ItineraryCard";
 
 const ItineraryList = ({
