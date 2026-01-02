@@ -239,6 +239,12 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                             </div>
                           </div>
                           
+                          {ref.description && (
+                            <div className="text-sm text-gray-600 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 leading-relaxed">
+                              {ref.description}
+                            </div>
+                          )}
+                          
                           {ref.imageUrl && (
                             <div className="mb-3 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
                               <img 
@@ -247,12 +253,6 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                                 className="w-full h-auto max-h-[400px] object-contain mx-auto" 
                                 onClick={() => window.open(ref.imageUrl)} 
                               />
-                            </div>
-                          )}
-
-                          {ref.description && (
-                            <div className="text-sm text-gray-600 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 leading-relaxed">
-                              {ref.description}
                             </div>
                           )}
 
