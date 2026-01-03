@@ -88,6 +88,8 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
   const [editingId, setEditingId] = useState(null);
   const [editSections, setEditSections] = useState({ info: '', food: '', shop: '', nearby: '', note: '' });
   const [activeEditTab, setActiveEditTab] = useState('info'); // 記錄編輯時停在哪個分頁
+  const [newSections, setNewSections] = useState({ info: '', food: '', shop: '', nearby: '', note: '' });
+  const [activeAddSubTab, setActiveAddSubTab] = useState('info');
   const [editData, setEditData] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedIds, setExpandedIds] = useState(new Set());
@@ -184,10 +186,19 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
 
   const handleAddNew = async () => {
     if (!newData.title.trim()) return alert("請輸入標題");
-    await onAdd({ ...newData, type: activeTab });
-    setNewData({ title: "", url: "", imageUrl: "", description: "" });
-    setShowAddForm(false);
-  };
+     // 判斷：如果是景點才需要組裝，否則直接用 newData.description
+    const finalDesc = activeTab === 'spot' 
+     ? assembleSpotContent(newSections) 
+     : newData.description;
+
+  await onAdd({ ...newData, description: finalDesc, type: activeTab });
+  
+  // 重置所有輸入狀態
+  setNewData({ title: "", url: "", imageUrl: "", description: "" });
+  setNewSections({ info: '', food: '', shop: '', nearby: '', note: '' });
+  setActiveAddSubTab('info');
+  setShowAddForm(false);
+};
 
   return (
     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
@@ -262,18 +273,50 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
             </label>
             <ImageUpload currentImage={newData.imageUrl} onUploadSuccess={(url) => setNewData({ ...newData, imageUrl: url })} />
           </div>
-          <div className="flex flex-wrap gap-2 mb-1">
-           <button type="button" onClick={() => setNewData({...newData, description: newData.description + "\n# "})} className="px-2 py-0.5 bg-gray-100 text-[10px] rounded">標題</button>
-           <button type="button" onClick={() => setNewData({...newData, description: newData.description + "\n[美食]\n"})} className="px-2 py-0.5 bg-orange-50 text-orange-600 text-[10px] rounded border border-orange-100">分頁:美食</button>
-           <button type="button" onClick={() => setNewData({...newData, description: newData.description + "\n[注意事項]\n"})} className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] rounded border border-red-100">分頁:注意</button>
-         </div>
-          <textarea
-            placeholder={activeTab === "transport" ? "詳細路線指引，如：北口出來左轉，看到超商後..." : "詳細描述..."}
-            value={newData.description}
-            onChange={(e) => setNewData({ ...newData, description: e.target.value })}
-            rows="3"
-            className="w-full px-3 py-2 border rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-400"
-          />
+          {/* --- 判斷類型顯示不同的「新增」輸入框 --- */}
+{activeTab === 'spot' ? (
+  /* 景點模式：顯示分頁標籤 + 大格子 */
+  <div className="mt-4">
+    <div className="flex space-x-1 overflow-x-auto pb-1 scrollbar-hide">
+      {SPOT_SUB_TABS.map(tab => (
+        <button
+          key={tab.id}
+          type="button"
+          onClick={() => setActiveAddSubTab(tab.id)}
+          className={`px-3 py-1.5 rounded-t-lg text-[11px] font-bold transition-all ${
+            activeAddSubTab === tab.id 
+              ? 'bg-white border-t border-l border-r border-gray-300 text-slate-700' 
+              : 'text-gray-400 hover:text-slate-500'
+          }`}
+        >
+          {tab.name}
+        </button>
+      ))}
+    </div>
+    <div className="bg-white p-2 border border-gray-300 rounded-b-lg shadow-inner">
+      <textarea 
+        value={newSections[activeAddSubTab] || ''} 
+        onChange={(e) => setNewSections({ ...newSections, [activeAddSubTab]: e.target.value })} 
+        rows="10" 
+        className="w-full px-3 py-2 border-none text-sm focus:ring-0 outline-none leading-relaxed"
+        placeholder={`請輸入「${SPOT_SUB_TABS.find(t => t.id === activeAddSubTab).name}」的詳細內容...`}
+      />
+    </div>
+    <p className="text-[10px] text-gray-400 mt-2 ml-1 italic">※ 景點模式下，系統會自動按分頁儲存內容</p>
+  </div>
+) : (
+  /* 交通或攻略模式：顯示單一大型格子 */
+  <div className="space-y-1">
+    <label className="text-[10px] font-bold text-gray-400 ml-1">詳細內容 (支援換行)</label>
+    <textarea
+      placeholder={activeTab === "transport" ? "輸入路線、轉乘方式或時刻表說明..." : "貼上攻略心得或重要資訊..."}
+      value={newData.description}
+      onChange={(e) => setNewData({ ...newData, description: e.target.value })}
+      rows="10" 
+      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-400 leading-relaxed shadow-inner"
+    />
+  </div>
+)}
           <button onClick={handleAddNew} className={`w-full py-2 rounded-md text-white font-bold shadow-md ${theme.buttonPrimary}`}>
             確認新增到{activeTab === "transport" ? "交通" : activeTab === "spot" ? "景點" : "攻略"}
           </button>
@@ -308,7 +351,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                       </div>
 
                       {editingId === ref.id ? (
-  /* === 這裡是被替換後的：強化版分頁編輯模式 === */
+  /* === 分頁編輯模式 === */
   <div className="p-4 space-y-4 bg-slate-50 border-2 border-slate-300 rounded-xl animate-fade-in">
     {/* 標題與操作按鈕 */}
     <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-2">
@@ -317,7 +360,10 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
         <button onClick={() => setEditingId(null)} className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs font-bold transition">取消</button>
         <button 
           onClick={() => {
-            const finalDesc = assembleSpotContent(editSections);
+            // 只有景點需要組裝，交通/攻略直接存 editData.description
+            const finalDesc = ref.type === 'spot' 
+              ? assembleSpotContent(editSections) 
+              : editData.description;
             handleSave(ref.id, { ...editData, description: finalDesc });
           }} 
           className={`px-3 py-1 text-white rounded text-xs font-bold shadow-sm ${theme.buttonPrimary}`}
@@ -327,6 +373,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
       </div>
     </div>
 
+    {/* 名稱與圖片區 */}
     <div className="space-y-3">
       <label className="block text-[10px] font-bold text-gray-400 ml-1">地點名稱</label>
       <input 
@@ -340,7 +387,9 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
       <ImageUpload currentImage={editData.imageUrl} onUploadSuccess={(url) => setEditData({ ...editData, imageUrl: url })} />
     </div>
 
-    {/* 內容分頁切換器 */}
+    {/* 內容區：判斷類型 */}
+    {ref.type === 'spot' ? (
+      /* 景點：顯示分頁編輯器 */
     <div className="mt-4">
       <div className="flex space-x-1 overflow-x-auto pb-1 scrollbar-hide">
         {SPOT_SUB_TABS.map(tab => (
@@ -369,8 +418,19 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
           placeholder={`請在此輸入「${SPOT_SUB_TABS.find(t => t.id === activeEditTab).name}」的詳細內容...`}
         />
       </div>
-      <p className="text-[10px] text-gray-400 mt-2 ml-1 italic">※ 系統將自動為此區段加上 [{SPOT_SUB_TABS.find(t => t.id === activeEditTab).name}] 標籤</p>
     </div>
+    ) : (
+      /* 交通與攻略：顯示單一大型欄位 */
+      <div className="mt-2">
+        <label className="text-[10px] font-bold text-gray-400 ml-1">詳細內容</label>
+        <textarea
+          value={editData.description}
+          onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+          rows="10"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm leading-relaxed shadow-inner outline-none focus:ring-1 focus:ring-slate-300"
+        />
+      </div>
+    )}
   </div>
 ) : activeTab === "transport" ? (
                         /* === 交通佈局：強化路線圖顯示 === */
