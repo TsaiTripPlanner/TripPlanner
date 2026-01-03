@@ -175,9 +175,11 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
     }
   };
 
-  const handleSave = async (id) => {
-    await onUpdate(id, editData);
-    setEditingId(null);
+  const handleSave = async (id, updatedData) => {
+  // 如果有傳入新資料就用新資料，沒有就用狀態裡的 editData
+  const dataToSave = updatedData || editData;
+  await onUpdate(id, dataToSave);
+  setEditingId(null);
   };
 
   const handleAddNew = async () => {
