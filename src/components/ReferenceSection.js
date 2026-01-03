@@ -69,6 +69,16 @@ const renderRichText = (text, theme) => {
   });
 };
 
+// 將分開的各段內容組合成帶標籤的字串
+const assembleSpotContent = (sections) => {
+  let result = (sections.info || '').trim();
+  if (sections.food?.trim()) result += `\n\n[美食]\n${sections.food.trim()}`;
+  if (sections.shop?.trim()) result += `\n\n[特色店家]\n${sections.shop.trim()}`;
+  if (sections.nearby?.trim()) result += `\n\n[附近景點]\n${sections.nearby.trim()}`;
+  if (sections.note?.trim()) result += `\n\n[注意事項]\n${sections.note.trim()}`;
+  return result;
+};
+
 const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) => {
   const { theme } = useTheme();
   
@@ -76,6 +86,8 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
   const [viewingDetail, setViewingDetail] = useState(null);
   const [activeSpotTab, setActiveSpotTab] = useState('info');
   const [editingId, setEditingId] = useState(null);
+  const [editSections, setEditSections] = useState({ info: '', food: '', shop: '', nearby: '', note: '' });
+  const [activeEditTab, setActiveEditTab] = useState('info'); // 記錄編輯時停在哪個分頁
   const [editData, setEditData] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedIds, setExpandedIds] = useState(new Set());
@@ -294,28 +306,82 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                       </div>
 
                       {editingId === ref.id ? (
-                        /* === 編輯模式 === */
-                        <div className="p-4 space-y-3 bg-slate-50">
-                          <input type="text" value={editData.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} className="w-full px-3 py-2 border rounded text-sm" />
-                          <ImageUpload currentImage={editData.imageUrl} onUploadSuccess={(url) => setEditData({ ...editData, imageUrl: url })} />
-                          <div className="flex flex-wrap gap-2 mb-1">
-                           <button type="button" onClick={() => setEditData({...editData, description: editData.description + "\n# "})} className="px-2 py-0.5 bg-gray-200 text-[10px] rounded">標題</button>
-                           <button type="button" onClick={() => setEditData({...editData, description: editData.description + "\n[美食]\n"})} className="px-2 py-0.5 bg-orange-100 text-orange-800 text-[10px] rounded">美食</button>
-                           <button type="button" onClick={() => setEditData({...editData, description: editData.description + "\n[注意事項]\n"})} className="px-2 py-0.5 bg-red-100 text-red-800 text-[10px] rounded">注意</button>
-                         </div>
-                          <textarea value={editData.description} onChange={(e) => setEditData({ ...editData, description: e.target.value })} rows="4" className="w-full px-3 py-2 border rounded text-sm" />
-                          <div className="flex justify-end gap-2">
-                            <button onClick={() => setEditingId(null)} className="px-3 py-1 bg-gray-200 rounded text-xs">取消</button>
-                            <button onClick={() => handleSave(ref.id)} className={`px-3 py-1 text-white rounded text-xs ${theme.buttonPrimary}`}>儲存</button>
-                          </div>
-                        </div>
-                      ) : activeTab === "transport" ? (
+  /* === 這裡是被替換後的：強化版分頁編輯模式 === */
+  <div className="p-4 space-y-4 bg-slate-50 border-2 border-slate-300 rounded-xl animate-fade-in">
+    {/* 標題與操作按鈕 */}
+    <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-2">
+      <span className="text-sm font-bold text-slate-700 italic">模式：詳細編輯</span>
+      <div className="flex gap-2">
+        <button onClick={() => setEditingId(null)} className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs font-bold transition">取消</button>
+        <button 
+          onClick={() => {
+            const finalDesc = assembleSpotContent(editSections);
+            handleSave(ref.id, { ...editData, description: finalDesc });
+          }} 
+          className={`px-3 py-1 text-white rounded text-xs font-bold shadow-sm ${theme.buttonPrimary}`}
+        >
+          儲存
+        </button>
+      </div>
+    </div>
+
+    <div className="space-y-3">
+      <label className="block text-[10px] font-bold text-gray-400 ml-1">地點名稱</label>
+      <input 
+        type="text" 
+        value={editData.title} 
+        onChange={(e) => setEditData({ ...editData, title: e.target.value })} 
+        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-bold focus:ring-2 focus:ring-slate-200 outline-none" 
+      />
+      
+      <label className="block text-[10px] font-bold text-gray-400 ml-1">封面圖片</label>
+      <ImageUpload currentImage={editData.imageUrl} onUploadSuccess={(url) => setEditData({ ...editData, imageUrl: url })} />
+    </div>
+
+    {/* 內容分頁切換器 */}
+    <div className="mt-4">
+      <div className="flex space-x-1 overflow-x-auto pb-1 scrollbar-hide">
+        {SPOT_SUB_TABS.map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveEditTab(tab.id)}
+            className={`px-3 py-2 rounded-t-lg text-[11px] font-bold transition-all ${
+              activeEditTab === tab.id 
+                ? 'bg-white border-t border-l border-r border-gray-300 text-slate-700' 
+                : 'text-gray-400 hover:text-slate-500'
+            }`}
+          >
+            {tab.name}
+          </button>
+        ))}
+      </div>
+      
+      {/* 編輯輸入區：這裡把 Rows 加大到 10，編輯更舒服 */}
+      <div className="bg-white p-3 border border-gray-300 rounded-b-lg rounded-tr-lg shadow-inner">
+        <textarea 
+          value={editSections[activeEditTab] || ''} 
+          onChange={(e) => setEditSections({ ...editSections, [activeEditTab]: e.target.value })} 
+          rows="10" 
+          className="w-full px-3 py-2 border-none text-sm focus:ring-0 outline-none leading-relaxed text-slate-600"
+          placeholder={`請在此輸入「${SPOT_SUB_TABS.find(t => t.id === activeEditTab).name}」的詳細內容...`}
+        />
+      </div>
+      <p className="text-[10px] text-gray-400 mt-2 ml-1 italic">※ 系統將自動為此區段加上 [{SPOT_SUB_TABS.find(t => t.id === activeEditTab).name}] 標籤</p>
+    </div>
+  </div>
+) : activeTab === "transport" ? (
                         /* === 交通佈局：強化路線圖顯示 === */
                         <div className="flex flex-col pl-10 pr-4 py-4">
                           <div className="flex justify-between items-start mb-2">
                             <h3 className="font-bold text-lg text-slate-700 leading-tight">{ref.title}</h3>
                             <div className="flex gap-2">
-                              <button onClick={() => { setEditingId(ref.id); setEditData(ref); }} className="text-gray-300 hover:text-slate-500 transition"><ICON_SVG.pencil className="w-4 h-4" /></button>
+                              <button onClick={() => { 
+                                setEditingId(ref.id); 
+                                setEditData(ref); 
+                                setEditSections(parseSpotContent(ref.description)); 
+                                setActiveEditTab('info'); }} 
+                              className="text-gray-300 hover:text-slate-500 transition"><ICON_SVG.pencil className="w-4 h-4" /></button>
                               <button onClick={() => onDelete(ref.id)} className="text-gray-300 hover:text-red-400 transition"><ICON_SVG.trash className="w-4 h-4" /></button>
                             </div>
                           </div>
@@ -360,7 +426,12 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                             <div className="flex justify-between items-start mb-2">
                               <h3 className="font-bold text-lg leading-tight pr-2">{ref.title}</h3>
                               <div className="flex gap-2 shrink-0">
-                                <button onClick={() => { setEditingId(ref.id); setEditData(ref); }} className="text-gray-300 hover:text-slate-500"><ICON_SVG.pencil className="w-4 h-4" /></button>
+                                <button onClick={() => { 
+                                 setEditingId(ref.id); 
+                                 setEditData(ref); 
+                                 setEditSections(parseSpotContent(ref.description)); // 自動拆解內容
+                                 setActiveEditTab('info'); // 預設停在介紹
+                                }} className="text-gray-300 hover:text-slate-500"><ICON_SVG.pencil className="w-4 h-4" /></button>
                                 <button onClick={() => onDelete(ref.id)} className="text-gray-300 hover:text-red-400"><ICON_SVG.trash className="w-4 h-4" /></button>
                               </div>
                             </div>
@@ -388,7 +459,12 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                             <div className="flex justify-between items-start">
                               <h3 className="font-bold text-base truncate pr-2">{ref.title}</h3>
                               <div className="flex gap-2 shrink-0">
-                                <button onClick={() => { setEditingId(ref.id); setEditData(ref); }} className="text-gray-300"><ICON_SVG.pencil className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => { 
+                                  setEditingId(ref.id); 
+                                  setEditData(ref);
+                                  setEditSections(parseSpotContent(ref.description)); 
+                                  setActiveEditTab('info');  
+                                  }} className="text-gray-300"><ICON_SVG.pencil className="w-3.5 h-3.5" /></button>
                                 <button onClick={() => onDelete(ref.id)} className="text-gray-300"><ICON_SVG.trash className="w-3.5 h-3.5" /></button>
                               </div>
                             </div>
