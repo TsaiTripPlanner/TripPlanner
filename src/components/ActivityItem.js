@@ -1,11 +1,13 @@
 // src/components/ActivityItem.js
 import React, { memo, useState } from "react";
+import ImageUpload from "./ImageUpload";
+import SmartText from "./SmartText";
 import { ICON_SVG } from "../utils/icons";
 import { ACTIVITY_TYPES } from "../utils/constants";
 import { useTheme } from "../utils/theme";
 import { calculateDuration } from "../utils/dateUtils";
-import ImageUpload from "./ImageUpload";
-import SmartText from "./SmartText";
+import { getOptimizedImageUrl } from "../utils/imageUtils";
+
 
 const ActivityItem = memo(
   ({
@@ -257,9 +259,9 @@ const ActivityItem = memo(
                       {activity.imageUrl && (
                         <div className="mb-3 rounded-lg overflow-hidden border border-gray-200">
                           <img
-                            src={activity.imageUrl}
+                            src={getOptimizedImageUrl(activity.imageUrl, 800)}
                             alt="活動照片"
-                            className="w-full h-auto max-h-60 object-cover"
+                            className="w-full h-auto max-h-60 object-cover cursor-zoom-in"
                             onClick={(e) => {
                               e.stopPropagation();
                               window.open(activity.imageUrl);

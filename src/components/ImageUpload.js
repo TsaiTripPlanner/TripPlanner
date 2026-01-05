@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import imageCompression from "browser-image-compression"; // 引入壓縮套件
 import { ICON_SVG } from "../utils/icons";
+import { getOptimizedImageUrl } from "../utils/imageUtils";
 
 const ImageUpload = ({ onUploadSuccess, currentImage }) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -69,7 +70,7 @@ const ImageUpload = ({ onUploadSuccess, currentImage }) => {
       {currentImage ? (
         <div className="relative inline-block">
           <img
-            src={currentImage}
+            src={getOptimizedImageUrl(currentImage, 200)}
             alt="Preview"
             className="w-24 h-24 object-cover rounded-lg border-2 border-slate-200"
           />

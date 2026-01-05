@@ -1,11 +1,12 @@
 // src/components/ReferenceSection.js
 import React, { useState, useMemo } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { ICON_SVG } from "../utils/icons";
-import { useTheme } from "../utils/theme";
 import ImageUpload from "./ImageUpload";
 import Modal from "./Modal";
 import SmartText from "./SmartText";
+import { ICON_SVG } from "../utils/icons";
+import { useTheme } from "../utils/theme";
+import { getOptimizedImageUrl } from "../utils/imageUtils";
 
 // --- 分頁定義與解析工具 ---
 const SPOT_SUB_TABS = [
@@ -422,9 +423,9 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                           {ref.imageUrl && (
                             <div className="mb-3 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
                               <img 
-                                src={ref.imageUrl} 
+                                src={getOptimizedImageUrl(ref.imageUrl, 1200)} 
                                 alt="路線地圖" 
-                                className="w-full h-auto max-h-[400px] object-contain mx-auto" 
+                                className="w-full h-auto max-h-[400px] object-contain mx-auto cursor-zoom-in" 
                                 onClick={() => window.open(ref.imageUrl)} 
                               />
                             </div>
@@ -446,7 +447,11 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                         <div className="flex flex-col h-full pl-2">
                           <div className="aspect-video w-full overflow-hidden bg-gray-100">
                             {ref.imageUrl && (
-                              <img src={ref.imageUrl} alt="" className="w-full h-full object-cover cursor-pointer" onClick={() => setViewingDetail(ref)} />
+                              <img 
+                                src={getOptimizedImageUrl(ref.imageUrl, 600)}
+                                alt="" 
+                                className="w-full h-full object-cover cursor-pointer" 
+                                onClick={() => setViewingDetail(ref)} />
                             )}
                           </div>
                           <div className="p-4 flex flex-col flex-grow">
@@ -479,7 +484,11 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                         <div className="flex p-3 gap-3 pl-10">
                           {ref.imageUrl && (
                             <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-gray-100">
-                              <img src={ref.imageUrl} alt="" className="w-full h-full object-cover" />
+                              <img 
+                                src={getOptimizedImageUrl(ref.imageUrl, 400)} 
+                                alt="" 
+                                className="w-full h-full object-cover" 
+                              />
                             </div>
                           )}
                           <div className="flex-grow min-w-0 flex flex-col justify-center">
@@ -535,9 +544,10 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
             {viewingDetail.imageUrl && (
               <div className="shrink-0 h-44 sm:h-52 overflow-hidden rounded-xl shadow-sm mb-4">
                 <img 
-                  src={viewingDetail.imageUrl} 
-                  className="w-full h-full object-cover" 
+                  src={getOptimizedImageUrl(viewingDetail.imageUrl, 1000)} 
+                  className="w-full h-full object-cover cursor-zoom-in" 
                   alt="景點大圖" 
+                  onClick={() => window.open(viewingDetail.imageUrl)}
                 />
               </div>
             )}
