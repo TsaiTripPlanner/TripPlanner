@@ -5,6 +5,7 @@ import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";
 import ImageUpload from "./ImageUpload";
 import Modal from "./Modal";
+import SmartText from "./SmartText";
 
 // --- 分頁定義與解析工具 ---
 const SPOT_SUB_TABS = [
@@ -31,42 +32,6 @@ const parseSpotContent = (text) => {
     else if (key === '注意事項') sections.note = content;
   }
   return sections;
-};
-
-const renderRichText = (text, theme) => {
-  if (!text) return null;
-  const stringText = String(text); // 強制轉字串防止報錯
-
-  return stringText.split('\n').map((line, lineIdx) => {
-    if (!line && line !== "") return null;
-    
-    if (line.startsWith('# ')) {
-      return (
-        <h3 key={`h3-${lineIdx}`} className={`text-lg font-bold mt-4 mb-2 pb-1 border-b ${theme?.accentBorder || 'border-gray-200'} ${theme?.accentText || 'text-slate-600'}`}>
-          {line.replace('# ', '')}
-        </h3>
-      );
-    }
-    
-    // 處理粗體
-    const parts = line.split(/(\*\*.*?\*\*)/g);
-    const boldProcessed = parts.map((part, pIdx) => {
-      if (part && part.startsWith('**') && part.endsWith('**')) {
-        return (
-          <strong key={`bold-${lineIdx}-${pIdx}`} className="font-bold text-slate-900 mx-0.5">
-            {part.slice(2, -2)}
-          </strong>
-        );
-      }
-      return part;
-    });
-
-    return (
-      <p key={`p-${lineIdx}`} className="text-sm leading-7 mb-1 text-slate-600 min-h-[1.2rem] break-all">
-        {boldProcessed}
-      </p>
-    );
-  });
 };
 
 // 將分開的各段內容組合成帶標籤的字串
@@ -604,7 +569,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
             <div className="flex-grow overflow-y-auto mt-2 pt-2 pb-12 px-1">
               {spotSections[activeSpotTab] ? (
                 <div className="animate-fade-in">
-                  {renderRichText(spotSections[activeSpotTab], theme)}
+                  <SmartText text={spotSections[activeSpotTab]} />
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-20 text-gray-300">

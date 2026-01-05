@@ -5,28 +5,7 @@ import { ACTIVITY_TYPES } from "../utils/constants";
 import { useTheme } from "../utils/theme";
 import { calculateDuration } from "../utils/dateUtils";
 import ImageUpload from "./ImageUpload";
-
-const URL_REGEX = /(https?:\/\/[^\s]+)/g;
-const renderDescriptionWithLinks = (text) => {
-  if (!text) return null;
-  const parts = text.split(URL_REGEX);
-  return parts.map((part, index) => {
-    if (!part) return null;
-    if (part.match(URL_REGEX))
-      return (
-        <a
-          key={index}
-          href={part}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 hover:text-blue-700 underline break-all transition"
-        >
-          {part}
-        </a>
-      );
-    else return <React.Fragment key={index}>{part}</React.Fragment>;
-  });
-};
+import SmartText from "./SmartText";
 
 const ActivityItem = memo(
   ({
@@ -289,10 +268,8 @@ const ActivityItem = memo(
                         </div>
                       )}
                       {activity.description && (
-                        <div
-                          className={`text-sm ${theme.cardDesc} whitespace-pre-wrap`}
-                        >
-                          {renderDescriptionWithLinks(activity.description)}
+                        <div className={`${theme.cardDesc}`}>
+                          <SmartText text={activity.description} />
                         </div>
                       )}
                     </div>
