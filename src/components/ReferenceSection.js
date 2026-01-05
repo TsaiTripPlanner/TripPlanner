@@ -423,7 +423,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                           {ref.imageUrl && (
                             <div className="mb-3 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
                               <img 
-                                src={getOptimizedImageUrl(ref.imageUrl, 1200)} 
+                                src={getOptimizedImageUrl(ref.imageUrl, 2000)} 
                                 alt="路線地圖" 
                                 className="w-full h-auto max-h-[400px] object-contain mx-auto cursor-zoom-in" 
                                 onClick={() => window.open(ref.imageUrl)} 
@@ -448,7 +448,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                           <div className="aspect-video w-full overflow-hidden bg-gray-100">
                             {ref.imageUrl && (
                               <img 
-                                src={getOptimizedImageUrl(ref.imageUrl, 600)}
+                                src={getOptimizedImageUrl(ref.imageUrl, 800)}
                                 alt="" 
                                 className="w-full h-full object-cover cursor-pointer" 
                                 onClick={() => setViewingDetail(ref)} />
@@ -485,7 +485,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                           {ref.imageUrl && (
                             <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-gray-100">
                               <img 
-                                src={getOptimizedImageUrl(ref.imageUrl, 400)} 
+                                src={getOptimizedImageUrl(ref.imageUrl, 800)} 
                                 alt="" 
                                 className="w-full h-full object-cover" 
                               />
@@ -544,7 +544,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
             {viewingDetail.imageUrl && (
               <div className="shrink-0 h-44 sm:h-52 overflow-hidden rounded-xl shadow-sm mb-4">
                 <img 
-                  src={getOptimizedImageUrl(viewingDetail.imageUrl, 1000)} 
+                  src={getOptimizedImageUrl(viewingDetail.imageUrl, 1600)} 
                   className="w-full h-full object-cover cursor-zoom-in" 
                   alt="景點大圖" 
                   onClick={() => window.open(viewingDetail.imageUrl)}

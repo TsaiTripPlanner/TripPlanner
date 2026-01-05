@@ -259,7 +259,7 @@ const ActivityItem = memo(
                       {activity.imageUrl && (
                         <div className="mb-3 rounded-lg overflow-hidden border border-gray-200">
                           <img
-                            src={getOptimizedImageUrl(activity.imageUrl, 800)}
+                            src={getOptimizedImageUrl(activity.imageUrl, 1200)}
                             alt="活動照片"
                             className="w-full h-auto max-h-60 object-cover cursor-zoom-in"
                             onClick={(e) => {
