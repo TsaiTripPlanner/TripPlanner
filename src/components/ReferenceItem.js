@@ -1,4 +1,4 @@
-//src/components/ReferenceItem.js
+// src/components/ReferenceItem.js
 import React, { useState, useRef } from "react";
 import ImageUpload from "./ImageUpload";
 import { ICON_SVG } from "../utils/icons";
@@ -12,7 +12,7 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
   const [activeEditTab, setActiveEditTab] = useState('info');
   const editTextareaRef = useRef(null);
 
-  // --- 工具列邏輯 ---
+  // --- 補回工具列邏輯 ---
   const handleToolbarClick = (tagType) => {
     const textarea = editTextareaRef.current;
     if (!textarea) return;
@@ -58,77 +58,104 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
 
   if (isEditing) {
     return (
-      <div className="p-4 space-y-4 bg-slate-50 border-2 border-slate-300 rounded-xl">
-        <div className="flex justify-between items-center border-b pb-2">
-           <span className="text-xs font-bold text-slate-500">編輯模式</span>
-           <div className="flex gap-2">
-             <button onClick={() => setIsEditing(false)} className="px-2 py-1 bg-gray-200 rounded text-xs">取消</button>
-             <button onClick={handleSave} className={`px-2 py-1 text-white rounded text-xs ${theme.buttonPrimary}`}>儲存</button>
-           </div>
+      <div className="p-4 space-y-4 bg-slate-50 border-2 border-slate-300 rounded-xl animate-fade-in">
+        <div className="flex justify-between items-center border-b border-slate-200 pb-2 mb-2">
+          <span className="text-sm font-bold text-slate-700 italic">模式：詳細編輯</span>
+          <div className="flex gap-2">
+            <button onClick={() => setIsEditing(false)} className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-xs font-bold transition">取消</button>
+            <button onClick={handleSave} className={`px-3 py-1 text-white rounded text-xs font-bold shadow-sm ${theme.buttonPrimary}`}>儲存</button>
+          </div>
         </div>
-        <input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full p-2 border rounded text-sm font-bold" />
-        <ImageUpload currentImage={editData.imageUrl} onUploadSuccess={url => setEditData({...editData, imageUrl: url})} />
+
+        <div className="space-y-3">
+          <label className="block text-[10px] font-bold text-gray-400 ml-1">地點名稱</label>
+          <input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-bold focus:ring-2 focus:ring-slate-200 outline-none" />
+          <label className="block text-[10px] font-bold text-gray-400 ml-1">封面圖片</label>
+          <ImageUpload currentImage={editData.imageUrl} onUploadSuccess={url => setEditData({...editData, imageUrl: url})} />
+        </div>
+
         {refData.type === 'spot' ? (
-          <div>
-             <div className="flex space-x-1 overflow-x-auto">
-               {SPOT_SUB_TABS.map(t => <button key={t.id} onClick={() => setActiveEditTab(t.id)} className={`px-2 py-1 text-[10px] ${activeEditTab === t.id ? 'bg-white border' : 'text-gray-400'}`}>{t.name}</button>)}
-             </div>
-             <textarea ref={editTextareaRef} value={editSections[activeEditTab]} onChange={e => setEditSections({...editSections, [activeEditTab]: e.target.value})} rows="6" className="w-full border p-2 text-sm" />
+          <div className="mt-4">
+            <div className="flex space-x-1 overflow-x-auto pb-1 scrollbar-hide">
+              {SPOT_SUB_TABS.map(tab => (
+                <button key={tab.id} type="button" onClick={() => setActiveEditTab(tab.id)} className={`px-3 py-2 rounded-t-lg text-[11px] font-bold transition-all ${activeEditTab === tab.id ? 'bg-white border-t border-l border-r border-gray-300 text-slate-700' : 'text-gray-400 hover:text-slate-500'}`}>{tab.name}</button>
+              ))}
+            </div>
+            <div className="bg-white p-3 border border-gray-300 rounded-b-lg rounded-tr-lg shadow-inner">
+              <div className="flex space-x-2 mb-2 px-1">
+                <button onClick={() => handleToolbarClick('title')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">標題</button>
+                <button onClick={() => handleToolbarClick('bold')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">粗體</button>
+                <button onClick={() => handleToolbarClick('list')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">清單</button>
+                <button onClick={() => handleToolbarClick('hr')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">分隔線</button>
+              </div>
+              <textarea ref={editTextareaRef} value={editSections[activeEditTab] || ''} onChange={(e) => setEditSections({ ...editSections, [activeEditTab]: e.target.value })} rows="10" className="w-full px-3 py-2 border-none text-sm focus:ring-0 outline-none leading-relaxed text-slate-600" />
+            </div>
           </div>
         ) : (
-          <textarea value={editData.description} onChange={e => setEditData({...editData, description: e.target.value})} rows="6" className="w-full border p-2 text-sm" />
+          <div className="mt-2">
+            <div className="flex space-x-2 mb-2 px-1">
+              <button onClick={() => handleToolbarClick('title')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">標題</button>
+              <button onClick={() => handleToolbarClick('bold')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">粗體</button>
+              <button onClick={() => handleToolbarClick('list')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">清單</button>
+              <button onClick={() => handleToolbarClick('hr')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">分隔線</button>
+            </div>
+            <textarea ref={editTextareaRef} value={editData.description} onChange={(e) => setEditData({ ...editData, description: e.target.value })} rows="10" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm leading-relaxed shadow-inner outline-none focus:ring-1 focus:ring-slate-300" />
+          </div>
         )}
       </div>
     );
   }
 
-  // 渲染邏輯 (這部分與原本的 Transport/Spot/Guide Layout 相同)
+  // --- 顯示模式 ---
   return (
-    <div className="relative bg-white border border-gray-100 rounded-xl overflow-hidden group">
-      <div {...dragHandleProps} className="absolute left-1 top-1/2 -translate-y-1/2 p-2 text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-grab">
+    <div className="relative bg-white border border-gray-100 rounded-xl overflow-hidden group hover:shadow-md transition">
+      <div {...dragHandleProps} className="absolute left-1 top-1/2 -translate-y-1/2 p-2 text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-grab active:cursor-grabbing">
         <ICON_SVG.menu className="w-5 h-5" />
       </div>
 
       {refData.type === 'transport' ? (
         <div className="flex flex-col pl-10 pr-4 py-4">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="font-bold text-lg text-slate-700">{refData.title}</h3>
+            <h3 className="font-bold text-lg text-slate-700 leading-tight">{refData.title}</h3>
             <div className="flex gap-2">
-              <button onClick={() => setIsEditing(true)} className="text-gray-300 hover:text-slate-500"><ICON_SVG.pencil className="w-4 h-4" /></button>
-              <button onClick={() => onDelete(refData.id)} className="text-gray-300 hover:text-red-400"><ICON_SVG.trash className="w-4 h-4" /></button>
+              <button onClick={() => setIsEditing(true)} className="text-gray-300 hover:text-slate-500 transition"><ICON_SVG.pencil className="w-4 h-4" /></button>
+              <button onClick={() => onDelete(refData.id)} className="text-gray-300 hover:text-red-400 transition"><ICON_SVG.trash className="w-4 h-4" /></button>
             </div>
           </div>
-          {refData.description && <div className="text-sm text-gray-600 bg-slate-50 p-3 rounded-lg mb-3">{refData.description}</div>}
-          {refData.imageUrl && <img src={getOptimizedImageUrl(refData.imageUrl, 2000)} className="w-full rounded-lg" onClick={() => window.open(refData.imageUrl)} />}
+          {refData.description && <div className="text-sm text-gray-600 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 leading-relaxed">{refData.description}</div>}
+          {refData.imageUrl && <img src={getOptimizedImageUrl(refData.imageUrl, 2000)} className="w-full h-auto max-h-[400px] object-contain mx-auto rounded-lg mb-3 cursor-zoom-in" onClick={() => window.open(refData.imageUrl)} />}
+          {refData.url && <a href={refData.url} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-bold shadow-sm transition"><ICON_SVG.link className="w-4 h-4 mr-2" /> 路線連結</a>}
         </div>
       ) : refData.type === 'spot' ? (
         <div className="flex flex-col h-full pl-2">
-          <img src={getOptimizedImageUrl(refData.imageUrl, 800)} className="aspect-video object-cover cursor-pointer" onClick={() => onView(refData)} />
-          <div className="p-4">
-            <div className="flex justify-between mb-2">
-              <h3 className="font-bold text-lg truncate">{refData.title}</h3>
-              <div className="flex gap-2">
-                <button onClick={() => setIsEditing(true)}><ICON_SVG.pencil className="w-4 h-4 text-gray-300" /></button>
-                <button onClick={() => onDelete(refData.id)}><ICON_SVG.trash className="w-4 h-4 text-gray-300" /></button>
+          <div className="aspect-video w-full overflow-hidden bg-gray-100">
+            {refData.imageUrl && <img src={getOptimizedImageUrl(refData.imageUrl, 800)} className="w-full h-full object-cover cursor-pointer" onClick={() => onView(refData)} />}
+          </div>
+          <div className="p-4 flex flex-col flex-grow">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="font-bold text-lg leading-tight pr-2">{refData.title}</h3>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={() => setIsEditing(true)} className="text-gray-300 hover:text-slate-500"><ICON_SVG.pencil className="w-4 h-4" /></button>
+                <button onClick={() => onDelete(refData.id)} className="text-gray-300 hover:text-red-400"><ICON_SVG.trash className="w-4 h-4" /></button>
               </div>
             </div>
-            <p className="text-sm text-gray-500 line-clamp-2 mb-4">{parseSpotContent(refData.description).info}</p>
-            <button onClick={() => onView(refData)} className={`w-full py-2 rounded-lg text-xs font-bold border ${theme.accentText} ${theme.accentBorder}`}>完整詳情</button>
+            <div className="text-sm text-gray-500 line-clamp-2 mb-4">{parseSpotContent(refData.description).info || "暫無介紹..."}</div>
+            <button onClick={() => onView(refData)} className={`mt-auto w-full py-2 rounded-lg text-xs font-bold border transition ${theme.accentText} ${theme.accentBorder} hover:bg-slate-50`}>查看完整內容</button>
           </div>
         </div>
       ) : (
         <div className="flex p-3 gap-3 pl-10">
-          {refData.imageUrl && <img src={getOptimizedImageUrl(refData.imageUrl, 800)} className="w-20 h-20 rounded-lg object-cover" />}
-          <div className="flex-grow min-w-0">
-             <div className="flex justify-between items-center">
-               <h3 className="font-bold text-base truncate">{refData.title}</h3>
-               <div className="flex gap-2">
-                 <button onClick={() => setIsEditing(true)}><ICON_SVG.pencil className="w-3.5 h-3.5 text-gray-300" /></button>
-                 <button onClick={() => onDelete(refData.id)}><ICON_SVG.trash className="w-3.5 h-3.5 text-gray-300" /></button>
-               </div>
-             </div>
-             <p className="text-xs text-gray-400 line-clamp-2">{refData.description}</p>
-             {refData.url && <a href={refData.url} target="_blank" rel="noreferrer" className="text-[10px] text-blue-500 font-bold underline">開啟連結</a>}
+          {refData.imageUrl && <div className="w-20 h-20 shrink-0 rounded-lg overflow-hidden border border-gray-100"><img src={getOptimizedImageUrl(refData.imageUrl, 800)} className="w-full h-full object-cover" alt="" /></div>}
+          <div className="flex-grow min-w-0 flex flex-col justify-center">
+            <div className="flex justify-between items-start">
+              <h3 className="font-bold text-base truncate pr-2">{refData.title}</h3>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={() => setIsEditing(true)} className="text-gray-300"><ICON_SVG.pencil className="w-3.5 h-3.5" /></button>
+                <button onClick={() => onDelete(refData.id)} className="text-gray-300"><ICON_SVG.trash className="w-3.5 h-3.5" /></button>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 line-clamp-2 mt-1">{refData.description}</p>
+            {refData.url && <a href={refData.url} target="_blank" rel="noreferrer" className="text-[10px] text-blue-500 mt-1 flex items-center font-bold hover:underline"><ICON_SVG.link className="w-3 h-3 mr-1" /> 開啟連結</a>}
           </div>
         </div>
       )}
