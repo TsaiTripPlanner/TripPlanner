@@ -28,6 +28,14 @@ const ReferenceAddForm = ({ activeTab, onAdd, theme }) => {
     } catch (e) { console.error(e); } finally { setIsFetching(false); }
   };
 
+  // 工具列定義
+  const TOOLBAR_ITEMS = [
+    { id: 'title', name: '標題' },
+    { id: 'bold', name: '粗體' },
+    { id: 'list', name: '清單' },
+    { id: 'hr', name: '分隔線' }
+  ];
+
   const handleToolbarClick = (tagType) => {
     const textarea = addTextareaRef.current;
     if (!textarea) return;
@@ -57,22 +65,58 @@ const ReferenceAddForm = ({ activeTab, onAdd, theme }) => {
 
       {activeTab === 'spot' ? (
         <div className="mt-4">
-          <div className="flex space-x-1 overflow-x-auto pb-1 scrollbar-hide">
+          {/* 景點新增分頁，強制不換行並允許橫向捲動 */}
+          <div className="flex flex-nowrap space-x-1 overflow-x-auto pb-1 scrollbar-hide">
             {SPOT_SUB_TABS.map(tab => (
-              <button key={tab.id} onClick={() => setActiveAddSubTab(tab.id)} className={`px-3 py-1.5 rounded-t-lg text-[11px] font-bold ${activeAddSubTab === tab.id ? 'bg-white border-t border-l border-r border-gray-300' : 'text-gray-400'}`}>{tab.name}</button>
+              <button 
+                key={tab.id} 
+                type="button"
+                onClick={() => setActiveAddSubTab(tab.id)} 
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-t-lg text-[11px] font-bold transition-all ${
+                  activeAddSubTab === tab.id 
+                    ? 'bg-white border-t border-l border-r border-gray-300 text-slate-700' 
+                    : 'text-gray-400 hover:text-slate-500'
+                }`}
+              >
+                {tab.name}
+              </button>
             ))}
           </div>
-          <div className="bg-white p-2 border border-gray-300 rounded-b-lg">
-             <div className="flex space-x-2 mb-2">
-                {['title', 'bold', 'list', 'hr'].map(t => <button key={t} onClick={() => handleToolbarClick(t)} className="p-1 bg-gray-100 rounded text-[10px] uppercase font-bold">{t}</button>)}
+          <div className="bg-white p-2 border border-gray-300 rounded-b-lg shadow-inner">
+             {/* Markdown 標籤改為中文顯示 */}
+             <div className="flex space-x-2 mb-2 px-1">
+                {TOOLBAR_ITEMS.map(item => (
+                  <button 
+                    key={item.id} 
+                    onClick={() => handleToolbarClick(item.id)} 
+                    className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 rounded text-[10px] font-bold text-slate-600 transition"
+                  >
+                    {item.name}
+                  </button>
+                ))}
              </div>
-             <textarea ref={addTextareaRef} value={newSections[activeAddSubTab]} onChange={e => setNewSections({...newSections, [activeAddSubTab]: e.target.value})} rows="8" className="w-full text-sm outline-none p-1" />
+             <textarea 
+               ref={addTextareaRef} 
+               value={newSections[activeAddSubTab] || ''} 
+               onChange={e => setNewSections({...newSections, [activeAddSubTab]: e.target.value})} 
+               rows="8" 
+               className="w-full text-sm outline-none p-2 leading-relaxed" 
+               placeholder={`請輸入「${SPOT_SUB_TABS.find(t => t.id === activeAddSubTab).name}」的內容...`}
+             />
           </div>
         </div>
       ) : (
-        <textarea placeholder="詳細內容..." value={newData.description} onChange={e => setNewData({...newData, description: e.target.value})} rows="8" className="w-full px-3 py-2 border rounded-md text-sm" />
+        <div className="space-y-2">
+          {/* 交通或攻略模式也補上中文工具列 */}
+          <div className="flex space-x-2 px-1">
+            {TOOLBAR_ITEMS.map(item => (
+              <button key={item.id} onClick={() => handleToolbarClick(item.id)} className="px-2 py-1.5 bg-gray-200 rounded text-[10px] font-bold text-slate-600">{item.name}</button>
+            ))}
+          </div>
+          <textarea placeholder="詳細內容..." value={newData.description} onChange={e => setNewData({...newData, description: e.target.value})} rows="8" className="w-full px-3 py-2 border rounded-md text-sm outline-none" />
+        </div>
       )}
-      <button onClick={handleSubmit} className={`w-full py-2 rounded-md text-white font-bold ${theme.buttonPrimary}`}>確認新增</button>
+      <button onClick={handleSubmit} className={`w-full py-2.5 rounded-md text-white font-bold shadow-md transition active:scale-95 ${theme.buttonPrimary}`}>確認新增</button>
     </div>
   );
 };

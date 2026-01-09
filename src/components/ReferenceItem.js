@@ -76,11 +76,24 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
 
         {refData.type === 'spot' ? (
           <div className="mt-4">
-            <div className="flex space-x-1 overflow-x-auto pb-1 scrollbar-hide">
+            {/* 點編輯分頁，強制不換行並允許橫向捲動 */}
+            <div className="flex flex-nowrap space-x-1 overflow-x-auto pb-1 scrollbar-hide">
               {SPOT_SUB_TABS.map(tab => (
-                <button key={tab.id} type="button" onClick={() => setActiveEditTab(tab.id)} className={`px-3 py-2 rounded-t-lg text-[11px] font-bold transition-all ${activeEditTab === tab.id ? 'bg-white border-t border-l border-r border-gray-300 text-slate-700' : 'text-gray-400 hover:text-slate-500'}`}>{tab.name}</button>
+                <button 
+                  key={tab.id} 
+                  type="button" 
+                  onClick={() => setActiveEditTab(tab.id)} 
+                  className={`shrink-0 whitespace-nowrap px-3 py-2 rounded-t-lg text-[11px] font-bold transition-all ${
+                    activeEditTab === tab.id 
+                      ? 'bg-white border-t border-l border-r border-gray-300 text-slate-700' 
+                      : 'text-gray-400 hover:text-slate-500'
+                  }`}
+                >
+                  {tab.name}
+                </button>
               ))}
             </div>
+
             <div className="bg-white p-3 border border-gray-300 rounded-b-lg rounded-tr-lg shadow-inner">
               <div className="flex space-x-2 mb-2 px-1">
                 <button onClick={() => handleToolbarClick('title')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">標題</button>
@@ -88,7 +101,13 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
                 <button onClick={() => handleToolbarClick('list')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">清單</button>
                 <button onClick={() => handleToolbarClick('hr')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">分隔線</button>
               </div>
-              <textarea ref={editTextareaRef} value={editSections[activeEditTab] || ''} onChange={(e) => setEditSections({ ...editSections, [activeEditTab]: e.target.value })} rows="10" className="w-full px-3 py-2 border-none text-sm focus:ring-0 outline-none leading-relaxed text-slate-600" />
+              <textarea 
+                ref={editTextareaRef} 
+                value={editSections[activeEditTab] || ''} 
+                onChange={(e) => setEditSections({ ...editSections, [activeEditTab]: e.target.value })} 
+                rows="10" 
+                className="w-full px-3 py-2 border-none text-sm focus:ring-0 outline-none leading-relaxed text-slate-600" 
+              />
             </div>
           </div>
         ) : (
