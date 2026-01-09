@@ -38,15 +38,15 @@ const SmartText = ({ text, className = "" }) => {
         if (line.startsWith("- ")) {
           return (
             <div key={lineIdx} className="flex items-start mb-1.5 ml-1">
-              <span className={`mr-2 mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${theme.buttonPrimary}`}></span>
-              <span className="text-sm text-gray-700">{renderInline(line.replace("- ", ""))}</span>
+              <span className={`mr-2 mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${theme.buttonPrimary} opacity-70`}></span>
+              <span className="text-sm text-gray-600">{renderInline(line.replace("- ", ""))}</span>
             </div>
           );
         }
 
         // 5. 一般行
         return (
-          <p key={lineIdx} className="text-sm mb-1.5 break-all text-gray-700">
+          <p key={lineIdx} className="text-sm mb-1.5 break-all text-gray-500 leading-relaxed">
             {renderInline(line)}
           </p>
         );
@@ -61,7 +61,11 @@ function renderInline(text) {
   return parts.map((part, pIdx) => {
     if (!part) return null;
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={pIdx} className="font-bold text-slate-900 mx-0.5">{part.slice(2, -2)}</strong>;
+      return (
+       <strong key={pIdx} className="font-black text-slate-950 mx-0.5">
+          {part.slice(2, -2)}
+       </strong>
+      );
     }
     if (part.match(URL_REGEX)) {
       return (

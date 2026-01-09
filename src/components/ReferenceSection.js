@@ -1,5 +1,5 @@
 // src/components/ReferenceSection.js
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ImageUpload from "./ImageUpload";
 import Modal from "./Modal";
@@ -48,6 +48,8 @@ const assembleSpotContent = (sections) => {
 const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) => {
   const { theme } = useTheme();
   
+  const addTextareaRef = useRef(null);
+  const editTextareaRef = useRef(null);
   const [activeTab, setActiveTab] = useState("transport"); // 預設為交通
   const [viewingDetail, setViewingDetail] = useState(null);
   const [activeSpotTab, setActiveSpotTab] = useState('info');
@@ -121,12 +123,22 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
    // 插入文字到目前游標位置的輔助函式
  const handleToolbarClick = (tagType, target) => {
    const isEditing = !!editingId;
-   const currentText = isEditing ? editSections[activeEditTab] : newSections[activeAddSubTab];
+   const inputRef = isEditing ? editTextareaRef : addTextareaRef;
+   const currentText = isEditing ? (editSections[activeEditTab] || "") : (newSections[activeAddSubTab] || "");
    const setter = isEditing ? setEditSections : setNewSections;
    const activeKey = isEditing ? activeEditTab : activeAddSubTab;
+   const fullData = isEditing ? editSections : newSections;
+
+   if (!inputRef.current) return;
+
+    const textarea = inputRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
 
    let prefix = "";
    let suffix = "";
+   let placeholder = "內容";
+
 
    switch (tagType) {
      case 'bold': prefix = "**"; suffix = "**"; break;
@@ -136,15 +148,22 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
      default: break;
   }
 
-  // 這裡簡單處理：直接加在文字最後面，或你可以進階實作 textarea.selectionStart
-  const newText = currentText + (currentText ? "\n" : "") + prefix + "請輸入內容" + suffix;
-  
-  if (isEditing) {
-    setter({ ...editSections, [activeKey]: newText });
-  } else {
-    setter({ ...newSections, [activeKey]: newText });
-  }
-};
+  // 拼湊新字串：游標前 + 標籤前綴 + (原本選取的文字或預設文字) + 標籤後綴 + 游標後
+    const selectedText = currentText.substring(start, end) || placeholder;
+    const before = currentText.substring(0, start);
+    const after = currentText.substring(end);
+    const newText = before + prefix + selectedText + suffix + after;
+
+    // 更新狀態
+    setter({ ...fullData, [activeKey]: newText });
+
+    // 體驗優化：重新聚焦並選取剛剛插入的區塊
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + prefix.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos + selectedText.length);
+    }, 0);
+  };
 
   const fetchMetadata = async (targetUrl) => {
     if (!targetUrl.trim()) return;
@@ -296,6 +315,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
       <button onClick={() => handleToolbarClick('hr')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">分隔線</button>
       </div>
       <textarea 
+        ref={addTextareaRef}
         value={newSections[activeAddSubTab] || ''} 
         onChange={(e) => setNewSections({ ...newSections, [activeAddSubTab]: e.target.value })} 
         rows="10" 
@@ -419,6 +439,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
           <button onClick={() => handleToolbarClick('hr')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">分隔線</button>
        </div>
         <textarea 
+          ref={editTextareaRef}
           value={editSections[activeEditTab] || ''} 
           onChange={(e) => setEditSections({ ...editSections, [activeEditTab]: e.target.value })} 
           rows="10" 
