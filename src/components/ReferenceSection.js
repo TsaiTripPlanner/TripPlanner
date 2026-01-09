@@ -42,13 +42,22 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
         </button>
       </div>
 
-      <div className="flex space-x-1 mb-6 border-b overflow-x-auto scrollbar-hide">
+      {/* --- 子分頁切換：修正手機版換行問題 --- */}
+      <div className="flex flex-nowrap space-x-1 mb-6 border-b border-gray-100 overflow-x-auto scrollbar-hide">
         {[
           { id: "transport", name: "交通指引", icon: "transport" },
           { id: "spot", name: "景點介紹", icon: "camera" },
           { id: "guide", name: "攻略收藏", icon: "link" },
-        ].map(tab => (
-          <button key={tab.id} onClick={() => { setActiveTab(tab.id); setShowAddForm(false); }} className={`flex items-center px-4 py-2 text-sm font-bold ${activeTab === tab.id ? `${theme.accentText} border-b-2 ${theme.accentBorder}` : "text-gray-400"}`}>
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => { setActiveTab(tab.id); setShowAddForm(false); }}
+            className={`flex items-center shrink-0 px-4 py-2 text-sm font-bold transition whitespace-nowrap ${
+              activeTab === tab.id
+                ? `${theme.accentText} border-b-2 ${theme.accentBorder}`
+                : "text-gray-400"
+            }`}
+          >
             {(() => { const Icon = ICON_SVG[tab.icon]; return <Icon className="w-4 h-4 mr-1.5" />; })()}
             {tab.name}
           </button>

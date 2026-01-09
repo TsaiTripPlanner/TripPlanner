@@ -12,6 +12,44 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
   const [activeEditTab, setActiveEditTab] = useState('info');
   const editTextareaRef = useRef(null);
 
+  // --- 工具列邏輯 ---
+  const handleToolbarClick = (tagType) => {
+    const textarea = editTextareaRef.current;
+    if (!textarea) return;
+
+    const isSpot = refData.type === 'spot';
+    const currentText = isSpot ? (editSections[activeEditTab] || "") : (editData.description || "");
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    let prefix = "";
+    let suffix = "";
+    switch (tagType) {
+      case 'bold': prefix = "**"; suffix = "**"; break;
+      case 'title': prefix = "# "; break;
+      case 'list': prefix = "- "; break;
+      case 'hr': prefix = "\n---\n"; break;
+      default: break;
+    }
+
+    const selectedText = currentText.substring(start, end) || "內容";
+    const before = currentText.substring(0, start);
+    const after = currentText.substring(end);
+    const newText = before + prefix + selectedText + suffix + after;
+
+    if (isSpot) {
+      setEditSections({ ...editSections, [activeEditTab]: newText });
+    } else {
+      setEditData({ ...editData, description: newText });
+    }
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selectedText.length);
+    }, 0);
+  };
+
   const handleSave = () => {
     const finalDesc = refData.type === 'spot' ? assembleSpotContent(editSections) : editData.description;
     onUpdate(refData.id, { ...editData, description: finalDesc });
