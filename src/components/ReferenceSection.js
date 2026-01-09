@@ -118,6 +118,34 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
      onReorder([...currentTabItems, ...otherTabItems]);
    };
 
+   // 插入文字到目前游標位置的輔助函式
+ const handleToolbarClick = (tagType, target) => {
+   const isEditing = !!editingId;
+   const currentText = isEditing ? editSections[activeEditTab] : newSections[activeAddSubTab];
+   const setter = isEditing ? setEditSections : setNewSections;
+   const activeKey = isEditing ? activeEditTab : activeAddSubTab;
+
+   let prefix = "";
+   let suffix = "";
+
+   switch (tagType) {
+     case 'bold': prefix = "**"; suffix = "**"; break;
+     case 'title': prefix = "# "; break;
+     case 'list': prefix = "- "; break;
+     case 'hr': prefix = "\n---\n"; break;
+     default: break;
+  }
+
+  // 這裡簡單處理：直接加在文字最後面，或你可以進階實作 textarea.selectionStart
+  const newText = currentText + (currentText ? "\n" : "") + prefix + "請輸入內容" + suffix;
+  
+  if (isEditing) {
+    setter({ ...editSections, [activeKey]: newText });
+  } else {
+    setter({ ...newSections, [activeKey]: newText });
+  }
+};
+
   const fetchMetadata = async (targetUrl) => {
     if (!targetUrl.trim()) return;
     setIsFetching(true);
@@ -260,6 +288,13 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
       ))}
     </div>
     <div className="bg-white p-2 border border-gray-300 rounded-b-lg shadow-inner">
+      {/* 工具列 */}
+      <div className="flex space-x-2 mb-2 px-1">
+      <button onClick={() => handleToolbarClick('title')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">標題</button>
+      <button onClick={() => handleToolbarClick('bold')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">粗體</button>
+      <button onClick={() => handleToolbarClick('list')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">清單</button>
+      <button onClick={() => handleToolbarClick('hr')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">分隔線</button>
+      </div>
       <textarea 
         value={newSections[activeAddSubTab] || ''} 
         onChange={(e) => setNewSections({ ...newSections, [activeAddSubTab]: e.target.value })} 
@@ -376,6 +411,13 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
       
       {/* 編輯輸入區：這裡把 Rows 加大到 10，編輯更舒服 */}
       <div className="bg-white p-3 border border-gray-300 rounded-b-lg rounded-tr-lg shadow-inner">
+        {/* 工具列 */}
+        <div className="flex space-x-2 mb-2 px-1">
+          <button onClick={() => handleToolbarClick('title')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">標題</button>
+          <button onClick={() => handleToolbarClick('bold')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">粗體</button>
+          <button onClick={() => handleToolbarClick('list')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">清單</button>
+          <button onClick={() => handleToolbarClick('hr')} className="p-1.5 bg-gray-200 rounded text-[10px] font-bold">分隔線</button>
+       </div>
         <textarea 
           value={editSections[activeEditTab] || ''} 
           onChange={(e) => setEditSections({ ...editSections, [activeEditTab]: e.target.value })} 
@@ -576,16 +618,29 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
             </div>
 
             {/* 內容區域 */}
-            <div className="flex-grow overflow-y-auto mt-2 pt-2 pb-12 px-1">
-              {spotSections[activeSpotTab] ? (
-                <div className="animate-fade-in">
-                  <SmartText text={spotSections[activeSpotTab]} />
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-gray-300">
-                  <p className="text-xs italic font-medium">這個分頁目前沒有資料喔</p>
-                </div>
-              )}
+            <div className="flex-grow overflow-y-auto mt-2 pt-2 pb-12 px-1 scrollbar-hide">
+             {spotSections[activeSpotTab] ? (
+               <div className="animate-fade-in px-2">
+                 <SmartText text={spotSections[activeSpotTab]} />
+               </div>
+             ) : (
+               <div className="flex flex-col items-center justify-center py-24 text-gray-300">
+                 <ICON_SVG.noteText className="w-12 h-12 mb-3 opacity-20" />
+                 <p className="text-sm italic font-medium">這個分頁目前沒有紀錄</p>
+                 <button 
+                   onClick={() => {
+                     setViewingDetail(null);
+                     setEditingId(viewingDetail.id);
+                     setEditData(viewingDetail);
+                     setEditSections(parseSpotContent(viewingDetail.description));
+                     setActiveEditTab(activeSpotTab);
+                   }}
+                   className="mt-4 text-xs text-blue-400 hover:underline"
+                 >
+                   立即去新增內容
+                 </button>
+               </div>
+             )}
               
               {activeSpotTab === 'info' && viewingDetail.url && (
                 <a 
