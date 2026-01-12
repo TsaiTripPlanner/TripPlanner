@@ -5,7 +5,7 @@ import { ICON_SVG } from "../utils/icons";
 import { getOptimizedImageUrl } from "../utils/imageUtils";
 import { parseSpotContent, assembleSpotContent, SPOT_SUB_TABS } from "../utils/referenceUtils";
 
-const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleProps }) => {
+const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleProps, totalDays }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(refData);
   const [editSections, setEditSections] = useState(parseSpotContent(refData.description));

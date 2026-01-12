@@ -4,7 +4,7 @@ import ImageUpload from "./ImageUpload";
 import { ICON_SVG } from "../utils/icons";
 import { SPOT_SUB_TABS, assembleSpotContent } from "../utils/referenceUtils";
 
-const ReferenceAddForm = ({ activeTab, onAdd, theme }) => {
+const ReferenceAddForm = ({ activeTab, onAdd, theme, totalDays }) => {
   const [isFetching, setIsFetching] = useState(false);
   const addTextareaRef = useRef(null);
   const [activeAddSubTab, setActiveAddSubTab] = useState('info');
