@@ -13,8 +13,8 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder, to
   const [viewingDetail, setViewingDetail] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
-  // 交通工具專用的天數過濾狀態 (0 代表全部)
-  const [transportDayFilter, setTransportDayFilter] = useState(0);
+  // 交通工具專用的天數過濾狀態
+  const [transportDayFilter, setTransportDayFilter] = useState(1);
   
   const filteredRefs = useMemo(() => {
     return references.filter(ref => {
@@ -81,14 +81,6 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder, to
       {/* 交通分頁專用的天數切換列 */}
       {activeTab === "transport" && (
         <div className="flex flex-nowrap space-x-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-          <button
-            onClick={() => setTransportDayFilter(0)}
-            className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-              transportDayFilter === 0 ? theme.buttonPrimary + " text-white" : "bg-gray-100 text-gray-400"
-            }`}
-          >
-            全部
-          </button>
           {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => (
             <button
               key={d}
