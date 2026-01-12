@@ -186,13 +186,21 @@ const App = () => {
       className={`min-h-screen ${theme.background} ${theme.textMain} ${theme.font} p-4 sm:p-8 pb-28 relative transition-colors duration-500`}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;700&family=Yuji+Syuku&family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap');
         
         .font-cute { font-family: 'Zen Maru Gothic', sans-serif; letter-spacing: 0.05em; }
         .font-sans-tc { font-family: 'Noto Sans TC', sans-serif; letter-spacing: 0.02em; }
         .font-zen-kaku { font-family: 'Zen Kaku Gothic New', 'Noto Sans TC', sans-serif; letter-spacing: 0.05em; }
-        .font-muji-style { font-family: 'Noto Serif TC', serif; letter-spacing: 0.08em; }
-        .muji-title-bold { font-family: 'Noto Serif TC', serif; font-weight: 700 !important; letter-spacing: 0.04em; line-height: 1.3; }
+        .font-muji-style { 
+          font-family: 'Noto Serif TC', "Apple LiSung", "Songti TC", serif; 
+          letter-spacing: 0.05em;
+        } 
+        .muji-title-bold { 
+          font-family: 'Noto Serif TC', "Apple LiSung", "Songti TC", serif; 
+          font-weight: 700 !important; 
+          letter-spacing: 0.03em; 
+          line-height: 1.4; 
+       }
 
         /* 全局強制修正輸入框寬度 */
         input, select, textarea {
