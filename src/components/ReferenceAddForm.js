@@ -9,7 +9,13 @@ const ReferenceAddForm = ({ activeTab, onAdd, theme }) => {
   const addTextareaRef = useRef(null);
   const [activeAddSubTab, setActiveAddSubTab] = useState('info');
   const [newSections, setNewSections] = useState({ info: '', food: '', shop: '', nearby: '', note: '' });
-  const [newData, setNewData] = useState({ title: "", url: "", imageUrl: "", description: "" });
+  const [newData, setNewData] = useState({ 
+    title: "", 
+    url: "", 
+    imageUrl: "", 
+    description: "", 
+    day: 1 // 預設第一天
+  });
 
   const fetchMetadata = async (targetUrl) => {
     if (!targetUrl.trim()) return;
@@ -56,10 +62,29 @@ const ReferenceAddForm = ({ activeTab, onAdd, theme }) => {
 
   return (
     <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 space-y-4 animate-fade-in">
+      {/* 交通分頁顯示天數選擇 */}
+      {activeTab === 'transport' && (
+      <div className="flex items-center space-x-2 bg-white/50 p-2 rounded-md border border-gray-200">
+        <ICON_SVG.calendar className="w-4 h-4 text-slate-400" />
+        <span className="text-xs font-bold text-slate-500">此交通建議用於：</span>
+        <select 
+          value={newData.day}
+          onChange={e => setNewData({...newData, day: Number(e.target.value)})}
+          className="text-xs border-none bg-transparent font-bold text-slate-700 outline-none cursor-pointer"
+        >
+          {Array.from({ length: totalDays }, (_, i) => i + 1).map(d => (
+            <option key={d} value={d}>Day {d}</option>
+          ))}
+        </select>
+      </div>
+    )}
+      {/* 網址抓取區 */}
       <div className="flex gap-2">
         <input type="text" placeholder="貼上網址 (選填)..." value={newData.url} onChange={e => setNewData({...newData, url: e.target.value})} className="flex-1 min-w-0 px-3 py-2 border rounded-md text-sm outline-none" />
         <button onClick={() => fetchMetadata(newData.url)} disabled={isFetching} className="shrink-0 px-3 py-2 bg-white border rounded text-xs font-bold shadow-sm">{isFetching ? "..." : "抓取"}</button>
       </div>
+
+      {/* 標題輸入框 */}
       <input type="text" placeholder="標題 *" value={newData.title} onChange={e => setNewData({...newData, title: e.target.value})} className="w-full px-3 py-2 border rounded-md text-sm outline-none" />
       <ImageUpload currentImage={newData.imageUrl} onUploadSuccess={url => setNewData({...newData, imageUrl: url})} />
 

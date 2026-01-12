@@ -12,7 +12,7 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
   const [activeEditTab, setActiveEditTab] = useState('info');
   const editTextareaRef = useRef(null);
 
-  // --- 補回工具列邏輯 ---
+  // --- 工具列邏輯 ---
   const handleToolbarClick = (tagType) => {
     const textarea = editTextareaRef.current;
     if (!textarea) return;
@@ -68,8 +68,33 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
         </div>
 
         <div className="space-y-3">
-          <label className="block text-[10px] font-bold text-gray-400 ml-1">地點名稱</label>
+          {/* 天數選擇 (僅限交通類型) */}
+          {refData.type === 'transport' && (
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 ml-1">關聯日期</label>
+              <select 
+                value={editData.day || 1}
+                onChange={e => setEditData({...editData, day: Number(e.target.value)})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm outline-none bg-white"
+              >
+                {Array.from({ length: totalDays }, (_, i) => i + 1).map(d => (
+                  <option key={d} value={d}>Day {d}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <label className="block text-[10px] font-bold text-gray-400 ml-1">地點/項目名稱</label>
           <input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-bold focus:ring-2 focus:ring-slate-200 outline-none" />
+          {/* 修改連結欄位 */}
+          <label className="block text-[10px] font-bold text-gray-400 ml-1">相關連結 (URL)</label>
+          <input 
+            type="url" 
+            value={editData.url || ""} 
+            onChange={e => setEditData({...editData, url: e.target.value})} 
+            placeholder="https://..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-slate-200 outline-none" 
+          />
           <label className="block text-[10px] font-bold text-gray-400 ml-1">封面圖片</label>
           <ImageUpload currentImage={editData.imageUrl} onUploadSuccess={url => setEditData({...editData, imageUrl: url})} />
         </div>

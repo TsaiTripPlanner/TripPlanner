@@ -7,20 +7,33 @@ import ReferenceAddForm from "./ReferenceAddForm";
 import ReferenceItem from "./ReferenceItem";
 import SpotDetailModal from "./SpotDetailModal";
 
-const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) => {
+const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder, totalDays }) => {
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState("transport");
   const [viewingDetail, setViewingDetail] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
+  // 交通工具專用的天數過濾狀態 (0 代表全部)
+  const [transportDayFilter, setTransportDayFilter] = useState(0);
+  
   const filteredRefs = useMemo(() => {
     return references.filter(ref => {
-      if (activeTab === "transport") return ref.type === "transport";
-      if (activeTab === "spot") return ref.type === "spot";
-      if (activeTab === "guide") return ref.type === "guide" || ref.type === "link" || !ref.type;
-      return false;
+      // 類別過濾
+      let typeMatch = false;
+      if (activeTab === "transport") typeMatch = ref.type === "transport";
+      else if (activeTab === "spot") typeMatch = ref.type === "spot";
+      else if (activeTab === "guide") typeMatch = ref.type === "guide" || ref.type === "link" || !ref.type;
+      
+      if (!typeMatch) return false;
+
+      // 如果是交通工具，增加天數過濾
+      if (activeTab === "transport" && transportDayFilter !== 0) {
+        return ref.day === transportDayFilter;
+      }
+      
+      return true;
     });
-  }, [references, activeTab]);
+  }, [references, activeTab, transportDayFilter]);
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;
@@ -33,6 +46,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
 
   return (
     <div className="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+       {/* 標題與新增按鈕 */}
       <div className="flex justify-between items-center mb-6">
         <h2 className={`text-xl font-bold flex items-center ${theme.accentText}`}>
           <ICON_SVG.paperClip className="w-6 h-6 mr-2" /> 旅遊參考庫
@@ -64,7 +78,39 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
         ))}
       </div>
 
-      {showAddForm && <ReferenceAddForm activeTab={activeTab} onAdd={(data) => { onAdd(data); setShowAddForm(false); }} theme={theme} />}
+      {/* 交通分頁專用的天數切換列 */}
+      {activeTab === "transport" && (
+        <div className="flex flex-nowrap space-x-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+          <button
+            onClick={() => setTransportDayFilter(0)}
+            className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+              transportDayFilter === 0 ? theme.buttonPrimary + " text-white" : "bg-gray-100 text-gray-400"
+            }`}
+          >
+            全部
+          </button>
+          {Array.from({ length: totalDays }, (_, i) => i + 1).map((d) => (
+            <button
+              key={d}
+              onClick={() => setTransportDayFilter(d)}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+                transportDayFilter === d ? theme.buttonPrimary + " text-white" : "bg-gray-100 text-gray-400"
+              }`}
+            >
+              Day {d}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {showAddForm && (
+        <ReferenceAddForm 
+          activeTab={activeTab} 
+          totalDays={totalDays} // 傳入天數
+          onAdd={(data) => { onAdd(data); setShowAddForm(false); }} 
+          theme={theme} 
+        />
+      )}
 
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="references-list">
@@ -76,6 +122,7 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder }) 
                     <ReferenceItem
                       refData={ref}
                       theme={theme}
+                      totalDays={totalDays}
                       onDelete={onDelete}
                       onUpdate={onUpdate}
                       onView={setViewingDetail}

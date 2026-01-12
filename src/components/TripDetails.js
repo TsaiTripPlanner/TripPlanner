@@ -163,6 +163,7 @@ const TripDetails = ({
         {activeTab === TABS.REFERENCE && (
           <ReferenceSection
             references={references}
+            totalDays={itinerary.durationDays}
             onAdd={addReference}
             onUpdate={updateReference}
             onDelete={deleteReference}
