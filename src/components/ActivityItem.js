@@ -264,7 +264,7 @@ const ActivityItem = memo(
                            <ImageSlider 
                              urls={images} 
                              // 如果活動類型是交通，就用 contain 模式
-                             aspect={activity.type === 'transport' ? "h-auto" : "aspect-video"}
+                             aspect={activity.type === 'transport' ? "h-[300px] sm:h-[450px]" : "aspect-video"}
                              objectFit={activity.type === 'transport' ? "object-contain" : "object-cover"}
                            />
                            </div>

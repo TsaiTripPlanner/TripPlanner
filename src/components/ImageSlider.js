@@ -30,7 +30,7 @@ const ImageSlider = ({
   const isAutoHeight = aspect === "h-auto";
 
   return (
-    <div className={`relative group w-full overflow-hidden rounded-lg bg-gray-100 ${aspect}`}>
+    <div className={`relative group w-full overflow-hidden rounded-lg bg-gray-100 flex items-center justify-center ${aspect} max-h-[70vh] sm:max-h-[500px]`}>
       <img
         src={getOptimizedImageUrl(images[index], 1200)}
         alt={`圖片 ${index + 1}`}
