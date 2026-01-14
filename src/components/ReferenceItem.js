@@ -178,13 +178,13 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
           </div>
           {refData.description && <div className="text-sm text-gray-600 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 leading-relaxed">{refData.description}</div>}
           {/* 交通模式使用 Slider */}
-          <div className="w-full mb-3">
-             <ImageSlider 
-               urls={images} 
-               objectFit="object-contain" // 關鍵：地圖要完整顯示
-              aspect="aspect-auto min-h-[200px] max-h-[400px]" // 讓它根據圖片高度自動調整
-             />
-          </div>
+          <div className="w-full mb-3 flex justify-center bg-gray-50 rounded-lg border border-gray-100">
+           <ImageSlider 
+             urls={images} 
+             objectFit="object-contain" // 確保不裁切
+             aspect="h-auto"            // 隨圖片高度自動調整
+           />
+    </div>
           {refData.url && <a href={refData.url} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-bold shadow-sm transition"><ICON_SVG.link className="w-4 h-4 mr-2" /> 路線連結</a>}
         </div>
       ) : refData.type === 'spot' ? (

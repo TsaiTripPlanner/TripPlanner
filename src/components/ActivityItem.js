@@ -261,7 +261,12 @@ const ActivityItem = memo(
                         <div className="mb-3 rounded-lg overflow-hidden border border-gray-200">
                           {images.length > 0 && (
                            <div className="mt-3">
-                           <ImageSlider urls={images} aspect="aspect-video" />
+                           <ImageSlider 
+                             urls={images} 
+                             // 如果活動類型是交通，就用 contain 模式
+                             aspect={activity.type === 'transport' ? "h-auto" : "aspect-video"}
+                             objectFit={activity.type === 'transport' ? "object-contain" : "object-cover"}
+                           />
                            </div>
                           )}
                         </div>

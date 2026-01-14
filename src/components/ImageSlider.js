@@ -26,12 +26,20 @@ const ImageSlider = ({
     setIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+// 判斷是否為自動高度模式（交通模式常用）
+  const isAutoHeight = aspect === "h-auto";
+
   return (
     <div className={`relative group w-full overflow-hidden rounded-lg bg-gray-100 ${aspect}`}>
       <img
         src={getOptimizedImageUrl(images[index], 1200)}
         alt={`圖片 ${index + 1}`}
-        className={`w-full h-full transition-all duration-300 ${objectFit} cursor-pointer`}
+        // 如果是交通模式(contain)，不強制 w-full，改用 max-w-full 讓它保持原尺寸
+        className={`transition-all duration-300 mx-auto ${
+          objectFit === "object-contain" 
+            ? "max-w-full max-h-full h-auto object-contain" 
+            : "w-full h-full object-cover"
+        } cursor-pointer`}
         onClick={() => onView ? onView(images[index]) : window.open(images[index])}
       />
 
