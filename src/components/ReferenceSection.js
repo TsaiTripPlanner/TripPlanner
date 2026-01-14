@@ -1,5 +1,5 @@
 // src/components/ReferenceSection.js
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, forwardRef } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ICON_SVG } from "../utils/icons";
 import { useTheme } from "../utils/theme";

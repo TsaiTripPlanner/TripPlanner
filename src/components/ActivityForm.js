@@ -37,7 +37,7 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
       endTime: "",
       description: "",
       type: "other",
-      imageUrl: "",
+      imageUrls: [],
     });
   };
 

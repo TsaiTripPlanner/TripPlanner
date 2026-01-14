@@ -182,10 +182,8 @@ const ActivityItem = memo(
                     修改照片/憑證 (選填)
                   </label>
                   <ImageUpload
-                    currentImage={editData.imageUrl}
-                    onUploadSuccess={(url) =>
-                      onEditChange({ target: { name: "imageUrl", value: url } })
-                    }
+                    currentImages={Array.isArray(editData.imageUrl) ? editData.imageUrl : (editData.imageUrl ? [editData.imageUrl] : [])} // 改為 currentImages 並做陣列檢查
+                    onUploadSuccess={(urls) => onEditChange({ target: { name: "imageUrl", value: urls } })} // 傳回 urls 陣列
                   />
                 </div>
 
