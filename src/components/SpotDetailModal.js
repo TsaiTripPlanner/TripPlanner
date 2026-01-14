@@ -19,6 +19,11 @@ const SpotDetailModal = ({ viewingDetail, onClose, theme }) => {
 
   if (!viewingDetail) return null;
 
+    // 統一處理圖片來源 (處理單數與複數欄位名稱的相容性)
+  const rawImages = viewingDetail.imageUrls || viewingDetail.imageUrl || [];
+  const images = Array.isArray(rawImages) ? rawImages : [rawImages].filter(Boolean);
+
+  // 解析內容
   const spotSections = parseSpotContent(viewingDetail.description || "");
 
   return (
@@ -34,12 +39,13 @@ const SpotDetailModal = ({ viewingDetail, onClose, theme }) => {
            <ImageSlider 
              urls={images} 
              aspect="aspect-video" 
-            objectFit="object-contain" // 詳情內建議用 contain 才能看清楚整張照片
+             objectFit="object-contain" // 詳情內建議用 contain 才能看清楚整張照片
+             onView={(url) => window.open(url)}
            />
          </div>
         )}
 
-        {/* 2. 子分頁導覽列 */}
+        {/* 2. 子分頁導覽列(橫向捲動)  */}
         <div className="flex space-x-1 py-2 overflow-x-auto scrollbar-hide border-b border-gray-100 bg-white sticky top-0 z-20 shrink-0">
           {SPOT_SUB_TABS.map(tab => {
             const isSelected = activeSpotTab === tab.id;
