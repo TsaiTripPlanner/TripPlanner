@@ -6,7 +6,10 @@ import { ICON_SVG } from "../utils/icons";
 import { getOptimizedImageUrl } from "../utils/imageUtils";
 import { parseSpotContent, assembleSpotContent, SPOT_SUB_TABS } from "../utils/referenceUtils";
 
-const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleProps, totalDays }) => {
+const ReferenceItem = forwardRef(({ 
+  refData, theme, onDelete, onUpdate, onView, dragHandleProps, totalDays, 
+  ...props // 接收其餘屬性 (包含 draggableProps)
+}, ref) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(refData);
   const [editSections, setEditSections] = useState(parseSpotContent(refData.description));
@@ -162,8 +165,14 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
 
   // --- 顯示模式 ---
   return (
-    <div className="relative bg-white border border-gray-100 rounded-xl overflow-hidden group hover:shadow-md transition">
-      <div {...dragHandleProps} className="absolute left-1 top-1/2 -translate-y-1/2 p-2 text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-grab active:cursor-grabbing">
+    <div 
+       ref={ref} 
+       {...props} 
+       className="relative bg-white border border-gray-100 rounded-xl overflow-hidden group hover:shadow-md transition"
+    >
+      <div 
+       {...dragHandleProps} 
+       className="absolute left-1 top-1/2 -translate-y-1/2 p-2 text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-grab active:cursor-grabbing">
         <ICON_SVG.menu className="w-5 h-5" />
       </div>
 
@@ -223,6 +232,6 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
       )}
     </div>
   );
-};
+});
 
 export default ReferenceItem;

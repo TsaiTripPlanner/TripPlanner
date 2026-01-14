@@ -107,7 +107,10 @@ const ReferenceSection = ({ references, onAdd, onUpdate, onDelete, onReorder, to
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="references-list">
           {(provided) => (
-            <div {...provided.droppableProps} ref={provided.innerRef} className={activeTab === "spot" ? "grid grid-cols-1 sm:grid-cols-2 gap-6" : "space-y-4"}>
+            <div {...provided.droppableProps} 
+              ref={provided.innerRef} 
+              className="space-y-6" 
+            >
               {filteredRefs.map((ref, index) => (
                 <Draggable key={ref.id} draggableId={ref.id} index={index}>
                   {(draggableProvided) => (
