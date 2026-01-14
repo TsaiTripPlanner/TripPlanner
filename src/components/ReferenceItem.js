@@ -1,46 +1,10 @@
 // src/components/ReferenceItem.js
 import React, { useState, useRef } from "react";
 import ImageUpload from "./ImageUpload";
+import ImageSlider from "./ImageSlider";
 import { ICON_SVG } from "../utils/icons";
 import { getOptimizedImageUrl } from "../utils/imageUtils";
 import { parseSpotContent, assembleSpotContent, SPOT_SUB_TABS } from "../utils/referenceUtils";
-
-const ImageSlider = ({ urls, onView }) => {
-  const [index, setIndex] = useState(0);
-  if (!urls || urls.length === 0) return null;
-
-  const next = (e) => {
-    e.stopPropagation();
-    setIndex((prev) => (prev + 1) % urls.length);
-  };
-  const prev = (e) => {
-    e.stopPropagation();
-    setIndex((prev) => (prev - 1 + urls.length) % urls.length);
-  };
-
-  return (
-    <div className="relative group w-full h-full">
-      <img 
-        src={getOptimizedImageUrl(urls[index], 800)} 
-        className="w-full h-full object-cover cursor-pointer" 
-        onClick={() => onView && onView()} 
-      />
-      {urls.length > 1 && (
-        <>
-          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition">
-            <ICON_SVG.arrowLeft className="w-5 h-5" />
-          </button>
-          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition">
-            <div className="rotate-180"><ICON_SVG.arrowLeft className="w-5 h-5" /></div>
-          </button>
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full">
-            {index + 1} / {urls.length}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
 
 const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleProps, totalDays }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -215,14 +179,18 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
           {refData.description && <div className="text-sm text-gray-600 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 leading-relaxed">{refData.description}</div>}
           {/* 交通模式使用 Slider */}
           <div className="w-full mb-3">
-             <ImageSlider urls={images} onView={() => window.open(images[0])} />
+             <ImageSlider 
+               urls={images} 
+               objectFit="object-contain" // 關鍵：地圖要完整顯示
+              aspect="aspect-auto min-h-[200px] max-h-[400px]" // 讓它根據圖片高度自動調整
+             />
           </div>
           {refData.url && <a href={refData.url} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-bold shadow-sm transition"><ICON_SVG.link className="w-4 h-4 mr-2" /> 路線連結</a>}
         </div>
       ) : refData.type === 'spot' ? (
         <div className="flex flex-col h-full pl-2">
           {/* 景點模式使用 Slider */}
-          <div className="aspect-video w-full overflow-hidden bg-gray-100">
+          <div className="w-full">
              <ImageSlider urls={images} onView={() => onView(refData)} />
           </div>
           <div className="p-4 flex flex-col flex-grow">

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "./Modal";
 import SmartText from "./SmartText";
+import ImageSlider from "./ImageSlider";
 import { ICON_SVG } from "../utils/icons";
 import { getOptimizedImageUrl } from "../utils/imageUtils";
 import { SPOT_SUB_TABS, parseSpotContent } from "../utils/referenceUtils";
@@ -29,14 +30,13 @@ const SpotDetailModal = ({ viewingDetail, onClose, theme }) => {
       <div className="flex flex-col min-h-[400px] max-h-[75vh] overflow-hidden bg-white">
         {/* 1. 頂部大圖 */}
         {viewingDetail.imageUrl && (
-          <div className="shrink-0 h-44 sm:h-52 overflow-hidden rounded-xl shadow-sm mb-4">
-            <img 
-              src={getOptimizedImageUrl(viewingDetail.imageUrl, 1600)} 
-              className="w-full h-full object-cover cursor-zoom-in" 
-              alt="景點大圖" 
-              onClick={() => window.open(viewingDetail.imageUrl)}
-            />
-          </div>
+          <div className="shrink-0 mb-4 bg-gray-100 rounded-xl overflow-hidden">
+           <ImageSlider 
+             urls={images} 
+             aspect="aspect-video" 
+            objectFit="object-contain" // 詳情內建議用 contain 才能看清楚整張照片
+           />
+         </div>
         )}
 
         {/* 2. 子分頁導覽列 */}

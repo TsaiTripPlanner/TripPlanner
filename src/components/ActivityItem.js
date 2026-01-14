@@ -2,6 +2,7 @@
 import React, { memo, useState } from "react";
 import ImageUpload from "./ImageUpload";
 import SmartText from "./SmartText";
+import ImageSlider from "./ImageSlider";
 import { ICON_SVG } from "../utils/icons";
 import { ACTIVITY_TYPES } from "../utils/constants";
 import { useTheme } from "../utils/theme";
@@ -258,15 +259,11 @@ const ActivityItem = memo(
                     <div className="mt-3 pt-2 border-t border-gray-100 animate-fade-in">
                       {activity.imageUrl && (
                         <div className="mb-3 rounded-lg overflow-hidden border border-gray-200">
-                          <img
-                            src={getOptimizedImageUrl(activity.imageUrl, 1200)}
-                            alt="活動照片"
-                            className="w-full h-auto max-h-60 object-cover cursor-zoom-in"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open(activity.imageUrl);
-                            }}
-                          />
+                          {images.length > 0 && (
+                           <div className="mt-3">
+                           <ImageSlider urls={images} aspect="aspect-video" />
+                           </div>
+                          )}
                         </div>
                       )}
                       {activity.description && (
