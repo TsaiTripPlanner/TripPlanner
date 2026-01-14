@@ -5,14 +5,57 @@ import { ICON_SVG } from "../utils/icons";
 import { getOptimizedImageUrl } from "../utils/imageUtils";
 import { parseSpotContent, assembleSpotContent, SPOT_SUB_TABS } from "../utils/referenceUtils";
 
+const ImageSlider = ({ urls, onView }) => {
+  const [index, setIndex] = useState(0);
+  if (!urls || urls.length === 0) return null;
+
+  const next = (e) => {
+    e.stopPropagation();
+    setIndex((prev) => (prev + 1) % urls.length);
+  };
+  const prev = (e) => {
+    e.stopPropagation();
+    setIndex((prev) => (prev - 1 + urls.length) % urls.length);
+  };
+
+  return (
+    <div className="relative group w-full h-full">
+      <img 
+        src={getOptimizedImageUrl(urls[index], 800)} 
+        className="w-full h-full object-cover cursor-pointer" 
+        onClick={() => onView && onView()} 
+      />
+      {urls.length > 1 && (
+        <>
+          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition">
+            <ICON_SVG.arrowLeft className="w-5 h-5" />
+          </button>
+          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition">
+            <div className="rotate-180"><ICON_SVG.arrowLeft className="w-5 h-5" /></div>
+          </button>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full">
+            {index + 1} / {urls.length}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleProps, totalDays }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(refData);
   const [editSections, setEditSections] = useState(parseSpotContent(refData.description));
   const [activeEditTab, setActiveEditTab] = useState('info');
   const editTextareaRef = useRef(null);
+  const [imgIndex, setImgIndex] = useState(0);
 
-  // --- 工具列邏輯 ---
+  // 處理圖片相容性 (將單一字串或陣列統一轉成陣列) 
+  const images = Array.isArray(refData.imageUrl) 
+    ? refData.imageUrl 
+    : (refData.imageUrl ? [refData.imageUrl] : []);
+
+  // --- 工具列與儲存邏輯 ---
   const handleToolbarClick = (tagType) => {
     const textarea = editTextareaRef.current;
     if (!textarea) return;
@@ -52,7 +95,7 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
 
   const handleSave = () => {
     const finalDesc = refData.type === 'spot' ? assembleSpotContent(editSections) : editData.description;
-    onUpdate(refData.id, { ...editData, description: finalDesc });
+    onUpdate(refData.id, { ...editData, description: finalDesc, imageUrl: editData.imageUrl });
     setIsEditing(false);
   };
 
@@ -96,7 +139,10 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-slate-200 outline-none" 
           />
           <label className="block text-[10px] font-bold text-gray-400 ml-1">封面圖片</label>
-          <ImageUpload currentImage={editData.imageUrl} onUploadSuccess={url => setEditData({...editData, imageUrl: url})} />
+          <ImageUpload 
+           currentImages={Array.isArray(editData.imageUrl) ? editData.imageUrl : (editData.imageUrl ? [editData.imageUrl] : [])} 
+           onUploadSuccess={urls => setEditData({...editData, imageUrl: urls})}
+          />
         </div>
 
         {refData.type === 'spot' ? (
@@ -167,13 +213,17 @@ const ReferenceItem = ({ refData, theme, onDelete, onUpdate, onView, dragHandleP
             </div>
           </div>
           {refData.description && <div className="text-sm text-gray-600 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border border-slate-100 mb-3 leading-relaxed">{refData.description}</div>}
-          {refData.imageUrl && <img src={getOptimizedImageUrl(refData.imageUrl, 2000)} className="w-full h-auto max-h-[400px] object-contain mx-auto rounded-lg mb-3 cursor-zoom-in" onClick={() => window.open(refData.imageUrl)} />}
+          {/* 交通模式使用 Slider */}
+          <div className="w-full mb-3">
+             <ImageSlider urls={images} onView={() => window.open(images[0])} />
+          </div>
           {refData.url && <a href={refData.url} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-bold shadow-sm transition"><ICON_SVG.link className="w-4 h-4 mr-2" /> 路線連結</a>}
         </div>
       ) : refData.type === 'spot' ? (
         <div className="flex flex-col h-full pl-2">
+          {/* 景點模式使用 Slider */}
           <div className="aspect-video w-full overflow-hidden bg-gray-100">
-            {refData.imageUrl && <img src={getOptimizedImageUrl(refData.imageUrl, 800)} className="w-full h-full object-cover cursor-pointer" onClick={() => onView(refData)} />}
+             <ImageSlider urls={images} onView={() => onView(refData)} />
           </div>
           <div className="p-4 flex flex-col flex-grow">
             <div className="flex justify-between items-start mb-2">

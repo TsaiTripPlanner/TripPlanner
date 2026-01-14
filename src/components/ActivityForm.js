@@ -14,7 +14,7 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
     endTime: "",
     description: "",
     type: "other",
-    imageUrl: "",
+    imageUrls: [],
   });
   const [error, setError] = useState("");
 
@@ -113,9 +113,9 @@ const ActivityForm = ({ onSubmit, isSubmitting }) => {
           景點/商品照片 (選填)
         </label>
         <ImageUpload
-          currentImage={formData.imageUrl}
-          onUploadSuccess={(url) => setFormData({ ...formData, imageUrl: url })}
-        />
+          currentImages={formData.imageUrls}
+          onUploadSuccess={(urls) => setFormData({ ...formData, imageUrls: urls })}
+/>
       </div>
       <textarea
         name="description"

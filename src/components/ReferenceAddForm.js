@@ -12,7 +12,7 @@ const ReferenceAddForm = ({ activeTab, onAdd, theme, totalDays }) => {
   const [newData, setNewData] = useState({ 
     title: "", 
     url: "", 
-    imageUrl: "", 
+    imageUrls: [], 
     description: "", 
     day: 1 // 預設第一天
   });
@@ -86,7 +86,10 @@ const ReferenceAddForm = ({ activeTab, onAdd, theme, totalDays }) => {
 
       {/* 標題輸入框 */}
       <input type="text" placeholder="標題 *" value={newData.title} onChange={e => setNewData({...newData, title: e.target.value})} className="w-full px-3 py-2 border rounded-md text-sm outline-none" />
-      <ImageUpload currentImage={newData.imageUrl} onUploadSuccess={url => setNewData({...newData, imageUrl: url})} />
+      <ImageUpload 
+        currentImages={newData.imageUrls} // 注意名稱變為 currentImages
+        onUploadSuccess={urls => setNewData({...newData, imageUrls: urls})} 
+      />
 
       {activeTab === 'spot' ? (
         <div className="mt-4">
