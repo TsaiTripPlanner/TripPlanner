@@ -276,27 +276,28 @@ const App = () => {
         </div>
       </div>
 
-      {!itineraryId ? (
-        <ItineraryList
-          allItineraries={allItineraries}
-          onSelect={(id) => setItineraryId(id)}
-          onDelete={handleDeleteClick}
-          onEdit={openEditItineraryModal}
-          onOpenCreateModal={() => setIsCreatingItinerary(true)}
-        />
-      ) : currentItinerary ? (
-        <Suspense fallback={<LoadingSpinner />}>
-          <TripDetails
-            userId={userId}
-            itinerary={currentItinerary}
-            allItineraries={allItineraries}
-            onBack={() => setItineraryId(null)}
-            onUpdateTitle={handleDetailTitleUpdate}
-          />
-        </Suspense>
-      ) : (
-        setItineraryId(null)
-      )}
+      {itineraryId && currentItinerary ? (
+  <Suspense fallback={<LoadingSpinner />}>
+    <TripDetails
+      userId={userId}
+      itinerary={currentItinerary}
+      allItineraries={allItineraries}
+      onBack={() => setItineraryId(null)}
+      onUpdateTitle={handleDetailTitleUpdate}
+    />
+  </Suspense>
+) : itineraryId && !isItinerariesLoading ? (
+  // 如果 ID 存在，且資料已經跑完卻找不到該行程，才重設為 null
+  setItineraryId(null) || null
+) : (
+  <ItineraryList
+    allItineraries={allItineraries}
+    onSelect={(id) => setItineraryId(id)}
+    onDelete={handleDeleteClick}
+    onEdit={openEditItineraryModal}
+    onOpenCreateModal={() => setIsCreatingItinerary(true)}
+  />
+)}
 
       {/* 建立新行程 Modal */}
       <Modal

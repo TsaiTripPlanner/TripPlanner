@@ -1,5 +1,5 @@
 // src/components/ReferenceItem.js
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, forwardRef } from "react";
 import ImageUpload from "./ImageUpload";
 import ImageSlider from "./ImageSlider";
 import { ICON_SVG } from "../utils/icons";
