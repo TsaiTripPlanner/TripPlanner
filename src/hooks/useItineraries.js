@@ -69,6 +69,7 @@ export const useItineraries = (userId) => {
         title: data.title.trim(),
         durationDays: Number(data.days),
         startDate: data.startDate,
+        travelerCount: data.travelerCount || 1, // 確保有預設人數
         createdAt: serverTimestamp(),
       });
     },
@@ -95,28 +96,35 @@ export const useItineraries = (userId) => {
   const deleteItinerary = useCallback(
     async (itineraryId) => {
       try {
-        const activitiesRef = collection(
-          db,
-          `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/activities`
-        );
-        const actSnap = await getDocs(activitiesRef);
-
         const batch = writeBatch(db);
-        actSnap.docs.forEach((doc) => batch.delete(doc.ref));
+        const basePath = `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}`;
 
-        const catsRef = collection(
-          db,
-          `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}/listCategories`
-        );
-        const catSnap = await getDocs(catsRef);
-        catSnap.docs.forEach((doc) => batch.delete(doc.ref));
+        // 需要清理的所有子集合名稱
+        const subCollections = [
+          "activities",
+          "listCategories",
+          "packingItems",
+          "expenses",
+          "references"
+        ];
 
-        batch.delete(
-          doc(db, `artifacts/${appId}/users/${userId}/itineraries`, itineraryId)
-        );
+        // 遞迴刪除所有子集合中的文件
+        for (const subName of subCollections) {
+          const subRef = collection(db, `${basePath}/${subName}`);
+          const snapshot = await getDocs(subRef);
+          snapshot.docs.forEach((d) => {
+            batch.delete(d.ref);
+          });
+        }
+
+        // 最後刪除行程主文件
+        const itineraryRef = doc(db, `artifacts/${appId}/users/${userId}/itineraries`, itineraryId);
+        batch.delete(itineraryRef);
+
         await batch.commit();
+        console.log("行程及其相關資料已完整刪除");
       } catch (e) {
-        console.error("刪除行程失敗", e);
+        console.error("完整刪除行程失敗", e);
         throw e;
       }
     },
