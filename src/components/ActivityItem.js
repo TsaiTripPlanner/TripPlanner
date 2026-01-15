@@ -27,6 +27,10 @@ const ActivityItem = memo(
     const { theme } = useTheme();
     const [isExpanded, setIsExpanded] = useState(false);
 
+    const images = Array.isArray(activity.imageUrl) 
+     ? activity.imageUrl 
+     : (activity.imageUrl ? [activity.imageUrl] : []);
+
     const duration = calculateDuration(activity.startTime, activity.endTime);
     const typeData =
       ACTIVITY_TYPES.find((t) => t.id === (activity.type || "other")) ||
