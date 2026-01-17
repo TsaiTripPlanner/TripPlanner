@@ -20,7 +20,7 @@ const SpotDetailModal = ({ viewingDetail, onClose, theme }) => {
   if (!viewingDetail) return null;
 
     // 統一處理圖片來源 (處理單數與複數欄位名稱的相容性)
-  const rawImages = viewingDetail.imageUrls || viewingDetail.imageUrl || [];
+  const rawImages = viewingDetail.imageUrl || [];
   const images = Array.isArray(rawImages) ? rawImages : [rawImages].filter(Boolean);
 
   // 解析內容
