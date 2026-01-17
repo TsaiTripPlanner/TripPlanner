@@ -434,6 +434,23 @@ const BudgetSection = memo(
                                  </button>
                                )}
                              </div>
+                             {/* 幣別下拉選單 */}
+    <select
+      value={editData.currency}
+      onChange={(e) =>
+        setEditData({
+          ...editData,
+          currency: e.target.value,
+        })
+      }
+      className="w-16 shrink-0 px-1 py-2 border border-gray-300 rounded bg-white text-sm text-center"
+    >
+      {CURRENCIES.map((c) => (
+        <option key={c} value={c}>
+          {c}
+        </option>
+      ))}
+    </select>
                              <div className="flex gap-1 shrink-0">
                                <button
                                  onClick={() => saveEdit(item.id)}
