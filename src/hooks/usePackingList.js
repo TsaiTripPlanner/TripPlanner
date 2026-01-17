@@ -219,7 +219,7 @@ export const usePackingList = (userId, itineraryId, isEnabled) => {
 
   const deleteItem = useCallback(
     async (itemId) => {
-      if (!itineraryId) return;
+      if (!itineraryId || !itemId) return;
       // --- 樂觀更新開始 ---
       const previousItems = [...allItems];
       setAllItems((prevItems) =>

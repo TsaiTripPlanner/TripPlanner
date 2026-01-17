@@ -69,8 +69,11 @@ const ListSection = memo(
 
     const handleConfirmDelete = () => {
       if (!deleteConfig) return;
-      if (deleteConfig.type === "category") deleteCategory(deleteConfig.id);
-      else deleteItem(deleteConfig.categoryId, deleteConfig.itemId);
+      if (deleteConfig.type === "category") {
+    deleteCategory(deleteConfig.id);
+  } else {
+    deleteItem(deleteConfig.itemId); 
+  }
       setDeleteConfig(null);
     };
 
