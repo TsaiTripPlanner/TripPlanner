@@ -64,6 +64,7 @@ const ImageUpload = ({ onUploadSuccess, currentImages = [] }) => {
     if (files.length > 0) {
       // 如果貼上的是圖片，攔截預設行為
       e.preventDefault(); 
+      e.stopPropagation();
       processAndUploadFiles(files);
     }
     }

@@ -88,7 +88,7 @@ const ReferenceAddForm = ({ activeTab, onAdd, theme, totalDays }) => {
       <input type="text" placeholder="標題 *" value={newData.title} onChange={e => setNewData({...newData, title: e.target.value})} className="w-full px-3 py-2 border rounded-md text-sm outline-none" />
       <ImageUpload 
         currentImages={newData.imageUrl}
-        onUploadSuccess={urls => setNewData({...newData, imageUrls: urls})} 
+        onUploadSuccess={urls => setNewData({...newData, imageUrl: urls})} 
       />
 
       {activeTab === 'spot' ? (
