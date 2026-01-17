@@ -52,7 +52,7 @@ const BudgetSection = memo(
           data.sort((a, b) =>
             a.day !== b.day
               ? a.day - b.day
-              : (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+              : (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)
           );
           setExpenses(data);
         }
