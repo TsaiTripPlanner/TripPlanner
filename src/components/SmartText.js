@@ -40,7 +40,7 @@ const SmartText = ({ text, className = "" }) => {
             <div key={lineIdx} className="flex items-start mb-1.5 ml-1">
               <span className={`mr-2 mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${theme.buttonPrimary} opacity-70`}></span>
               <span className={`text-sm ${theme.textMain}`}>
-                {renderInline(line.replace("- ", ""))}</span>
+                {renderInline(line.replace("- ", ""), theme)}</span>
             </div>
           );
         }
@@ -48,7 +48,7 @@ const SmartText = ({ text, className = "" }) => {
         // 5. 一般行
         return (
           <p key={lineIdx} className={`text-sm mb-1.5 break-all ${theme.textMain} leading-relaxed`}>
-    {renderInline(line)}
+    {renderInline(line, theme)}
   </p>
         );
       })}
