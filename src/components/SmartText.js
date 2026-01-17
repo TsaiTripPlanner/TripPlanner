@@ -39,7 +39,8 @@ const SmartText = ({ text, className = "" }) => {
           return (
             <div key={lineIdx} className="flex items-start mb-1.5 ml-1">
               <span className={`mr-2 mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${theme.buttonPrimary} opacity-70`}></span>
-              <span className="text-sm text-gray-600">{renderInline(line.replace("- ", ""))}</span>
+              <span className={`text-sm ${theme.textMain}`}>
+                {renderInline(line.replace("- ", ""))}</span>
             </div>
           );
         }
@@ -56,13 +57,13 @@ const SmartText = ({ text, className = "" }) => {
 };
 
 // 提取行內解析邏輯 (粗體、連結)
-function renderInline(text) {
+function renderInline(text, theme) {
   const parts = text.split(/(\*\*.*?\*\*|https?:\/\/[^\s]+)/g);
   return parts.map((part, pIdx) => {
     if (!part) return null;
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
-       <strong key={pIdx} className="font-black text-slate-950 mx-0.5">
+       <strong key={pIdx} className={`font-bold ${theme.accentText} mx-0.5`}>
           {part.slice(2, -2)}
        </strong>
       );
