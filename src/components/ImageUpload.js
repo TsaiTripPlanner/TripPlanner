@@ -11,7 +11,7 @@ const ImageUpload = ({ onUploadSuccess, currentImages = [] }) => {
   const CLOUD_NAME = "demuglp1j";
   const UPLOAD_PRESET = "Trip Photo";
 
-  // 統一處理上傳邏輯 (支援單張或多張)
+  // 核心上傳邏輯 (支援單張或多張)
   const processAndUploadFiles = async (files) => {
     if (!files || files.length === 0) return;
     setIsUploading(true);
@@ -52,16 +52,21 @@ const ImageUpload = ({ onUploadSuccess, currentImages = [] }) => {
   // 處理檔案選取
   const handleFileChange = (e) => processAndUploadFiles(e.target.files);
 
-  // 處理「貼上」事件 (Ctrl+V)
+  // 貼上功能 (Ctrl+V)
   const handlePaste = (e) => {
     const items = e.clipboardData.items;
     const files = [];
+
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.indexOf("image") !== -1) {
         files.push(items[i].getAsFile());
-      }
     }
-    if (files.length > 0) processAndUploadFiles(files);
+    if (files.length > 0) {
+      // 如果貼上的是圖片，攔截預設行為
+      e.preventDefault(); 
+      processAndUploadFiles(files);
+    }
+    }
   };
 
   const removeImage = (indexToRemove) => {
@@ -70,7 +75,8 @@ const ImageUpload = ({ onUploadSuccess, currentImages = [] }) => {
   };
 
   return (
-    <div className="mt-2" onPaste={handlePaste}>
+    // tabIndex="0" 讓這區塊可以接收貼上事件
+    <div className="mt-2 outline-none" onPaste={handlePaste} tabIndex="0">
       {/* 圖片預覽區域 (橫向捲動) */}
       <div className="flex flex-wrap gap-2 mb-2">
         {currentImages.map((url, idx) => (
