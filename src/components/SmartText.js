@@ -46,9 +46,9 @@ const SmartText = ({ text, className = "" }) => {
 
         // 5. 一般行
         return (
-          <p key={lineIdx} className="text-sm mb-1.5 break-all text-gray-500 leading-relaxed">
-            {renderInline(line)}
-          </p>
+          <p key={lineIdx} className={`text-sm mb-1.5 break-all ${theme.textMain} leading-relaxed`}>
+    {renderInline(line)}
+  </p>
         );
       })}
     </div>
