@@ -31,7 +31,9 @@ const ActivityItem = memo(
      ? activity.imageUrl 
      : (activity.imageUrl ? [activity.imageUrl] : []);
 
-    const duration = calculateDuration(activity.startTime, activity.endTime);
+    const hasContent = (activity.description?.trim().length > 0) || (images.length > 0);
+
+     const duration = calculateDuration(activity.startTime, activity.endTime);
     const typeData =
       ACTIVITY_TYPES.find((t) => t.id === (activity.type || "other")) ||
       ACTIVITY_TYPES.find((t) => t.id === "other");
@@ -89,7 +91,7 @@ const ActivityItem = memo(
         <div className={`flex-grow min-w-0 pb-8 sm:ml-4`}>
           <div
             className={cardClasses}
-            onClick={() => !isEditing && setIsExpanded(!isExpanded)}
+            onClick={() => !isEditing && hasContent && setIsExpanded(!isExpanded)}
           >
             {isEditing ? (
               // === 編輯模式 ===
@@ -281,15 +283,15 @@ const ActivityItem = memo(
                     </div>
                   )}
 
-                  {(activity.description || activity.imageUrl) && (
-                    <div className="mt-1 text-center">
-                      {isExpanded ? (
-                        <ICON_SVG.chevronUp className="w-4 h-4 text-gray-300 mx-auto" />
-                      ) : (
-                        <ICON_SVG.chevronDown className="w-4 h-4 text-gray-300 mx-auto" />
-                      )}
-                    </div>
-                  )}
+                  {hasContent && (
+                   <div className="mt-1 text-center">
+                     {isExpanded ? (
+                       <ICON_SVG.chevronUp className="w-4 h-4 text-gray-300 mx-auto" />
+                     ) : (
+                       <ICON_SVG.chevronDown className="w-4 h-4 text-gray-300 mx-auto" />
+                     )}
+                   </div>
+                 )}
                 </div>
 
                 {/* 按鈕區 */}
