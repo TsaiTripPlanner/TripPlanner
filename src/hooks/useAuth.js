@@ -14,6 +14,37 @@ export const useAuth = () => {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [authError, setAuthError] = useState("");
 
+  // 取得最後一次成功登入的使用者資訊（離線恢復用）
+  const getCachedUser = () => {
+    const uid = localStorage.getItem("last_known_uid");
+    if (!uid) return null;
+
+    const email = localStorage.getItem("last_known_email");
+    const isAnonymous = localStorage.getItem("last_known_is_anonymous") === "true";
+
+    return {
+      uid,
+      email: email || null,
+      isAnonymous,
+    };
+  };
+
+  // 把目前登入的使用者資訊存起來，供離線時恢復
+  const cacheUser = (currentUser) => {
+    localStorage.setItem("last_known_uid", currentUser.uid);
+    localStorage.setItem("last_known_email", currentUser.email || "");
+    localStorage.setItem(
+      "last_known_is_anonymous",
+      String(currentUser.isAnonymous)
+    );
+  };
+
+  const clearCachedUser = () => {
+    localStorage.removeItem("last_known_uid");
+    localStorage.removeItem("last_known_email");
+    localStorage.removeItem("last_known_is_anonymous");
+  };
+
   // 封裝登入邏輯，方便「手動」與「自動」調用
   const performLogin = async (cleanCode) => {
     const fakeEmail = `${cleanCode}@trip.local`;
@@ -21,7 +52,6 @@ export const useAuth = () => {
 
     try {
       await signInWithEmailAndPassword(auth, fakeEmail, fakePassword);
-      // 登入成功，存入本地，下次免輸入
       localStorage.setItem("remembered_trip_code", cleanCode);
     } catch (error) {
       if (
@@ -44,25 +74,37 @@ export const useAuth = () => {
     if (!auth) return;
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      // 如果完全沒登入過
       if (!currentUser) {
         const savedCode = localStorage.getItem("remembered_trip_code");
 
-        if (savedCode) {
-          // 有舊密碼，嘗試自動登入
-          try {
+        try {
+          if (savedCode) {
             await performLogin(savedCode);
-          } catch (e) {
-            // 如果舊密碼失效（例如帳號被刪除），就走匿名流程
-            signInAnonymously(auth);
+          } else {
+            // 離線時這裡通常會噴 auth/network-request-failed
+            await signInAnonymously(auth);
           }
-        } else {
-          // 真的沒登入過也沒存過密碼，走匿名流程
-          signInAnonymously(auth);
+        } catch (e) {
+          console.warn("Auth 失敗（可能處於離線狀態）：", e.message);
+
+          // 嘗試從 localStorage 恢復最後一次的使用者狀態，
+          // 讓離線時畫面不會卡在 loading
+          const cached = getCachedUser();
+          if (cached) {
+            console.log("正在從快取恢復使用者身份以進行離線瀏覽");
+            setUser(cached);
+          }
+
+          setIsAuthReady(true);
+          return;
         }
       }
 
-      setUser(currentUser);
+      if (currentUser) {
+        cacheUser(currentUser);
+        setUser(currentUser);
+      }
+
       setIsAuthReady(true);
     });
 
@@ -77,11 +119,14 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
-      // 登出時清除「記住我」的紀錄
       localStorage.removeItem("remembered_trip_code");
+      clearCachedUser();
       await signOut(auth);
     } catch (error) {
       console.error(error);
+    } finally {
+      // 確保畫面狀態同步清除，即使離線時 onAuthStateChanged 沒有觸發
+      setUser(null);
     }
   };
 
