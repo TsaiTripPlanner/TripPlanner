@@ -188,17 +188,16 @@ export const usePackingList = (userId, itineraryId, isEnabled) => {
   const toggleItemCompletion = useCallback(
     async (itemId, isCompleted) => {
       if (!itineraryId) return;
-      // --- 樂觀更新開始 ---
-      // 先記錄舊的資料，以防萬一要回滾
-      const previousItems = [...allItems];
-
-      // 立即更新本地狀態（使用者會看到立刻打勾/取消）
-      setAllItems((prevItems) =>
-        prevItems.map((item) =>
+      // 用一個區域變數來接住 functional update callback 裡的舊值，
+      // 不再需要從外部閉包讀取 allItems
+      let previousItems;
+      setAllItems((prevItems) => {
+        previousItems = prevItems;
+        return prevItems.map((item) =>
           item.id === itemId ? { ...item, isCompleted } : item
-        )
-      );
-      // --- 樂觀更新結束 ---
+        );
+      });
+
       try {
         await updateDoc(
           doc(
@@ -214,18 +213,19 @@ export const usePackingList = (userId, itineraryId, isEnabled) => {
         alert("網路連線不穩定，請重試");
       }
     },
-    [itineraryId, userId, allItems]
+    [itineraryId, userId]
   );
 
   const deleteItem = useCallback(
     async (itemId) => {
       if (!itineraryId || !itemId) return;
-      // --- 樂觀更新開始 ---
-      const previousItems = [...allItems];
-      setAllItems((prevItems) =>
-        prevItems.filter((item) => item.id !== itemId)
-      );
-      // --- 樂觀更新結束 ---
+      
+      let previousItems;
+      setAllItems((prevItems) => {
+        previousItems = prevItems;
+        return prevItems.filter((item) => item.id !== itemId);
+      });
+
       try {
         await deleteDoc(
           doc(
@@ -238,7 +238,7 @@ export const usePackingList = (userId, itineraryId, isEnabled) => {
         setAllItems(previousItems); // 失敗則回滾
       }
     },
-    [itineraryId, userId, allItems]
+    [itineraryId, userId]
   );
 
   // ★★★ 修改後的：從其他行程匯入清單 (保證順序版)
