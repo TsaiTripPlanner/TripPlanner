@@ -1,5 +1,5 @@
 // src/hooks/useAuth.js
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   signInAnonymously,
   onAuthStateChanged,
@@ -45,19 +45,14 @@ export const useAuth = () => {
     localStorage.removeItem("last_known_is_anonymous");
   };
 
-  // 封裝登入邏輯，方便「手動」與「自動」調用
-  const performLogin = async (cleanCode) => {
+  const performLogin = useCallback(async (cleanCode) => {
     const fakeEmail = `${cleanCode}@trip.local`;
     const fakePassword = `code_${cleanCode}`;
-
     try {
       await signInWithEmailAndPassword(auth, fakeEmail, fakePassword);
       localStorage.setItem("remembered_trip_code", cleanCode);
     } catch (error) {
-      if (
-        error.code === "auth/user-not-found" ||
-        error.code === "auth/invalid-credential"
-      ) {
+      if (error.code === "auth/user-not-found" || error.code === "auth/invalid-credential") {
         try {
           await createUserWithEmailAndPassword(auth, fakeEmail, fakePassword);
           localStorage.setItem("remembered_trip_code", cleanCode);
@@ -68,7 +63,7 @@ export const useAuth = () => {
         throw new Error("登入失敗: " + error.message);
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!auth) return;
@@ -109,7 +104,7 @@ export const useAuth = () => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [performLogin]);
 
   const loginWithCode = async (accessCode) => {
     const cleanCode = accessCode.trim().replace(/\s+/g, "").toLowerCase();
