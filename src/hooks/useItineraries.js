@@ -1,3 +1,4 @@
+// src/hooks/useItineraries.js
 import { useState, useEffect, useCallback } from "react";
 import {
   collection,
@@ -14,6 +15,7 @@ import {
   limit,
 } from "firebase/firestore";
 import { db, appId } from "../config/firebase";
+import { getTodayStr } from "../utils/dateUtils";
 
 export const useItineraries = (userId) => {
   const [allItineraries, setAllItineraries] = useState([]);
@@ -68,7 +70,7 @@ export const useItineraries = (userId) => {
       await addDoc(itinerariesColRef, {
         title: data.title.trim(),
         durationDays: Number(data.days),
-        startDate: data.startDate,
+        startDate: data.startDate || getTodayStr(), // 空字串時 fallback 成今天
         travelerCount: data.travelerCount || 1, // 確保有預設人數
         createdAt: serverTimestamp(),
       });
@@ -79,13 +81,16 @@ export const useItineraries = (userId) => {
   // 3. 更新行程 (包含更新標題、天數、日期)
   const updateItinerary = useCallback(
     async (itineraryId, data) => {
-      // data 包含要更新的欄位，例如 { title: "新標題" }
       const itineraryRef = doc(
         db,
         `artifacts/${appId}/users/${userId}/itineraries/${itineraryId}`
       );
+      const sanitizedData = { ...data };
+      if ("startDate" in sanitizedData && !sanitizedData.startDate) {
+        sanitizedData.startDate = getTodayStr();
+      }
       await updateDoc(itineraryRef, {
-        ...data,
+        ...sanitizedData,
         updatedAt: serverTimestamp(),
       });
     },
