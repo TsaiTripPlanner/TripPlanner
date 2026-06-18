@@ -54,21 +54,21 @@ const ImageUpload = ({ onUploadSuccess, currentImages = [] }) => {
 
   // 貼上功能 (Ctrl+V)
   const handlePaste = (e) => {
-    const items = e.clipboardData.items;
-    const files = [];
+  const items = e.clipboardData.items;
+  const files = [];
 
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf("image") !== -1) {
-        files.push(items[i].getAsFile());
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf("image") !== -1) {
+      files.push(items[i].getAsFile());
     }
-    if (files.length > 0) {
-      // 如果貼上的是圖片，攔截預設行為
-      e.preventDefault(); 
-      e.stopPropagation();
-      processAndUploadFiles(files);
-    }
-    }
-  };
+  }
+
+  if (files.length > 0) {
+    e.preventDefault();
+    e.stopPropagation();
+    processAndUploadFiles(files);
+  }
+};
 
   const removeImage = (indexToRemove) => {
     const filtered = currentImages.filter((_, idx) => idx !== indexToRemove);
