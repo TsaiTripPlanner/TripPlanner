@@ -63,6 +63,8 @@ const App = () => {
 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  
+  const currentItinerary = allItineraries.find((i) => i.id === itineraryId);
 
   useEffect(() => {
     // 當 isAnonymous 變成 false，代表登入成功
@@ -70,6 +72,13 @@ const App = () => {
       setIsLoginModalOpen(false);
     }
   }, [isAnonymous]);
+
+  // 行程已被刪除或不存在時，自動退回列表
+  useEffect(() => {
+    if (itineraryId && !isItinerariesLoading && !currentItinerary) {
+      setItineraryId(null);
+    }
+  }, [itineraryId, isItinerariesLoading, currentItinerary]);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -179,8 +188,6 @@ const App = () => {
       </div>
     );
 
-  const currentItinerary = allItineraries.find((i) => i.id === itineraryId);
-
   return (
     <div
       className={`min-h-screen ${theme.background} ${theme.textMain} ${theme.font} p-4 sm:p-8 pb-28 relative transition-colors duration-500`}
@@ -287,8 +294,9 @@ const App = () => {
     />
   </Suspense>
 ) : itineraryId && !isItinerariesLoading ? (
-  // 如果 ID 存在，且資料已經跑完卻找不到該行程，才重設為 null
-  setItineraryId(null) || null
+  // 資料已載入但找不到該行程，useEffect 正在背景把 itineraryId 重設為 null，
+  // 這裡顯示讀取動畫，避免畫面閃爍或短暫顯示空白
+  <LoadingSpinner />
 ) : (
   <ItineraryList
     allItineraries={allItineraries}
